@@ -1,10 +1,10 @@
-# OmniCite
+# OneCite
 
 <div align="center">
 
 **Universal Citation Management & Academic Reference Toolkit**
 
-[![PyPI version](https://img.shields.io/pypi/v/omnicite.svg)](https://pypi.org/project/omnicite/)
+[![PyPI version](https://img.shields.io/pypi/v/onecite.svg)](https://pypi.org/project/onecite/)
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Status](https://img.shields.io/badge/Status-Alpha-orange.svg)]()
@@ -35,13 +35,13 @@
 
 #### Option 1: Install from PyPI (Recommended)
 ```bash
-pip install omnicite
+pip install onecite
 ```
 
 #### Option 2: Install from Source
 ```bash
-git clone https://github.com/HzaCode/OmniCite.git
-cd omnicite
+git clone https://github.com/HzaCode/onecite.git
+cd onecite
 pip install -r requirements.txt
 pip install -e .
 ```
@@ -59,7 +59,7 @@ NIPS 2017
 
 **Command**:
 ```bash
-omnicite process references.txt --output results.bib --quiet
+onecite process references.txt --output results.bib --quiet
 ```
 
 **Output**:
@@ -104,16 +104,16 @@ omnicite process references.txt --output results.bib --quiet
 
 ```bash
 # APA format
-omnicite process refs.txt --output-format apa
+onecite process refs.txt --output-format apa
 # → LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
 # → Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., ... & Polosukhin, I. (2017). 
 #   Attention is all you need. In Advances in Neural Information Processing Systems (pp. 5998-6008).
 
 # BibTeX format (default)
-omnicite process refs.txt --output-format bibtex
+onecite process refs.txt --output-format bibtex
 
 # MLA format  
-omnicite process refs.txt --output-format mla
+onecite process refs.txt --output-format mla
 # → LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
 # → Vaswani, Ashish, et al. "Attention Is All You Need." Advances in Neural Information Processing Systems. 2017.
 ```
@@ -124,7 +124,7 @@ omnicite process refs.txt --output-format mla
 <summary><strong>🤖 Interactive Mode</strong></summary>
 
 ```bash
-omnicite process ambiguous.txt --interactive
+onecite process ambiguous.txt --interactive
 ```
 
 **Example interaction:**
@@ -154,7 +154,7 @@ Please select (1-2, 0=skip): 1
 <summary><strong>🐍 Python API</strong></summary>
 
 ```python
-from omnicite import process_references
+from onecite import process_references
 
 def callback(candidates):
     return 0  # Select first candidate
@@ -175,7 +175,7 @@ print(f"Processed: {result['report']['succeeded']} entries")
 <details>
 <summary><strong>📑 Supported Paper Types</strong></summary>
 
-OmniCite now supports various types of academic papers:
+onecite now supports various types of academic papers:
 
 **Journal Articles with DOI:**
 ```text
@@ -226,13 +226,13 @@ https://arxiv.org/abs/1706.03762
 **Examples:**
 ```bash
 # Basic processing
-omnicite process input.txt
+onecite process input.txt
 
 # With custom options  
-omnicite process input.bib --input-type bib --template conference_paper --output results.bib
+onecite process input.bib --input-type bib --template conference_paper --output results.bib
 
 # Interactive mode with APA output
-omnicite process mixed.txt --interactive --output-format apa
+onecite process mixed.txt --interactive --output-format apa
 ```
 
 </details>
@@ -260,7 +260,7 @@ fields:
 
 Usage:
 ```bash
-omnicite process refs.txt --template my_template
+onecite process refs.txt --template my_template
 ```
 
 </details>
@@ -280,8 +280,8 @@ This project is licensed under the [MIT License](LICENSE).
 
 <div align="center">
 
-**OmniCite** - Making citation management simple and accurate ✨
+**onecite** - Making citation management simple and accurate ✨
 
-[⭐ Star](https://github.com/HzaCode/OmniCite) • [📖 Docs](https://omnicite.readthedocs.io) • [🐛 Issues](https://github.com/HzaCode/OmniCite/issues) • [💬 Discussions](https://github.com/HzaCode/OmniCite/discussions)
+[⭐ Star](https://github.com/HzaCode/onecite) • [📖 Docs](https://onecite.readthedocs.io) • [🐛 Issues](https://github.com/HzaCode/onecite/issues) • [💬 Discussions](https://github.com/HzaCode/onecite/discussions)
 
 </div>
