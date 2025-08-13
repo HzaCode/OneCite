@@ -27,7 +27,7 @@
 - ⚙️ **Template System** - Flexible output field configuration
 - 🎓 **Conference Paper Support** - Recognizes papers from NIPS, CVPR, ICML, etc.
 - 📄 **arXiv Integration** - Automatically fetches metadata for arXiv papers
-- 🌟 **Famous Paper Database** - Built-in recognition for landmark papers
+
 
 ## 🚀 Quick Start
 
