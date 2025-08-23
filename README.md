@@ -184,8 +184,7 @@ OneCite is designed to be flexible and understands various common academic ident
 
 ## 🤖 AI Assistant Integration (MCP)
 
-Integrate OneCite with your favorite AI assistant via the Model Context Protocol (MCP) to let your AI manage and generate citations for you.
-
+Empower your AI assistant with OneCite's complete toolkit via the Model Context Protocol (MCP). This allows the AI to directly execute commands for searching, processing, and formatting references on your behalf.
 ### Configuration
 
 To enable this feature, add the following configuration to your AI-powered editor's `settings.json` file. This requires manual configuration.
