@@ -1,162 +1,132 @@
 
+<div align="center">
+
 <!-- Logo -->
 <p align="center">
   <img src="logo_.jpg" alt="OneCite Logo" width="140" />
 </p>
 
-<h1 align="center">OneCite</h1>
-<p align="center"><em>Universal Citation Management & Academic Reference Toolkit</em></p>
+# OneCite 
+### The Universal Citation & Academic Reference Toolkit
 
-<p align="center">
-  <a href="https://pypi.org/project/onecite/">
-    <img src="https://img.shields.io/pypi/v/onecite.svg" alt="PyPI version">
-  </a>
-  <a href="https://www.python.org">
-    <img src="https://img.shields.io/badge/Python-3.7+-blue.svg" alt="Python">
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
-  </a>
-  <img src="https://img.shields.io/badge/Status-Alpha-orange.svg" alt="Status">
-</p>
+[![PyPI version](https://img.shields.io/pypi/v/onecite.svg)](https://pypi.org/project/onecite/)
+[![Python Version](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Project Status](https://img.shields.io/badge/Status-Alpha-orange.svg)]()
 
-<p align="center"><em>Go beyond traditional managers: Transform messy references into perfect citations.</em></p>
+**Effortlessly convert messy, unstructured references into perfectly formatted, standardized citations.**
 
-<p align="center">
-  <a href="#-features">✨ Features</a> •
-  <a href="#-quick-start">🚀 Quick Start</a> •
-  <a href="#-advanced-usage">💡 Advanced Usage</a> •
-  <a href="#-configuration">⚙️ Configuration</a> •
-  <a href="#-template-system">🎨 Template System</a> •
-  <a href="#-contributing">🤝 Contributing</a> •
-  <a href="#-license">📄 License</a>
-</p>
+OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles,arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
+
+[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Advanced Usage](#-advanced-usage) • [🤖 AI Integration](#-ai-assistant-integration-mcp) • [🤝 Contributing](#-contributing)
 
 ---
+
+</div>
 
 ## ✨ Features
 
-- 🔍 **Smart Recognition** — Fuzzy matching with CrossRef & Google Scholar APIs  
-- 📚 **Multi-format Support** — TXT, BibTeX input → BibTeX, APA, MLA output  
-- 🎯 **High Accuracy** — 4-stage refinement pipeline ensures quality  
-- 🤖 **Auto-completion** — Intelligently fills missing bibliographic data  
-- 🎛️ **Interactive Mode** — User choice for ambiguous matches  
-- ⚙️ **Template System** — Flexible output field configuration  
-- 🎓 **Conference Paper Support** — Recognizes papers from NIPS/NeurIPS, CVPR, ICML, etc.  
-- 📄 **arXiv Integration** — Automatically fetches metadata for arXiv papers
+OneCite is packed with features to streamline your entire academic workflow, from initial search to final formatting.
 
----
+- 🔍 **Smart Recognition**: Utilizes fuzzy matching against CrossRef and Google Scholar APIs to find the correct reference even from incomplete or slightly inaccurate information.
+- 📚 **Universal Format Support**: Accepts `.txt` and `.bib` inputs and can output to **BibTeX**, **APA**, and **MLA** formats, adapting to any project's requirements.
+- 🎯 **High-Accuracy Refinement**: A 4-stage processing pipeline cleans, queries, validates, and formats your entries to ensure the highest quality output.
+- 🤖 **Intelligent Auto-Completion**: Automatically discovers and fills in missing bibliographic data like journal, volume, pages, and author lists.
+- 🎛️ **Interactive Mode**: When multiple potential matches are found, an interactive prompt lets you choose the correct entry, giving you full control over ambiguous references.
+- ⚙️ **Customizable Templates**: A flexible YAML-based template system allows for complete control over the output fields and their priority.
+- 🎓 **Broad Paper Type Support**: Natively understands and processes journal articles, conference papers (NIPS, CVPR, ICML, etc.), and arXiv preprints with ease.
+- 📄 **Seamless arXiv & URL Integration**: Automatically fetches metadata for arXiv IDs and can extract identifiers directly from `arxiv.org` or `doi.org` URLs.
 
 ## 🚀 Quick Start
 
+Get up and running with OneCite in under a minute.
+
 ### Installation
 
-#### Option 1: Install from PyPI (Recommended)
-```cmd
+```bash
+# Recommended: Install from PyPI
 pip install onecite
-````
 
-#### Option 2: Install from Source
-
-```cmd
-git clone https://github.com/HzaCode/onecite.git
-cd onecite
-pip install -r requirements.txt
+# Or, install from source for the latest version
+git clone https://github.com/HzaCode/OneCite.git
+cd OneCite
 pip install -e .
 ```
 
 ### Basic Usage
 
-**Input** (`references.txt`):
+1.  **Create an input file** (`references.txt`):
 
-```text
-10.1038/nature14539
+    ```text
+    10.1038/nature14539
+    
+    Attention is all you need
+    Vaswani et al.
+    NIPS 2017
+    ```
 
-Attention is all you need
-Vaswani et al.
-NIPS 2017
-```
+2.  **Run the command**:
 
-**Command**:
+    ```bash
+    onecite process references.txt -o results.bib --quiet
+    ```
 
-```cmd
-onecite process references.txt --output results.bib --quiet
-```
+3.  **Get perfectly formatted output** (`results.bib`):
 
-**Output**:
+    ```bibtex
+    @article{LeCun2015Deep,
+      doi = "10.1038/nature14539",
+      title = "Deep learning",
+      author = "LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey",
+      journal = "Nature",
+      year = 2015,
+      volume = 521,
+      number = 7553,
+      pages = "436-444",
+      publisher = "Springer Science and Business Media LLC",
+      url = "https://doi.org/10.1038/nature14539",
+    }
+    
+    @inproceedings{Vaswani2017Attention,
+      arxiv = "1706.03762",
+      title = "Attention Is All You Need",
+      author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
+      booktitle = "Advances in Neural Information Processing Systems",
+      year = 2017,
+      url = "https://arxiv.org/abs/1706.03762",
+    }
+    ```
 
-```
-✅ Results saved to: results.bib
-
-📊 Processing Report:
-   Total entries: 2
-   Successfully processed: 2
-   Failed entries: 0
-```
-
-**Generated** (`results.bib`):
-
-```bibtex
-@article{LeCun2015Deep,
-  doi = "10.1038/nature14539",
-  title = "Deep learning",
-  author = "LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey",
-  journal = "Nature",
-  year = 2015,
-  volume = 521,
-  number = 7553,
-  pages = "436-444",
-  publisher = "Springer Science and Business Media LLC",
-  url = "https://doi.org/10.1038/nature14539",
-}
-
-@inproceedings{Vaswani2017Attention,
-  arxiv = "1706.03762",
-  title = "Attention Is All You Need",
-  author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
-  year = 2017,
-  journal = "arXiv preprint",
-  url = "https://arxiv.org/abs/1706.03762",
-  abstract = "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train..."
-}
-```
-
----
-
-## 💡 Advanced Usage
+## 📖 Advanced Usage
 
 <details>
-<summary><strong>🎨 Multiple Output Formats</strong></summary>
+<summary><strong>🎨 Multiple Output Formats (APA, MLA)</strong></summary>
 
-```cmd
-:: APA format
+```bash
+# Generate APA formatted citations
 onecite process refs.txt --output-format apa
-:: → LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
-:: → Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., ... & Polosukhin, I. (2017).
-::   Attention is all you need. In Advances in Neural Information Processing Systems (pp. 5998-6008).
+# → LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
+# → Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., ... & Polosukhin, I. (2017). Attention is all you need. In Advances in Neural Information Processing Systems.
 
-:: BibTeX format (default)
-onecite process refs.txt --output-format bibtex
-
-:: MLA format
+# Generate MLA formatted citations
 onecite process refs.txt --output-format mla
-:: → LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
-:: → Vaswani, Ashish, et al. "Attention Is All You Need." Advances in Neural Information Processing Systems. 2017.
+# → LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
+# → Vaswani, Ashish, et al. "Attention Is All You Need." Advances in Neural Information Processing Systems. 2017.
 ```
-
 </details>
 
 <details>
-<summary><strong>🤖 Interactive Mode</strong></summary>
+<summary><strong>🤖 Interactive Disambiguation</strong></summary>
 
-```cmd
+For ambiguous entries, use the `--interactive` flag to ensure accuracy.
+
+**Command**:
+```bash
 onecite process ambiguous.txt --interactive
 ```
 
-**Example interaction:**
-
-```
-Found multiple possible matches for "Deep learning Hinton":
+**Example Interaction**:
+```Found multiple possible matches for "Deep learning Hinton":
 1. Deep learning
    Authors: LeCun, Yann; Bengio, Yoshua; Hinton, Geoffrey
    Journal: Nature
@@ -174,117 +144,94 @@ Found multiple possible matches for "Deep learning Hinton":
 Please select (1-2, 0=skip): 1
 ✅ Selected: Deep learning
 ```
-
 </details>
 
 <details>
-<summary><strong>🐍 Python API</strong></summary>
+<summary><strong>🐍 Use as a Python Library</strong></summary>
+
+Integrate OneCite's processing power directly into your Python scripts.
 
 ```python
 from onecite import process_references
 
-def callback(candidates):
-    return 0  # Select first candidate
+# Define a callback for non-interactive selection (e.g., always choose the best match)
+def auto_select_callback(candidates):
+    return 0
 
 result = process_references(
     input_content="Deep learning review\nLeCun, Bengio, Hinton\nNature 2015",
     input_type="txt",
-    template_name="journal_article_full",
     output_format="bibtex",
-    interactive_callback=callback
+    interactive_callback=auto_select_callback
 )
 
-print(f"Processed: {result['report']['succeeded']} entries")
+print(result['output_content'])
 ```
-
 </details>
 
 <details>
-<summary><strong>📑 Supported Paper Types</strong></summary>
+<summary><strong>📑 Supported Input Types</strong></summary>
 
-**Journal Articles with DOI:**
+OneCite is designed to be flexible and understands various common academic identifiers.
 
-```text
-10.1038/nature14539
-```
-
-→ Automatically fetches complete metadata from CrossRef
-
-**Conference Papers:**
-
-```text
-Attention is all you need
-Vaswani et al.
-NIPS 2017
-```
-
-→ Recognizes conference venues (NIPS/NeurIPS, CVPR, ICML, etc.)
-→ Generates `@inproceedings` BibTeX entries
-
-**arXiv Papers:**
-
-```text
-1706.03762
-```
-
-→ Fetches metadata from arXiv API
-→ Includes abstract and all authors
-
-**Papers with URLs:**
-
-```text
-https://arxiv.org/abs/1706.03762
-```
-
-→ Extracts identifiers from URLs
-→ Supports arXiv, DOI, and conference paper URLs
+-   **DOI**: `10.1038/nature14539`
+-   **Conference Papers**: `Attention is all you need, Vaswani et al., NIPS 2017`
+-   **arXiv ID**: `1706.03762`
+-   **URLs**: `https://arxiv.org/abs/1706.03762`
 
 </details>
 
----
+
+## 🤖 AI Assistant Integration (MCP)
+
+Integrate OneCite with your favorite AI assistant via the Model Context Protocol (MCP) to let your AI manage and generate citations for you.
+
+### Configuration
+
+To enable this feature, add the following configuration to your AI-powered editor's `settings.json` file. This requires manual configuration.
+
+```json
+{
+  "mcpServers": {
+    "onecite": {
+      "command": "onecite-mcp",
+      "args": [],
+      "env": {}
+    }
+  }
+}
+```
+
+After adding the configuration and restarting your editor, the AI assistant will gain the ability to use OneCite's tools (`cite`, `batch_cite`, `search`) directly within the chat.
 
 ## ⚙️ Configuration
 
 <details>
 <summary><strong>📋 Command Line Options</strong></summary>
 
-| Option            | Description                            | Default                |
-| ----------------- | -------------------------------------- | ---------------------- |
-| `--input-type`    | Input format (`txt`, `bib`)            | `txt`                  |
-| `--output-format` | Output format (`bibtex`, `apa`, `mla`) | `bibtex`               |
-| `--template`      | Template to use                        | `journal_article_full` |
-| `--interactive`   | Enable interactive mode                | `False`                |
-| `--quiet`         | Suppress verbose logging               | `False`                |
-| `--output`, `-o`  | Output file path                       | `stdout`               |
-
-**Examples:**
-
-```cmd
-:: Basic processing
-onecite process input.txt
-
-:: With custom options
-onecite process input.bib --input-type bib --template conference_paper --output results.bib
-
-:: Interactive mode with APA output
-onecite process mixed.txt --interactive --output-format apa
-```
-
+| Option          | Description                               | Default                |
+| --------------- | ----------------------------------------- | ---------------------- |
+| `--input-type`  | Input format (`txt`, `bib`)               | `txt`                  |
+| `--output-format` | Output format (`bibtex`, `apa`, `mla`)    | `bibtex`               |
+| `--template`    | Specify a custom template YAML to use     | `journal_article_full` |
+| `--interactive` | Enable interactive mode for disambiguation| `False`                |
+| `--quiet`       | Suppress verbose logging                  | `False`                |
+| `--output`, `-o`| Path to the output file                   | `stdout`               |
 </details>
 
----
+<details>
+<summary><strong>🎨 Custom Templates</strong></summary>
 
-## 🎨 Template System
+Define custom output formats using a simple YAML template.
 
-Create custom template `my_template.yaml`:
-
+**Example `my_template.yaml`**:
 ```yaml
 name: my_template
 entry_type: "@article"
 fields:
   - name: author
     required: true
-  - name: title
+  - name: title  
     required: true
   - name: journal
     required: true
@@ -295,31 +242,24 @@ fields:
     source_priority: [crossref_api]
 ```
 
-Usage:
-
-```cmd
-onecite process refs.txt --template my_template
-```
-
----
+**Usage**:```bash
+onecite process refs.txt --template my_template.yaml```
+</details>
 
 ## 🤝 Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
----
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and instructions on how to submit pull requests.
 
 ## 📄 License
 
-This project is licensed under the [MIT License](LICENSE).
+This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
 
 ---
-
 <div align="center">
 
-**onecite** — Making citation management simple and accurate ✨
+**OneCite** - Simple, Accurate, and Powerful Citation Management ✨
 
-[⭐ Star](https://github.com/HzaCode/onecite) • [📖 Docs](https://onecite.readthedocs.io) • [🐛 Issues](https://github.com/HzaCode/onecite/issues) • [💬 Discussions](https://github.com/HzaCode/onecite/discussions)
+[⭐ Star on GitHub](https://github.com/HzaCode/OneCite) • [📖 Read the Docs](https://onecite.readthedocs.io) • [🐛 Report an Issue](https://github.com/HzaCode/OneCite/issues) • [💬 Start a Discussion](https://github.com/HzaCode/OneCite/discussions)
 
 </div>
-
+```
