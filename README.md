@@ -184,8 +184,7 @@ OneCite is designed to be flexible and understands various common academic ident
 
 ## 🤖 MCP Integration
 
-Integrate OneCite with your favorite MCP client via the Model Context Protocol (MCP) to let your automation manage and generate citations for you.
-
+Empower your MCP client with OneCite's complete toolkit via the Model Context Protocol (MCP). This allows the automation to directly execute commands for searching, processing, and formatting references on your behalf.
 ### Configuration
 
 To enable this feature, add the following configuration to your automation-powered editor's `settings.json` file. This requires manual configuration.
