@@ -18,6 +18,10 @@
 
 OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles,arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
 
+> **🚀 OneCite for Web is coming.**
+>
+> Get ready to play. Dropping soon at **[hezhiang.com/onecite](http://hezhiang.com/onecite)**.
+
 [✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Advanced Usage](#-advanced-usage) • [🤖 AI Integration](#-ai-assistant-integration-mcp) • [🤝 Contributing](#-contributing)
 
 ---
@@ -241,7 +245,8 @@ fields:
     source_priority: [crossref_api]
 ```
 
-**Usage**:```bash
+**Usage**:`
+``bash
 onecite process refs.txt --template my_template.yaml```
 </details>
 
@@ -258,7 +263,6 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 
 **OneCite** - Simple, Accurate, and Powerful Citation Management ✨
 
-[⭐ Star on GitHub](https://github.com/HzaCode/OneCite) • [📖 Read the Docs](https://onecite.readthedocs.io) • [🐛 Report an Issue](https://github.com/HzaCode/OneCite/issues) • [💬 Start a Discussion](https://github.com/HzaCode/OneCite/discussions)
+[⭐ Star on GitHub](https://github.com/HzaCode/OneCite) • [🚀 Try the Web App](http://hezhiang.com/onecite) • [📖 Read the Docs](https://onecite.readthedocs.io) • [🐛 Report an Issue](https://github.com/HzaCode/OneCite/issues) • [💬 Start a Discussion](https://github.com/HzaCode/OneCite/discussions)
 
 </div>
-```
