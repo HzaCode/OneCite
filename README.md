@@ -20,7 +20,7 @@ OneCite is a powerful command-line tool and Python library designed to automate 
 
 > **🚀 OneCite for Web is coming.**
 >
-> Get ready to play. Dropping soon at **[hezhiang.com/onecite](http://hezhiang.com/onecite)**.
+> Dropping soon at **[hezhiang.com/onecite](http://hezhiang.com/onecite)**.
 
 [✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Advanced Usage](#-advanced-usage) • [🤖 AI Integration](#-ai-assistant-integration-mcp) • [🤝 Contributing](#-contributing)
 
