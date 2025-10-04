@@ -3,12 +3,12 @@
 
 <!-- Logo -->
 <p align="center">
-  <img src="logo_.jpg" alt="OneCite Logo" width="140" />
+  <img src="https://github.com/HzaCode/OneCite/raw/master/logo_.jpg" alt="OneCite Logo" width="140" />
 </p>
 
 # OneCite 
 ### The Universal Citation & Academic Reference Toolkit
-
+![Downloads](https://static.pepy.tech/badge/onecite)
 [![PyPI version](https://img.shields.io/pypi/v/onecite.svg)](https://pypi.org/project/onecite/)
 [![Python Version](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -22,7 +22,7 @@ OneCite is a powerful command-line tool and Python library designed to automate 
 >
 > Dropping soon at **[hezhiang.com/onecite](http://hezhiang.com/onecite)**.
 
-[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Advanced Usage](#-advanced-usage) • [🤖 AI Integration](#-ai-assistant-integration-mcp) • [🤝 Contributing](#-contributing)
+[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Advanced Usage](#-advanced-usage) • [🤖 AI Integration](#-ai-assistant-integration-mcp) • [⚙️ Configuration](#️-configuration) • [🤝 Contributing](#-contributing)
 
 ---
 
@@ -30,16 +30,15 @@ OneCite is a powerful command-line tool and Python library designed to automate 
 
 ## ✨ Features
 
-OneCite is packed with features to streamline your entire academic workflow, from initial search to final formatting.
-
-- 🔍 **Smart Recognition**: Utilizes fuzzy matching against CrossRef and Google Scholar APIs to find the correct reference even from incomplete or slightly inaccurate information.
-- 📚 **Universal Format Support**: Accepts `.txt` and `.bib` inputs and can output to **BibTeX**, **APA**, and **MLA** formats, adapting to any project's requirements.
-- 🎯 **High-Accuracy Refinement**: A 4-stage processing pipeline cleans, queries, validates, and formats your entries to ensure the highest quality output.
-- 🤖 **Intelligent Auto-Completion**: Automatically discovers and fills in missing bibliographic data like journal, volume, pages, and author lists.
-- 🎛️ **Interactive Mode**: When multiple potential matches are found, an interactive prompt lets you choose the correct entry, giving you full control over ambiguous references.
-- ⚙️ **Customizable Templates**: A flexible YAML-based template system allows for complete control over the output fields and their priority.
-- 🎓 **Broad Paper Type Support**: Natively understands and processes journal articles, conference papers (NIPS, CVPR, ICML, etc.), and arXiv preprints with ease.
-- 📄 **Seamless arXiv & URL Integration**: Automatically fetches metadata for arXiv IDs and can extract identifiers directly from `arxiv.org` or `doi.org` URLs.
+- 🔍 **Smart Recognition**: Fuzzy matching against multiple academic databases to find references from incomplete or inaccurate information
+- 📚 **Universal Format Support**: Input `.txt`/`.bib` → Output **BibTeX**, **APA**, or **MLA**
+- 🎯 **High-Accuracy Pipeline**: 4-stage processing (clean → query → validate → format) ensures quality output
+- 🤖 **Auto-Completion**: Automatically fills missing data (journal, volume, pages, ISBN, authors)
+- 🎓 **7+ Citation Types**: Journal articles, conference papers, books, software, datasets, theses, preprints
+- 🧠 **Intelligent Routing**: Auto-detects content type and domain (medical/CS/general) for optimal data retrieval
+- 📄 **Universal Identifiers**: DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text
+- 🎛️ **Interactive Mode**: Manual selection when multiple matches found
+- ⚙️ **Customizable Templates**: YAML-based template system for complete output control
 
 ## 🚀 Quick Start
 
@@ -59,14 +58,22 @@ pip install -e .
 
 ### Basic Usage
 
-1.  **Create an input file** (`references.txt`):
+1.  **Create an input file** (`references.txt`) with mixed citation types:
 
     ```text
     10.1038/nature14539
     
-    Attention is all you need
-    Vaswani et al.
-    NIPS 2017
+    Attention is all you need, Vaswani et al., NIPS 2017
+    
+    Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+    
+    https://github.com/tensorflow/tensorflow
+    
+    10.5281/zenodo.3233118
+    
+    arXiv:2103.00020
+    
+    Smith, J. (2020). Neural Architecture Search. PhD Thesis. Stanford University.
     ```
 
 2.  **Run the command**:
@@ -75,31 +82,79 @@ pip install -e .
     onecite process references.txt -o results.bib --quiet
     ```
 
-3.  **Get perfectly formatted output** (`results.bib`):
+3.  **Get perfectly formatted output** (`results.bib`) with 7 different types:
 
-    ```bibtex
-    @article{LeCun2015Deep,
-      doi = "10.1038/nature14539",
-      title = "Deep learning",
-      author = "LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey",
-      journal = "Nature",
-      year = 2015,
-      volume = 521,
-      number = 7553,
-      pages = "436-444",
-      publisher = "Springer Science and Business Media LLC",
-      url = "https://doi.org/10.1038/nature14539",
-    }
-    
-    @inproceedings{Vaswani2017Attention,
-      arxiv = "1706.03762",
-      title = "Attention Is All You Need",
-      author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
-      booktitle = "Advances in Neural Information Processing Systems",
-      year = 2017,
-      url = "https://arxiv.org/abs/1706.03762",
-    }
-    ```
+<details>
+<summary><strong>📄 View Complete Output (results.bib)</strong></summary>
+
+```bibtex
+@article{LeCun2015Deep,
+  doi = "10.1038/nature14539",
+  title = "Deep learning",
+  author = "LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey",
+  journal = "Nature",
+  year = 2015,
+  volume = 521,
+  number = 7553,
+  pages = "436-444",
+  publisher = "Springer Science and Business Media LLC",
+  url = "https://doi.org/10.1038/nature14539",
+}
+
+@inproceedings{Vaswani2017Attention,
+  arxiv = "1706.03762",
+  title = "Attention Is All You Need",
+  author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
+  booktitle = "Advances in Neural Information Processing Systems",
+  year = 2017,
+  url = "https://arxiv.org/abs/1706.03762",
+}
+
+@book{Goodfellow2016Deep,
+  title = "Deep Learning",
+  author = "Ian Goodfellow and Yoshua Bengio and Aaron Courville",
+  publisher = "MIT Press",
+  year = 2016,
+  isbn = "9780262337373",
+  url = "https://play.google.com/store/books/details?id=omivDQAAQBAJ",
+}
+
+@software{tensorflow2015tensorflow,
+  title = "tensorflow",
+  author = "tensorflow",
+  publisher = "GitHub",
+  year = 2015,
+  version = "2.20.0",
+  url = "https://github.com/tensorflow/tensorflow",
+}
+
+@misc{Author2019Dataset,
+  title = "Research Dataset v1.0",
+  author = "Author, Name",
+  year = 2019,
+  howpublished = "Zenodo",
+  doi = "10.5281/zenodo.3233118",
+  url = "https://zenodo.org/record/3233118",
+}
+
+@article{Bommasani2021On,
+  arxiv = "2103.00020",
+  title = "On the Opportunities and Risks of Foundation Models",
+  author = "Bommasani, Rishi and Hudson, Drew A. and Adeli, Ehsan and Altman, Russ and Arora, Simran and von Arx, Sydney and Bernstein, Michael S. and others",
+  journal = "arXiv preprint arXiv:2103.00020",
+  year = 2021,
+  url = "https://arxiv.org/abs/2103.00020",
+}
+
+@phdthesis{Smith2020Neural,
+  title = "Neural Architecture Search",
+  author = "Smith, J.",
+  school = "Stanford University",
+  year = 2020,
+}
+```
+
+</details>
 
 ## 📖 Advanced Usage
 
@@ -174,24 +229,60 @@ print(result['output_content'])
 </details>
 
 <details>
-<summary><strong>📑 Supported Input Types</strong></summary>
+<summary><strong>📑 Supported Input Examples</strong></summary>
 
-OneCite is designed to be flexible and understands various common academic identifiers.
+```text
+# DOI
+10.1038/nature14539
 
--   **DOI**: `10.1038/nature14539`
--   **Conference Papers**: `Attention is all you need, Vaswani et al., NIPS 2017`
--   **arXiv ID**: `1706.03762`
--   **URLs**: `https://arxiv.org/abs/1706.03762`
+# Conference Papers
+Attention is all you need, Vaswani et al., NIPS 2017
+
+# arXiv
+1706.03762
+https://arxiv.org/abs/1706.03762
+
+# Books
+Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+Russell, S., & Norvig, P. (2021). Artificial Intelligence. ISBN: 978-0-13-604259-4.
+
+# Software
+https://github.com/tensorflow/tensorflow
+
+# Datasets
+10.5281/zenodo.3233118
+
+# Thesis
+Smith, J. (2020). Deep Learning for Computer Vision. PhD Thesis. MIT.
+
+# PubMed
+PMID: 27225100
+```
 
 </details>
 
 
+
 ## 🤖 AI Assistant Integration (MCP)
 
-Empower your AI assistant with OneCite's complete toolkit via the Model Context Protocol (MCP). This allows the AI to directly execute commands for searching, processing, and formatting references on your behalf.
-### Configuration
+OneCite provides complete Model Context Protocol (MCP) support, enabling AI assistants to directly use OneCite's functionality for literature search, processing, and formatting.
 
-To enable this feature, add the following configuration to your AI-powered editor's `settings.json` file. This requires manual configuration.
+<details>
+<summary><strong>🚀 Setup & Configuration</strong></summary>
+
+### Installation & Testing
+
+```bash
+# Install OneCite
+pip install onecite
+
+# Test MCP server
+onecite-mcp
+```
+
+### Configure AI Assistant
+
+Add to `settings.json` in MCP-supported editors:
 
 ```json
 {
@@ -205,7 +296,22 @@ To enable this feature, add the following configuration to your AI-powered edito
 }
 ```
 
-After adding the configuration and restarting your editor, the AI assistant will gain the ability to use OneCite's tools (`cite`, `batch_cite`, `search`) directly within the chat.
+Restart your editor to enable OneCite integration.
+
+### Available Functions
+
+- **`cite`** - Generate single citations (DOI, titles, arXiv IDs → APA/MLA/BibTeX)
+- **`batch_cite`** - Process multiple references at once
+- **`search`** - Search academic literature by keywords
+
+### Usage Examples
+
+After configuration, tell your AI assistant:
+- "Generate an APA citation for DOI: 10.1038/nature14539"
+- "Batch process these references in BibTeX format"
+- "Search for papers on machine learning"
+
+</details>
 
 ## ⚙️ Configuration
 
@@ -245,10 +351,12 @@ fields:
     source_priority: [crossref_api]
 ```
 
-**Usage**:`
-``bash
-onecite process refs.txt --template my_template.yaml```
+**Usage**:
+```bash
+onecite process refs.txt --template my_template.yaml
+```
 </details>
+
 
 ## 🤝 Contributing
 
