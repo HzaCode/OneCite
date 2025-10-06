@@ -99,14 +99,15 @@ pip install -e .
   pages = "436-444",
   publisher = "Springer Science and Business Media LLC",
   url = "https://doi.org/10.1038/nature14539",
+  type = "journal-article",
 }
 
 @inproceedings{Vaswani2017Attention,
   arxiv = "1706.03762",
   title = "Attention Is All You Need",
   author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
-  booktitle = "Advances in Neural Information Processing Systems",
   year = 2017,
+  journal = "arXiv preprint",
   url = "https://arxiv.org/abs/1706.03762",
 }
 
@@ -116,7 +117,8 @@ pip install -e .
   publisher = "MIT Press",
   year = 2016,
   isbn = "9780262337373",
-  url = "https://play.google.com/store/books/details?id=omivDQAAQBAJ",
+  url = "https://play.google.com/store/books/details?id=omivDQAAQBAJ&source=gbs_api",
+  pages = "801",
 }
 
 @software{tensorflow2015tensorflow,
@@ -128,21 +130,22 @@ pip install -e .
   url = "https://github.com/tensorflow/tensorflow",
 }
 
-@misc{Author2019Dataset,
-  title = "Research Dataset v1.0",
-  author = "Author, Name",
+@misc{Brett2019nipynibabel,
+  title = "nipy/nibabel: 2.4.1",
+  author = "Brett, Matthew and Markiewicz, Christopher J. and Hanke, Michael and Côté, Marc-Alexandre and Cipollini, Ben and McCarthy, Paul and Cheng, Christopher P. and Halchenko, Yaroslav O. and Cottaar, Michiel and Ghosh, Satrajit and Larson, Eric and Wassermann, Demian and Gerhard, Stephan and Lee, Gregory R. and Kastman, Erik and Rokem, Ariel and Madison, Cindee and Morency, Félix C. and Moloney, Brendan and Burns, Christopher and Millman, Jarrod and Gramfort, Alexandre and Leppäkangas, Jaakko and Markello, Ross and van den Bosch, Jasper J.F. and Vincent, Robert D. and Subramaniam, Krish and Raamana, Pradeep Reddy and Nichols, B. Nolan and Baker, Eric M. and Goncalves, Mathias and Hayashi, Soichi and Pinsard, Basile and Haselgrove, Christian and Hymers, Mark and Koudoro, Serge and Oosterhof, Nikolaas N. and Amirbekian, Bago and Nimmo-Smith, Ian and Nguyen, Ly and Reddigari, Samir and St-Jean, Samuel and Garyfallidis, Eleftherios and Varoquaux, Gael and Kaczmarzyk, Jakub and Legarreta, Jon Haitz and Hahn, Kevin S. and Hinds, Oliver P. and Fauber, Bennet and Poline, Jean-Baptiste and Stutters, Jon and Jordan, Kesshi and Cieslak, Matthew and Moreno, Miguel Estevan and Haenel, Valentin and Schwartz, Yannick and Thirion, Bertrand and Papadopoulos Orfanos, Dimitri and Pérez-García, Fernando and Solovey, Igor and Gonzalez, Ivan and Lecher, Justin and Leinweber, Katrin and Raktivan, Konstantinos and Fischer, Peter and Gervais, Philippe and Gadde, Syam and Ballinger, Thomas and Roos, Thomas and Reddam, Venkateswara Reddy and freec84",
   year = 2019,
   howpublished = "Zenodo",
-  doi = "10.5281/zenodo.3233118",
   url = "https://zenodo.org/record/3233118",
+  version = "2.4.1",
+  doi = "10.5281/zenodo.3233118",
 }
 
-@article{Bommasani2021On,
+@article{Radford2021Learning,
   arxiv = "2103.00020",
-  title = "On the Opportunities and Risks of Foundation Models",
-  author = "Bommasani, Rishi and Hudson, Drew A. and Adeli, Ehsan and Altman, Russ and Arora, Simran and von Arx, Sydney and Bernstein, Michael S. and others",
-  journal = "arXiv preprint arXiv:2103.00020",
+  title = "Learning Transferable Visual Models From Natural Language Supervision",
+  author = "Radford, Alec and Kim, Jong Wook and Hallacy, Chris and Ramesh, Aditya and Goh, Gabriel and Agarwal, Sandhini and Sastry, Girish and Askell, Amanda and Mishkin, Pamela and Clark, Jack and Krueger, Gretchen and Sutskever, Ilya",
   year = 2021,
+  journal = "arXiv preprint",
   url = "https://arxiv.org/abs/2103.00020",
 }
 
@@ -151,6 +154,7 @@ pip install -e .
   author = "Smith, J.",
   school = "Stanford University",
   year = 2020,
+  type = "phdthesis",
 }
 ```
 
