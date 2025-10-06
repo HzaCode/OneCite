@@ -8,11 +8,23 @@
 
 # OneCite 
 ### The Universal Citation & Academic Reference Toolkit
-![Downloads](https://static.pepy.tech/badge/onecite)
-[![PyPI version](https://img.shields.io/pypi/v/onecite.svg)](https://pypi.org/project/onecite/)
-[![Python Version](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Project Status](https://img.shields.io/badge/Status-Alpha-orange.svg)]()
+<p align="center">
+  <a href="https://pepy.tech/project/onecite">
+    <img src="https://static.pepy.tech/badge/onecite" alt="Total Downloads"/>
+  </a>
+  <a href="https://pypi.org/project/onecite/">
+    <img src="https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi" alt="PyPI Version"/>
+  </a>
+  <a href="https://www.python.org">
+    <img src="https://img.shields.io/badge/Python-3.7%2B-blue?logo=python" alt="Python Version"/>
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
+  </a>
+  <img src="https://img.shields.io/badge/Status-Alpha-orange.svg" alt="Project Status"/>
+</p>
+
+
 
 **Effortlessly convert messy, unstructured references into perfectly formatted, standardized citations.**
 
