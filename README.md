@@ -58,12 +58,12 @@ OneCite is a powerful command-line tool and Python library designed to automate 
 
 [![CrossRef](https://img.shields.io/badge/CrossRef-B31B1B?style=for-the-badge&logo=crossref&logoColor=white)](https://www.crossref.org/)
 [![Semantic](https://img.shields.io/badge/Semantic-1857B6?style=for-the-badge&logo=semanticscholar&logoColor=white)](https://www.semanticscholar.org/)
-[![OpenAlex](https://img.shields.io/badge/OpenAlex-FF6B35?style=for-the-badge)](https://openalex.org/)
+[![OpenAlex](https://img.shields.io/badge/OpenAlex-FF6B35?style=for-the-badge&logo=openalex&logoColor=white)](https://openalex.org/)
 [![PubMed](https://img.shields.io/badge/PubMed-326599?style=for-the-badge&logo=pubmed&logoColor=white)](https://pubmed.ncbi.nlm.nih.gov/)
-[![dblp](https://img.shields.io/badge/dblp-002B5B?style=for-the-badge)](https://dblp.org/)
+[![dblp](https://img.shields.io/badge/dblp-002B5B?style=for-the-badge&logo=dblp&logoColor=white)](https://dblp.org/)
 [![arXiv](https://img.shields.io/badge/arXiv-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white)](https://arxiv.org/)
-[![DataCite](https://img.shields.io/badge/DataCite-00B4A0?style=for-the-badge)](https://datacite.org/)
-[![Zenodo](https://img.shields.io/badge/Zenodo-0A0E4A?style=for-the-badge)](https://zenodo.org/)
+[![DataCite](https://img.shields.io/badge/DataCite-00B4A0?style=for-the-badge&logo=datacite&logoColor=white)](https://datacite.org/)
+[![Zenodo](https://img.shields.io/badge/Zenodo-0A0E4A?style=for-the-badge&logo=zenodo&logoColor=white)](https://zenodo.org/)
 [![Google](https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://books.google.com/)
 
 </div>
