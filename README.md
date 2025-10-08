@@ -401,7 +401,7 @@ This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) f
 ---
 <div align="center">
 
-**OneCite** - Simple, Accurate, and Powerful Citation Management ✨
+**OneCite: The all-in-one toolkit for every academic reference.** ✨
 
 [⭐ Star on GitHub](https://github.com/HzaCode/OneCite) • [🚀 Try the Web App](http://hezhiang.com/onecite) • [📖 Read the Docs](https://onecite.readthedocs.io) • [🐛 Report an Issue](https://github.com/HzaCode/OneCite/issues) • [💬 Start a Discussion](https://github.com/HzaCode/OneCite/discussions)
 
