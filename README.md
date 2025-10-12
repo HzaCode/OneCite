@@ -19,6 +19,9 @@
   <a href="https://www.python.org">
     <img src="https://img.shields.io/badge/Python-3.7%2B-blue?logo=python" alt="Python Version"/>
   </a>
+  <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.HzaCode/onecite">
+    <img src="https://img.shields.io/badge/MCP-Registry-blue?logo=modelcontextprotocol" alt="MCP Registry"/>
+  </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
   </a>
