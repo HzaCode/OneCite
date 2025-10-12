@@ -1,3 +1,4 @@
+<!-- mcp-name: io.github.HzaCode/onecite -->
 
 <div align="center">
 
@@ -305,7 +306,7 @@ OneCite provides complete Model Context Protocol (MCP) support, enabling MCP cli
 ### Installation & Testing
 
 ```bash
-# Install OneCite
+# Install OneCite (includes MCP server)
 pip install onecite
 
 # Test MCP server
@@ -314,21 +315,37 @@ onecite-mcp
 
 ### Configure automation Assistant
 
-Add to `settings.json` in MCP-supported editors:
+#### For MCP desktop client
+Edit `claude_desktop_config.json`:
+- **macOS**: `~/Library/Application Support/MCP client/claude_desktop_config.json`
+- **Windows**: `%APPDATA%\MCP client\claude_desktop_config.json`
 
 ```json
 {
   "mcpServers": {
     "onecite": {
-      "command": "onecite-mcp",
-      "args": [],
-      "env": {}
+      "command": "onecite-mcp"
+    }
+  }
+}
+```
+
+#### For editor client
+Add to `.cursor/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "onecite": {
+      "command": "onecite-mcp"
     }
   }
 }
 ```
 
 Restart your editor to enable OneCite integration.
+
+> 📖 For detailed MCP setup instructions, see [MCP_DEPLOYMENT.md](MCP_DEPLOYMENT.md)
 
 ### Available Functions
 
