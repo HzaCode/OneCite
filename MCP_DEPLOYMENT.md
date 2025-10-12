@@ -1,202 +1,237 @@
-# OneCite MCP Server 部署指南
+# OneCite MCP Server Deployment Guide
 
-## 📦 安装
+OneCite MCP Server is a powerful academic citation management tool that integrates with MCP clients through the Model Context Protocol (MCP).
+
+## ✨ Features
+
+- **Multi-source Support**: DOI, arXiv ID, paper titles, URLs
+- **Multi-format Output**: BibTeX, APA, MLA
+- **Batch Processing**: Process multiple citations at once
+- **Smart Recognition**: Automatic literature type and metadata identification
+- **Real-time Validation**: DOI verification through CrossRef and other databases
+
+## 📦 Installation
 
 ```bash
 pip install onecite
 ```
 
-## 🚀 使用方法
+## 🚀 Usage
 
-### 方法1：在MCP desktop client中使用
+### MCP desktop client Integration
 
-1. **安装OneCite**
+1. **Install OneCite**
 ```bash
 pip install onecite
 ```
 
-2. **配置MCP desktop client**
+2. **Configure MCP desktop client**
 
-编辑MCP desktop client配置文件：
+Edit MCP desktop client configuration file:
 - **macOS**: `~/Library/Application Support/MCP client/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\MCP client\claude_desktop_config.json`
 
-添加以下配置：
+Add the following configuration:
 ```json
 {
   "mcpServers": {
     "onecite": {
-      "command": "python",
-      "args": ["-m", "onecite_mcp.mcp_server"]
+      "command": "onecite-mcp"
     }
   }
 }
 ```
 
-3. **重启MCP desktop client**
+3. **Restart MCP desktop client**
 
-4. **测试**
-在MCP client中输入：
+4. **Test**
+Input in MCP client:
 ```
-使用OneCite帮我生成这篇论文的引用：10.1038/nature14539
+Generate a citation for this paper: 10.1038/nature12373
 ```
 
-### 方法2：在editor client中使用
+**Expected Result**:
+```bibtex
+@article{Kucsko2013Nanometrescale,
+  doi = "10.1038/nature12373",
+  title = "Nanometre-scale thermometry in a living cell",
+  author = "Kucsko, G. and Maurer, P. C. and Yao, N. Y. and Kubo, M. and Noh, H. J. and Lo, P. K. and Park, H. and Lukin, M. D.",
+  journal = "Nature",
+  year = 2013,
+  volume = 500,
+  number = 7460,
+  pages = "54-58",
+  publisher = "Springer Science and Business Media LLC",
+  url = "https://doi.org/10.1038/nature12373",
+  type = "journal-article",
+}
+```
 
-1. **安装OneCite**
+### editor client Integration
+
+1. **Install OneCite**
 ```bash
 pip install onecite
 ```
 
-2. **配置editor client**
+2. **Configure editor client**
 
-在editor client设置中添加MCP服务器配置（`.cursor/settings.json`）：
+Add MCP server configuration to `.cursor/settings.json`:
 ```json
 {
   "mcpServers": {
     "onecite": {
-      "command": "python",
-      "args": ["-m", "onecite_mcp.mcp_server"]
+      "command": "onecite-mcp"
     }
   }
 }
 ```
 
-3. **重启editor client**
+3. **Restart editor client**
 
-### 方法3：命令行测试
+## 🛠️ Available Tools
 
-```bash
-# 启动MCP服务器
-python -m onecite_mcp.mcp_server
-```
+### 1. `cite` - Single Citation Generation
 
-## 🛠️ 可用工具
+**Function**: Generate citation for a single literature source
 
-### 1. cite - 生成单个引用
+**Parameters**:
+- `source` (required): Literature source, supports:
+  - DOI: `10.1038/nature12373`
+  - arXiv ID: `arXiv:1706.03762` or `1706.03762`
+  - Paper title: `Attention Is All You Need`
+  - URL: `https://arxiv.org/abs/1706.03762`
+- `style` (optional): Output format, default `bibtex`
+  - `bibtex`: BibTeX format
+  - `apa`: APA format
+  - `mla`: MLA format
+
+**Example**:
 ```json
 {
-  "tool": "cite",
-  "arguments": {
-    "source": "10.1038/nature14539",
-    "style": "bibtex"
-  }
+  "source": "10.1038/nature12373",
+  "style": "bibtex"
 }
 ```
 
-**支持的输入格式：**
-- DOI: `10.1038/nature14539`
-- arXiv ID: `1706.03762`
-- 论文标题: `Attention is all you need`
-- GitHub URL: `https://github.com/tensorflow/tensorflow`
-- Zenodo DOI: `10.5281/zenodo.3233118`
+### 2. `batch_cite` - Batch Citation Generation
 
-**支持的格式：**
-- `bibtex` - BibTeX格式
-- `apa` - APA格式
-- `mla` - MLA格式
+**Function**: Generate citations for multiple literature sources
 
-### 2. batch_cite - 批量生成引用
+**Parameters**:
+- `sources` (required): Array of literature sources
+- `style` (optional): Output format, default `bibtex`
+
+**Example**:
 ```json
 {
-  "tool": "batch_cite",
-  "arguments": {
-    "sources": [
-      "10.1038/nature14539",
-      "1706.03762",
-      "Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning."
-    ],
-    "style": "apa"
-  }
+  "sources": [
+    "10.1038/nature12373",
+    "arXiv:1706.03762",
+    "Attention Is All You Need"
+  ],
+  "style": "apa"
 }
 ```
 
-## 📝 使用示例
+## 📝 Usage Examples
 
-### 示例1：生成DOI引用
-**输入：**
+### Example 1: DOI Citation
+**Input**:
 ```
-使用cite工具为DOI: 10.1038/nature14539生成BibTeX引用
+Generate a BibTeX citation for DOI: 10.1038/nature12373
 ```
 
-**输出：**
+**Output**:
 ```bibtex
-@article{LeCun2015Deep,
-  doi = "10.1038/nature14539",
-  title = "Deep learning",
-  author = "LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey",
+@article{Kucsko2013Nanometrescale,
+  doi = "10.1038/nature12373",
+  title = "Nanometre-scale thermometry in a living cell",
+  author = "Kucsko, G. and Maurer, P. C. and Yao, N. Y. and Kubo, M. and Noh, H. J. and Lo, P. K. and Park, H. and Lukin, M. D.",
   journal = "Nature",
-  year = 2015,
-  volume = 521,
-  number = 7553,
-  pages = "436-444"
+  year = 2013,
+  volume = 500,
+  number = 7460,
+  pages = "54-58",
+  publisher = "Springer Science and Business Media LLC",
+  url = "https://doi.org/10.1038/nature12373",
+  type = "journal-article",
 }
 ```
 
-### 示例2：批量处理
-**输入：**
+### Example 2: Batch Processing
+**Input**:
 ```
-使用batch_cite为以下文献生成APA格式引用：
-- 10.1038/nature14539
+Generate APA format citations for:
+- 10.1038/nature12373
 - Attention is all you need
 ```
 
-**输出：**
+**Output**:
 ```
-LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
+Kucsko, G., Maurer, P. C., Yao, N. Y., Kubo, M., Noh, H. J., Lo, P. K., Park, H., Lukin, M. D. (2013). Nanometre-scale thermometry in a living cell. *Nature*, 500(7460), 54-58.
 
-Vaswani, A., Shazeer, N., Parmar, N., ... (2017). Attention Is All You Need. Advances in Neural Information Processing Systems.
+Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., Polosukhin, I. (2017). Attention Is All You Need. *arXiv preprint*.
 ```
 
-## 🔍 故障排查
+## ✅ Test Verification
 
-### 问题1：命令未找到
+MCP server has been tested with:
+
+- ✅ **DOI Processing**: Nature article (10.1038/nature12373)
+- ✅ **arXiv Processing**: Transformer paper (arXiv:1706.03762)
+- ✅ **BibTeX Format**: Complete metadata output
+- ✅ **APA Format**: Standard academic citation format
+- ✅ **Batch Processing**: Multiple sources simultaneously
+- ✅ **Error Handling**: Invalid input processing
+
+## 🔍 Troubleshooting
+
+### Issue 1: Command Not Found
 ```bash
-# 确保onecite已正确安装
+# Ensure onecite is properly installed
 pip install --upgrade onecite
 
-# 验证安装
+# Verify installation
 python -c "import onecite_mcp; print('OK')"
 ```
 
-### 问题2：MCP服务器无法启动
+### Issue 2: MCP Server Won't Start
 ```bash
-# 检查Python路径
+# Check Python path
 which python
-# 或 Windows:
+# or Windows:
 where python
 
-# 使用完整路径
+# Use full path in configuration
 {
   "command": "/path/to/python",
   "args": ["-m", "onecite_mcp.mcp_server"]
 }
 ```
 
-### 问题3：权限问题
+### Issue 3: Permission Issues
 ```bash
-# 使用用户安装
+# Use user installation
 pip install --user onecite
 ```
 
-## 📚 更多信息
+## 📚 Additional Information
 
 - **GitHub**: https://github.com/HzaCode/OneCite
 - **PyPI**: https://pypi.org/project/onecite/
-- **MCP官方文档**: https://modelcontextprotocol.io
-- **问题反馈**: https://github.com/HzaCode/OneCite/issues
+- **MCP Documentation**: https://modelcontextprotocol.io
+- **Issue Reporting**: https://github.com/HzaCode/OneCite/issues
 
-## 🎯 特性
+## 🎯 Capabilities
 
-- ✅ 支持7种以上文献类型（期刊、会议、书籍、软件、数据集等）
-- ✅ 智能识别DOI、arXiv、ISBN、GitHub等标识符
-- ✅ 多格式输出（BibTeX、APA、MLA）
-- ✅ 批量处理
-- ✅ 自动补全元数据
-- ✅ 支持10+学术数据库
+- ✅ Supports 7+ literature types (journal, conference, book, software, dataset, etc.)
+- ✅ Smart recognition of DOI, arXiv, ISBN, GitHub identifiers
+- ✅ Multi-format output (BibTeX, APA, MLA)
+- ✅ Batch processing capabilities
+- ✅ Automatic metadata completion
+- ✅ Integration with 10+ academic databases
 
-## 📄 许可证
+## 📄 License
 
-MIT License - 详见项目仓库
-
-
+MIT License - See project repository for details
