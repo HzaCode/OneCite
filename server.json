@@ -3,12 +3,12 @@
   "name": "io.github.HzaCode/onecite",
   "title": "OneCite",
   "description": "Universal citation management and academic reference toolkit. Generate citations from DOI, arXiv, titles, or URLs in multiple formats (BibTeX, APA, MLA). Supports 7+ literature types and 10+ academic databases with intelligent metadata completion.",
-  "version": "0.0.11",
+  "version": "latest",
   "packages": [
     {
       "registryType": "pypi",
       "identifier": "onecite",
-      "version": "0.0.11",
+      "version": "latest",
       "transport": {
         "type": "stdio"
       }
