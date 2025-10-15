@@ -25,6 +25,9 @@
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
   </a>
+  <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
+    <img src="https://img.shields.io/badge/Awesome-LaTeX-blue.svg" alt="Awesome LaTeX"/>
+  </a>
   <img src="https://img.shields.io/badge/Status-Alpha-orange.svg" alt="Project Status"/>
 </p>
 
