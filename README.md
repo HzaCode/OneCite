@@ -10,6 +10,9 @@
 # OneCite 
 ### The Universal Citation & Academic Reference Toolkit
 <p align="center">
+  <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
+    <img src="https://img.shields.io/badge/Awesome-LaTeX-blue.svg" alt="Awesome LaTeX"/>
+  </a>
   <a href="https://pepy.tech/project/onecite">
     <img src="https://static.pepy.tech/badge/onecite" alt="Total Downloads"/>
   </a>
@@ -24,9 +27,6 @@
   </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
-  </a>
-  <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Awesome-LaTeX-blue.svg" alt="Awesome LaTeX"/>
   </a>
   <img src="https://img.shields.io/badge/Status-Alpha-orange.svg" alt="Project Status"/>
 </p>
