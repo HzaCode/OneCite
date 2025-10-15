@@ -1,82 +1,83 @@
-<!-- mcp-name: io.github.HzaCode/onecite -->
 
 <div align="center">
 
-<!-- Logo -->
 <p align="center">
-  <img src="https://github.com/HzaCode/OneCite/raw/master/logo_.jpg" alt="OneCite Logo" width="140" />
+  <img src="https://github.com/HzaCode/OneCite/raw/master/logo_.jpg" alt="OneCite Logo" width="160" />
 </p>
 
-# OneCite 
+# OneCite
 ### The Universal Citation & Academic Reference Toolkit
 
-<p align="left">
-  <strong>🌟 RECOMMENDED BY (Updating):</strong>
+<p align="center">
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Awesome-LaTeX-008B8B?logo=awesome-lists&logoColor=white&labelColor=493267&style=flat" alt="Awesome LaTeX">
+    <img src="https://img.shields.io/badge/Recommended%20on-Awesome%20LaTeX-blueviolet?logo=awesome-lists&logoColor=white&style=flat-square" alt="Recommended on Awesome LaTeX">
   </a>
 </p>
-
-<p>
-  <a href="https://pepy.tech/project/onecite">
-    <img src="https://static.pepy.tech/badge/onecite" alt="Total Downloads"/>
-  </a>
-  <a href="https://pypi.org/project/onecite/">
-    <img src="https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi" alt="PyPI Version"/>
-  </a>
-  <a href="https://www.python.org">
-    <img src="https://img.shields.io/badge/Python-3.7%2B-blue?logo=python" alt="Python Version"/>
-  </a>
-  <a href="https://registry.modelcontextprotocol.io/v0/servers?search=io.github.HzaCode/onecite">
-    <img src="https://img.shields.io/badge/MCP-Registry-blue?logo=modelcontextprotocol" alt="MCP Registry"/>
-  </a>
-  <a href="LICENSE">
-    <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"/>
-  </a>
-  <img src="https://img.shields.io/badge/Status-Active-green.svg" alt="Project Status"/>
-</p>
-
-
-
-**Effortlessly convert messy, unstructured references into perfectly formatted, standardized citations.**
-
-OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles,arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
-
-> **🚀 OneCite for Web is coming.**
->
-> Dropping soon at **[hezhiang.com/onecite](http://hezhiang.com/onecite)**.
-
-[✨ Features](#-features) • [🚀 Quick Start](#-quick-start) • [📖 Advanced Usage](#-advanced-usage) • [🤖 MCP Integration](#-ai-assistant-integration-mcp) • [⚙️ Configuration](#️-configuration) • [🤝 Contributing](#-contributing)
-
----
 
 </div>
 
+<p align="center">
+    <strong>Effortlessly convert messy, unstructured references into perfectly formatted, standardized citations.</strong>
+</p>
+
+<div align="center">
+
+[![Status](https://img.shields.io/badge/Status-Active-green.svg?style=flat-square)](https://github.com/HzaCode/OneCite)
+[![PyPI Version](https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi&style=flat-square)](https://pypi.org/project/onecite/)
+[![Python Version](https://img.shields.io/badge/Python-3.7+-blue?logo=python&style=flat-square)](https://www.python.org)
+[![Downloads](https://static.pepy.tech/badge/onecite?style=flat-square)](https://pepy.tech/project/onecite)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+[![MCP Registry](https://img.shields.io/badge/MCP-Registry-blue?logo=modelcontextprotocol&style=flat-square)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.HzaCode/onecite)
+
+</div>
+
+<p align="center">
+  <a href="#-features">✨ Features</a> •
+  <a href="#-quick-start">🚀 Quick Start</a> •
+  <a href="#-advanced-usage">📖 Advanced Usage</a> •
+  <a href="#-ai-assistant-integration-mcp">🤖 MCP Integration</a> •
+  <a href="#-contributing">🤝 Contributing</a>
+</p>
+
+---
+
+<p align="center">
+  OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles, arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
+</p>
+
+> **🚀 OneCite for Web is coming soon at [hezhiang.com/onecite](http://hezhiang.com/onecite)**
+
+---
+
 ## ✨ Features
 
-- 🔍 **Smart Recognition**: Fuzzy matching against multiple academic databases to find references from incomplete or inaccurate information
-- 📚 **Universal Format Support**: Input `.txt`/`.bib` → Output **BibTeX**, **APA**, or **MLA**
-- 🎯 **High-Accuracy Pipeline**: 4-stage processing (clean → query → validate → format) ensures quality output
-- 🤖 **Auto-Completion**: Automatically fills missing data (journal, volume, pages, ISBN, authors)
-- 🎓 **7+ Citation Types**: Journal articles, conference papers, books, software, datasets, theses, preprints
-- 🧠 **Intelligent Routing**: Auto-detects content type and domain (medical/CS/general) for optimal data retrieval
-- 📄 **Universal Identifiers**: DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text
-- 🎛️ **Interactive Mode**: Manual selection when multiple matches found
-- ⚙️ **Customizable Templates**: YAML-based template system for complete output control
+| Feature                 | Description                                                                                             |
+| ----------------------- | ------------------------------------------------------------------------------------------------------- |
+| 🔍 **Smart Recognition**    | Fuzzy matching against multiple academic databases to find references from incomplete or inaccurate info. |
+| 📚 **Universal Formats**    | Input `.txt`/`.bib` → Output **BibTeX**, **APA**, or **MLA** formats with ease.                     |
+| 🎯 **High-Accuracy Pipeline** | A 4-stage process (clean → query → validate → format) ensures the highest quality output.             |
+| 🤖 **Auto-Completion**      | Automatically enriches entries by filling in missing data like journal, volume, pages, and authors.   |
+| 🎓 **7+ Citation Types**    | Handles journal articles, conference papers, books, software, datasets, theses, and preprints.        |
+| 🧠 **Intelligent Routing**  | Auto-detects content type and domain (Medical/CS/General) for optimal data retrieval.                 |
+| 📄 **Universal Identifiers**| Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or even plain text queries.               |
+| 🎛️ **Interactive Mode**    | Manually select the correct entry when multiple potential matches are found.                          |
+| ⚙️ **Custom Templates**     | A YAML-based template system provides complete control over the final output format.                  |
+
+
 
 ## 🌐 Data Sources
 
 <div align="center">
 
 [![CrossRef](https://img.shields.io/badge/CrossRef-B31B1B?style=for-the-badge&logo=crossref&logoColor=white)](https://www.crossref.org/)
-[![Semantic](https://img.shields.io/badge/Semantic-1857B6?style=for-the-badge&logo=semanticscholar&logoColor=white)](https://www.semanticscholar.org/)
+[![Semantic Scholar](https://img.shields.io/badge/Semantic-1857B6?style=for-the-badge&logo=semanticscholar&logoColor=white)](https://www.semanticscholar.org/)
 [![OpenAlex](https://img.shields.io/badge/OpenAlex-FF6B35?style=for-the-badge&logo=openalex&logoColor=white)](https://openalex.org/)
 [![PubMed](https://img.shields.io/badge/PubMed-326599?style=for-the-badge&logo=pubmed&logoColor=white)](https://pubmed.ncbi.nlm.nih.gov/)
 [![dblp](https://img.shields.io/badge/dblp-002B5B?style=for-the-badge&logo=dblp&logoColor=white)](https://dblp.org/)
 [![arXiv](https://img.shields.io/badge/𝒳_arXiv-B31B1B?style=for-the-badge)](https://arxiv.org/)
 [![DataCite](https://img.shields.io/badge/DataCite-00B4A0?style=for-the-badge&logo=datacite&logoColor=white)](https://datacite.org/)
 [![Zenodo](https://img.shields.io/badge/Zenodo-0A0E4A?style=for-the-badge&logo=zenodo&logoColor=white)](https://zenodo.org/)
-[![Google](https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://books.google.com/)
+[![Google Books](https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://books.google.com/)
 
 </div>
 
@@ -84,40 +85,33 @@ OneCite is a powerful command-line tool and Python library designed to automate 
 
 Get up and running with OneCite in under a minute.
 
-### Installation
-
+### 1. Installation
 ```bash
 # Recommended: Install from PyPI
 pip install onecite
 ```
 
-### Basic Usage
+### 2. Create an Input File
+Create a file named `references.txt` with your mixed-format references:
+```text
+# references.txt
+10.1038/nature14539
+Attention is all you need, Vaswani et al., NIPS 2017
+Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+https://github.com/tensorflow/tensorflow
+10.5281/zenodo.3233118
+arXiv:2103.00020
+Smith, J. (2020). Neural Architecture Search. PhD Thesis. Stanford University.
+```
 
-1.  **Create an input file** (`references.txt`) with mixed citation types:
+### 3. Run OneCite
+Execute the command to process your file and generate a clean `.bib` output.
+```bash
+onecite process references.txt -o results.bib --quiet
+```
 
-    ```text
-    10.1038/nature14539
-    
-    Attention is all you need, Vaswani et al., NIPS 2017
-    
-    Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
-    
-    https://github.com/tensorflow/tensorflow
-    
-    10.5281/zenodo.3233118
-    
-    arXiv:2103.00020
-    
-    Smith, J. (2020). Neural Architecture Search. PhD Thesis. Stanford University.
-    ```
-
-2.  **Run the command**:
-
-    ```bash
-    onecite process references.txt -o results.bib --quiet
-    ```
-
-3.  **Get perfectly formatted output** (`results.bib`) with 7 different types:
+### 4. Get Perfectly Formatted Output
+Your `results.bib` file now contains 7 perfectly formatted entries of different types.
 
 <details>
 <summary><strong>📄 View Complete Output (results.bib)</strong></summary>
@@ -136,7 +130,6 @@ pip install onecite
   url = "https://doi.org/10.1038/nature14539",
   type = "journal-article",
 }
-
 @inproceedings{Vaswani2017Attention,
   arxiv = "1706.03762",
   title = "Attention Is All You Need",
@@ -145,52 +138,7 @@ pip install onecite
   journal = "arXiv preprint",
   url = "https://arxiv.org/abs/1706.03762",
 }
-
-@book{Goodfellow2016Deep,
-  title = "Deep Learning",
-  author = "Ian Goodfellow and Yoshua Bengio and Aaron Courville",
-  publisher = "MIT Press",
-  year = 2016,
-  isbn = "9780262337373",
-  url = "https://play.google.com/store/books/details?id=omivDQAAQBAJ&source=gbs_api",
-  pages = "801",
-}
-
-@software{tensorflow2015tensorflow,
-  title = "tensorflow",
-  author = "tensorflow",
-  publisher = "GitHub",
-  year = 2015,
-  version = "2.20.0",
-  url = "https://github.com/tensorflow/tensorflow",
-}
-
-@misc{Brett2019nipynibabel,
-  title = "nipy/nibabel: 2.4.1",
-  author = "Brett, Matthew and Markiewicz, Christopher J. and Hanke, Michael and Côté, Marc-Alexandre and Cipollini, Ben and McCarthy, Paul and Cheng, Christopher P. and Halchenko, Yaroslav O. and Cottaar, Michiel and Ghosh, Satrajit and Larson, Eric and Wassermann, Demian and Gerhard, Stephan and Lee, Gregory R. and Kastman, Erik and Rokem, Ariel and Madison, Cindee and Morency, Félix C. and Moloney, Brendan and Burns, Christopher and Millman, Jarrod and Gramfort, Alexandre and Leppäkangas, Jaakko and Markello, Ross and van den Bosch, Jasper J.F. and Vincent, Robert D. and Subramaniam, Krish and Raamana, Pradeep Reddy and Nichols, B. Nolan and Baker, Eric M. and Goncalves, Mathias and Hayashi, Soichi and Pinsard, Basile and Haselgrove, Christian and Hymers, Mark and Koudoro, Serge and Oosterhof, Nikolaas N. and Amirbekian, Bago and Nimmo-Smith, Ian and Nguyen, Ly and Reddigari, Samir and St-Jean, Samuel and Garyfallidis, Eleftherios and Varoquaux, Gael and Kaczmarzyk, Jakub and Legarreta, Jon Haitz and Hahn, Kevin S. and Hinds, Oliver P. and Fauber, Bennet and Poline, Jean-Baptiste and Stutters, Jon and Jordan, Kesshi and Cieslak, Matthew and Moreno, Miguel Estevan and Haenel, Valentin and Schwartz, Yannick and Thirion, Bertrand and Papadopoulos Orfanos, Dimitri and Pérez-García, Fernando and Solovey, Igor and Gonzalez, Ivan and Lecher, Justin and Leinweber, Katrin and Raktivan, Konstantinos and Fischer, Peter and Gervais, Philippe and Gadde, Syam and Ballinger, Thomas and Roos, Thomas and Reddam, Venkateswara Reddy and freec84",
-  year = 2019,
-  howpublished = "Zenodo",
-  url = "https://zenodo.org/record/3233118",
-  version = "2.4.1",
-  doi = "10.5281/zenodo.3233118",
-}
-
-@article{Radford2021Learning,
-  arxiv = "2103.00020",
-  title = "Learning Transferable Visual Models From Natural Language Supervision",
-  author = "Radford, Alec and Kim, Jong Wook and Hallacy, Chris and Ramesh, Aditya and Goh, Gabriel and Agarwal, Sandhini and Sastry, Girish and Askell, Amanda and Mishkin, Pamela and Clark, Jack and Krueger, Gretchen and Sutskever, Ilya",
-  year = 2021,
-  journal = "arXiv preprint",
-  url = "https://arxiv.org/abs/2103.00020",
-}
-
-@phdthesis{Smith2020Neural,
-  title = "Neural Architecture Search",
-  author = "Smith, J.",
-  school = "Stanford University",
-  year = 2020,
-  type = "phdthesis",
-}
+# ... and 5 more entries ...
 ```
 
 </details>
@@ -204,19 +152,17 @@ pip install onecite
 # Generate APA formatted citations
 onecite process refs.txt --output-format apa
 # → LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
-# → Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., ... & Polosukhin, I. (2017). Attention is all you need. In Advances in Neural Information Processing Systems.
 
 # Generate MLA formatted citations
 onecite process refs.txt --output-format mla
 # → LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
-# → Vaswani, Ashish, et al. "Attention Is All You Need." Advances in Neural Information Processing Systems. 2017.
 ```
 </details>
 
 <details>
 <summary><strong>🤖 Interactive Disambiguation</strong></summary>
 
-For ambiguous entries, use the `--interactive` flag to ensure accuracy.
+For ambiguous entries, use the `--interactive` flag to manually select the correct match and ensure accuracy.
 
 **Command**:
 ```bash
@@ -224,19 +170,16 @@ onecite process ambiguous.txt --interactive
 ```
 
 **Example Interaction**:
-```Found multiple possible matches for "Deep learning Hinton":
+```
+Found multiple possible matches for "Deep learning Hinton":
 1. Deep learning
    Authors: LeCun, Yann; Bengio, Yoshua; Hinton, Geoffrey
-   Journal: Nature
-   Year: 2015
-   Match Score: 92.5
+   Journal: Nature, 2015
    DOI: 10.1038/nature14539
 
 2. Deep belief networks
    Authors: Hinton, Geoffrey E.
-   Journal: Scholarpedia
-   Year: 2009
-   Match Score: 78.3
+   Journal: Scholarpedia, 2009
    DOI: 10.4249/scholarpedia.5947
 
 Please select (1-2, 0=skip): 1
@@ -252,9 +195,9 @@ Integrate OneCite's processing power directly into your Python scripts.
 ```python
 from onecite import process_references
 
-# Define a callback for non-interactive selection (e.g., always choose the best match)
+# A callback can be used for non-interactive selection (e.g., always choose the best match)
 def auto_select_callback(candidates):
-    return 0
+    return 0 # Index of the best candidate
 
 result = process_references(
     input_content="Deep learning review\nLeCun, Bengio, Hinton\nNature 2015",
@@ -267,165 +210,70 @@ print(result['output_content'])
 ```
 </details>
 
-<details>
-<summary><strong>📑 Supported Input Examples</strong></summary>
-
-```text
-# DOI
-10.1038/nature14539
-
-# Conference Papers
-Attention is all you need, Vaswani et al., NIPS 2017
-
-# arXiv
-1706.03762
-https://arxiv.org/abs/1706.03762
-
-# Books
-Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
-Russell, S., & Norvig, P. (2021). Artificial Intelligence. ISBN: 978-0-13-604259-4.
-
-# Software
-https://github.com/tensorflow/tensorflow
-
-# Datasets
-10.5281/zenodo.3233118
-
-# Thesis
-Smith, J. (2020). Deep Learning for Computer Vision. PhD Thesis. MIT.
-
-# PubMed
-PMID: 27225100
-```
-
-</details>
-
-
 
 ## 🤖 MCP Integration
 
-OneCite provides complete Model Context Protocol (MCP) support, enabling MCP clients to directly use OneCite's functionality for literature search, processing, and formatting.
+OneCite provides complete Model Context Protocol (MCP) support, enabling MCP clients to directly use its functionality for literature search, processing, and formatting.
 
 <details>
-<summary><strong>🚀 Setup & Configuration</strong></summary>
+<summary><strong>🚀 Setup & Usage</strong></summary>
 
-### Installation & Testing
+### 1. Installation & Testing
 
 ```bash
 # Install OneCite (includes MCP server)
 pip install onecite
 
-# Test MCP server
+# Test the MCP server
 onecite-mcp
 ```
 
-### Configure automation Assistant
+### 2. Configure Your automation Assistant
 
 #### For MCP desktop client
-Edit `claude_desktop_config.json`:
-- **macOS**: `~/Library/Application Support/MCP client/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\MCP client\claude_desktop_config.json`
-
+Add the following to `claude_desktop_config.json`:
 ```json
 {
-  "mcpServers": {
-    "onecite": {
-      "command": "onecite-mcp"
-    }
-  }
+  "mcpServers": { "onecite": { "command": "onecite-mcp" } }
 }
 ```
 
 #### For editor client
-Add to `.cursor/settings.json`:
-
+Add the following to `.cursor/settings.json`:
 ```json
 {
-  "mcpServers": {
-    "onecite": {
-      "command": "onecite-mcp"
-    }
-  }
+  "mcpServers": { "onecite": { "command": "onecite-mcp" } }
 }
 ```
+Restart your editor to enable the integration.
 
-Restart your editor to enable OneCite integration.
+### 3. Available Functions & Examples
+- **`cite`**: Generate a single citation (e.g., *"Generate an APA citation for DOI: 10.1038/nature14539"*).
+- **`batch_cite`**: Process a list of references (e.g., *"Batch process these references in BibTeX format"*).
+- **`search`**: Search academic literature by keywords (e.g., *"Search for papers on machine learning"*).
 
-> 📖 For detailed MCP setup instructions, see [MCP_DEPLOYMENT.md](MCP_DEPLOYMENT.md)
-
-### Available Functions
-
-- **`cite`** - Generate single citations (DOI, titles, arXiv IDs → APA/MLA/BibTeX)
-- **`batch_cite`** - Process multiple references at once
-- **`search`** - Search academic literature by keywords
-
-### Usage Examples
-
-After configuration, tell your MCP client:
-- "Generate an APA citation for DOI: 10.1038/nature14539"
-- "Batch process these references in BibTeX format"
-- "Search for papers on machine learning"
-
-</details>
-
-## ⚙️ Configuration
-
-<details>
-<summary><strong>📋 Command Line Options</strong></summary>
-
-| Option          | Description                               | Default                |
-| --------------- | ----------------------------------------- | ---------------------- |
-| `--input-type`  | Input format (`txt`, `bib`)               | `txt`                  |
-| `--output-format` | Output format (`bibtex`, `apa`, `mla`)    | `bibtex`               |
-| `--template`    | Specify a custom template YAML to use     | `journal_article_full` |
-| `--interactive` | Enable interactive mode for disambiguation| `False`                |
-| `--quiet`       | Suppress verbose logging                  | `False`                |
-| `--output`, `-o`| Path to the output file                   | `stdout`               |
-</details>
-
-<details>
-<summary><strong>🎨 Custom Templates</strong></summary>
-
-Define custom output formats using a simple YAML template.
-
-**Example `my_template.yaml`**:
-```yaml
-name: my_template
-entry_type: "@article"
-fields:
-  - name: author
-    required: true
-  - name: title  
-    required: true
-  - name: journal
-    required: true
-  - name: year
-    required: true
-  - name: doi
-    required: false
-    source_priority: [crossref_api]
-```
-
-**Usage**:
-```bash
-onecite process refs.txt --template my_template.yaml
-```
 </details>
 
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for development guidelines and instructions on how to submit pull requests.
+Contributions are always welcome! Please see [**CONTRIBUTING.md**](CONTRIBUTING.md) for development guidelines and instructions on how to submit a pull request.
 
 ## 📄 License
 
-This project is licensed under the **MIT License**. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License**. See the [**LICENSE**](LICENSE) file for details.
 
 ---
+
 <div align="center">
 
-**OneCite: The all-in-one toolkit for every academic reference.** ✨
+**OneCite: The all-in-one toolkit for every academic reference.**
 
-[⭐ Star on GitHub](https://github.com/HzaCode/OneCite) • [🚀 Try the Web App](http://hezhiang.com/onecite) • [📖 Read the Docs](https://onecite.readthedocs.io) • [🐛 Report an Issue](https://github.com/HzaCode/OneCite/issues) • [💬 Start a Discussion](https://github.com/HzaCode/OneCite/discussions)
+<p>
+  <a href="https://github.com/HzaCode/OneCite">⭐ Star on GitHub</a> •
+  <a href="http://hezhiang.com/onecite">🚀 Try the Web App</a> •
+  <a href="https://github.com/HzaCode/OneCite/issues">🐛 Report an Issue</a> •
+  <a href="https://github.com/HzaCode/OneCite/discussions">💬 Start a Discussion</a>
+</p>
 
 </div>
