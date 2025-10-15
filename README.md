@@ -10,14 +10,12 @@
 
 <p align="center">
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Recommended%20on-Awesome%20LaTeX-blueviolet?logo=awesome-lists&logoColor=white&style=flat-square" alt="Recommended on Awesome LaTeX">
+    <img src="https://img.shields.io/badge/Recommended%20on%3A-%28Updating%29-brightgreen?style=flat" alt="Recommended on: (Updating)">
   </a>
-</p>
-
-</div>
-
-<p align="center">
-    <strong>Effortlessly convert messy, unstructured references into perfectly formatted, standardized citations.</strong>
+  &nbsp;
+  <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
+    <img src="https://img.shields.io/badge/Awesome-LaTeX-008B8B?logo=awesome-lists&logoColor=white&labelColor=493267&style=flat" alt="Awesome LaTeX">
+  </a>
 </p>
 
 <div align="center">
