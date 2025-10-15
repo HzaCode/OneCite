@@ -10,7 +10,7 @@
 
 <p align="center">
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Recommended%20on%3A-%28Updating%29-brightgreen?style=flat" alt="Recommended on: (Updating)">
+    <img src="https://img.shields.io/badge/Recommended%20by%3A-%28Updating%29-brightgreen?style=flat" alt="Recommended by: (Updating)">
   </a>
   &nbsp;
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
