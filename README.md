@@ -84,11 +84,6 @@ Get up and running with OneCite in under a minute.
 ```bash
 # Recommended: Install from PyPI
 pip install onecite
-
-# Or, install from source for the latest version
-git clone https://github.com/HzaCode/OneCite.git
-cd OneCite
-pip install -e .
 ```
 
 ### Basic Usage
