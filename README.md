@@ -11,7 +11,7 @@
 ### The Universal Citation & Academic Reference Toolkit
 <p align="center">
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Awesome-LaTeX-blue.svg" alt="Awesome LaTeX"/>
+    <img src="https://awesome.re/badge-flat.svg" alt="Awesome" style="border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"/>
   </a>
   <a href="https://pepy.tech/project/onecite">
     <img src="https://static.pepy.tech/badge/onecite" alt="Total Downloads"/>
