@@ -1,13 +1,14 @@
 
+
 <div align="center">
+  <p align="center">
+    <img src="https://github.com/HzaCode/OneCite/raw/master/logo_.jpg" alt="OneCite Logo" width="160" />
+  </p>
 
-<p align="center">
-  <img src="https://github.com/HzaCode/OneCite/raw/master/logo_.jpg" alt="OneCite Logo" width="160" />
-</p>
-
-# OneCite
-### The Universal Citation & Academic Reference Toolkit
-
+  <h1>OneCite</h1>
+  <h3>The Universal Citation & Academic Reference Toolkit</h3>
+</div>
+```
 <p align="center">
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
     <img src="https://img.shields.io/badge/Recommended%20by%3A-%28Updating%29-brightgreen?style=flat" alt="Recommended by: (Updating)">
@@ -62,7 +63,6 @@
 | ⚙️ **Custom Templates**     | A YAML-based template system provides complete control over the final output format.                  |
 
 
-
 ## 🌐 Data Sources
 
 <div align="center">
@@ -76,8 +76,8 @@
 [![DataCite](https://img.shields.io/badge/DataCite-00B4A0?style=for-the-badge&logo=datacite&logoColor=white)](https://datacite.org/)
 [![Zenodo](https://img.shields.io/badge/Zenodo-0A0E4A?style=for-the-badge&logo=zenodo&logoColor=white)](https://zenodo.org/)
 [![Google Books](https://img.shields.io/badge/Google-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://books.google.com/)
-
 </div>
+
 
 ## 🚀 Quick Start
 
