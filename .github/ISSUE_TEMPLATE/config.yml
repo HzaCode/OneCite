@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 💬 Ask a Question
+    url: https://github.com/HzaCode/OneCite/discussions/new?category=q-a
+    about: Ask questions and get help from the community in Discussions
+  - name: 💡 Share an Idea
+    url: https://github.com/HzaCode/OneCite/discussions/new?category=ideas
+    about: Suggest ideas and discuss potential features with the community
+  - name: 📖 Documentation
+    url: https://github.com/HzaCode/OneCite#readme
+    about: Check out the README for usage instructions and examples
