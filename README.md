@@ -8,7 +8,7 @@
   <h1>OneCite</h1>
   <h3>The Universal Citation & Academic Reference Toolkit</h3>
 </div>
-```
+
 <p align="center">
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
     <img src="https://img.shields.io/badge/Recommended%20by%3A-%28Updating%29-brightgreen?style=flat" alt="Recommended by: (Updating)">
