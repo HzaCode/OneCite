@@ -1,3 +1,5 @@
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/hzacode-onecite-badge.png)](https://mseep.ai/app/hzacode-onecite)
+
 
 
 <div align="center">
