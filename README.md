@@ -1,4 +1,4 @@
-
+﻿
 
 <div align="center">
   <p align="center">
@@ -93,12 +93,20 @@ pip install onecite
 Create a file named `references.txt` with your mixed-format references:
 ```text
 # references.txt
+# ⚠️ Important: Add blank lines between entries to avoid misidentification
+
 10.1038/nature14539
+
 Attention is all you need, Vaswani et al., NIPS 2017
+
 Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+
 https://github.com/tensorflow/tensorflow
+
 10.5281/zenodo.3233118
+
 arXiv:2103.00020
+
 Smith, J. (2020). Neural Architecture Search. PhD Thesis. Stanford University.
 ```
 
