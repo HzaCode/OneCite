@@ -1,0 +1,25 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "OneCite: Universal Citation Management and Academic Reference Toolkit"
+authors:
+  - family-names: "He"
+    given-names: "Zhiang"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - name: "OneCite Team"
+repository-code: "https://github.com/HzaCode/OneCite"
+url: "https://github.com/HzaCode/OneCite"
+abstract: "OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. It supports multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and generates clean, accurate bibliographic entries in BibTeX, APA, or MLA format."
+keywords:
+  - citation
+  - bibliography
+  - bibtex
+  - academic
+  - reference
+  - doi
+  - arxiv
+  - research
+license: MIT
+version: "0.0.11"
+date-released: "2024-01-01"
+
