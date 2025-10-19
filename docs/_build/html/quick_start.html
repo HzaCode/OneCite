@@ -1,0 +1,271 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quick Start Guide &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Basic Usage" href="basic_usage.html" />
+    <link rel="prev" title="Installation Guide" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#installation">1. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#create-your-input-file">2. Create Your Input File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#process-your-references">3. Process Your References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#view-your-results">4. View Your Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-command-line-options">Common Command-Line Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-onecite-as-a-python-library">Using OneCite as a Python Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Quick Start Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/quick_start.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="quick-start-guide">
+<h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
+<p>In this guide, we’ll help you get started with OneCite in just a few minutes.</p>
+<section id="installation">
+<h2>1. Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
+<p>First, install OneCite using pip:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span>
+</pre></div>
+</div>
+</section>
+<section id="create-your-input-file">
+<h2>2. Create Your Input File<a class="headerlink" href="#create-your-input-file" title="Link to this heading"></a></h2>
+<p>Create a file named <code class="docutils literal notranslate"><span class="pre">references.txt</span></code> with your mixed-format references.</p>
+<p><strong>Important:</strong> Add blank lines between entries to avoid misidentification.</p>
+<p>Example <code class="docutils literal notranslate"><span class="pre">references.txt</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
+
+<span class="n">Attention</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">you</span> <span class="n">need</span><span class="p">,</span> <span class="n">Vaswani</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="n">NIPS</span> <span class="mi">2017</span>
+
+<span class="n">Goodfellow</span><span class="p">,</span> <span class="n">I</span><span class="o">.</span><span class="p">,</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Courville</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span><span class="o">.</span> <span class="n">Deep</span> <span class="n">Learning</span><span class="o">.</span> <span class="n">MIT</span> <span class="n">Press</span><span class="o">.</span>
+
+<span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span>
+
+<span class="mf">10.5281</span><span class="o">/</span><span class="n">zenodo</span><span class="mf">.3233118</span>
+
+<span class="n">arXiv</span><span class="p">:</span><span class="mf">2103.00020</span>
+
+<span class="n">Smith</span><span class="p">,</span> <span class="n">J</span><span class="o">.</span> <span class="p">(</span><span class="mi">2020</span><span class="p">)</span><span class="o">.</span> <span class="n">Neural</span> <span class="n">Architecture</span> <span class="n">Search</span><span class="o">.</span> <span class="n">PhD</span> <span class="n">Thesis</span><span class="o">.</span> <span class="n">Stanford</span> <span class="n">University</span><span class="o">.</span>
+</pre></div>
+</div>
+</section>
+<section id="process-your-references">
+<h2>3. Process Your References<a class="headerlink" href="#process-your-references" title="Link to this heading"></a></h2>
+<p>Run OneCite to process your file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">results</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="n">quiet</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">--quiet</span></code> flag suppresses verbose output. Remove it if you want to see processing details.</p>
+</section>
+<section id="view-your-results">
+<h2>4. View Your Results<a class="headerlink" href="#view-your-results" title="Link to this heading"></a></h2>
+<p>Your <code class="docutils literal notranslate"><span class="pre">results.bib</span></code> file now contains 7 perfectly formatted entries in BibTeX format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">LeCun2015Deep</span><span class="p">,</span>
+  <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+  <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Deep learning&quot;</span><span class="p">,</span>
+  <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey&quot;</span><span class="p">,</span>
+  <span class="n">journal</span> <span class="o">=</span> <span class="s2">&quot;Nature&quot;</span><span class="p">,</span>
+  <span class="n">year</span> <span class="o">=</span> <span class="mi">2015</span><span class="p">,</span>
+  <span class="n">volume</span> <span class="o">=</span> <span class="mi">521</span><span class="p">,</span>
+  <span class="n">number</span> <span class="o">=</span> <span class="mi">7553</span><span class="p">,</span>
+  <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;436-444&quot;</span><span class="p">,</span>
+  <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Springer Science and Business Media LLC&quot;</span><span class="p">,</span>
+  <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://doi.org/10.1038/nature14539&quot;</span><span class="p">,</span>
+  <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;journal-article&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+
+<span class="nd">@inproceedings</span><span class="p">{</span><span class="n">Vaswani2017Attention</span><span class="p">,</span>
+  <span class="n">arxiv</span> <span class="o">=</span> <span class="s2">&quot;1706.03762&quot;</span><span class="p">,</span>
+  <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Attention Is All You Need&quot;</span><span class="p">,</span>
+  <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia&quot;</span><span class="p">,</span>
+  <span class="n">year</span> <span class="o">=</span> <span class="mi">2017</span><span class="p">,</span>
+  <span class="n">journal</span> <span class="o">=</span> <span class="s2">&quot;arXiv preprint&quot;</span><span class="p">,</span>
+  <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://arxiv.org/abs/1706.03762&quot;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="common-command-line-options">
+<h2>Common Command-Line Options<a class="headerlink" href="#common-command-line-options" title="Link to this heading"></a></h2>
+<p><strong>Output Formats</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate APA formatted citations</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
+
+<span class="c1"># Generate MLA formatted citations</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
+</pre></div>
+</div>
+<p><strong>Interactive Mode</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use interactive mode for ambiguous entries</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">interactive</span>
+</pre></div>
+</div>
+<p><strong>Batch Processing</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process BibTeX file</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">bib</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
+</pre></div>
+</div>
+<p>For more advanced usage, see <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced Usage</span></a>.</p>
+</section>
+<section id="using-onecite-as-a-python-library">
+<h2>Using OneCite as a Python Library<a class="headerlink" href="#using-onecite-as-a-python-library" title="Link to this heading"></a></h2>
+<p>You can also use OneCite directly in your Python scripts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;Deep learning review</span><span class="se">\n</span><span class="s2">LeCun, Bengio, Hinton</span><span class="se">\n</span><span class="s2">Nature 2015&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Auto-select first match</span>
+<span class="p">)</span>
+
+<span class="c1"># Print formatted citations</span>
+<span class="k">for</span> <span class="n">citation</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">citation</span><span class="p">)</span>
+
+<span class="c1"># Check processing report</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Processed </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;succeeded&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> entries&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>For more details, see <a class="reference internal" href="python_api.html"><span class="doc">Python API Reference</span></a>.</p>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Learn more about <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced Usage</span></a></p></li>
+<li><p>Explore <a class="reference internal" href="mcp_integration.html"><span class="doc">AI Assistant Integration with MCP</span></a> for AI assistant integration</p></li>
+<li><p>Check <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> to customize output format</p></li>
+<li><p>See <a class="reference internal" href="api/core.html"><span class="doc">Core API Reference</span></a> for Python API reference</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-left" title="Installation Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="basic_usage.html" class="btn btn-neutral float-right" title="Basic Usage" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

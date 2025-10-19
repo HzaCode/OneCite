@@ -1,0 +1,547 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom Templates &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Output Formats" href="output_formats.html" />
+    <link rel="prev" title="AI Assistant Integration with MCP" href="mcp_integration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Custom Templates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#template-basics">Template Basics</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#default-templates-location">Default Templates Location</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#what-templates-actually-do">What Templates Actually Do</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#template-structure">Template Structure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-journal-article-template">Example: Journal Article Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#field-definitions">Field Definitions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#available-data-sources-for-source-priority">Available Data Sources for source_priority</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#special-citation-types">Special Citation Types</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-templates">Example Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#conference-paper-template">Conference Paper Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#book-template">Book Template</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-custom-templates">Creating Custom Templates</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-minimal-article-template">Example: Minimal Article Template</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#using-custom-templates">Using Custom Templates</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#inspecting-templates">Inspecting Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#output-format-control">Output Format Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-field-names">Common Field Names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#template-not-found">Template Not Found</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#missing-fields-in-output">Missing Fields in Output</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#invalid-yaml-syntax">Invalid YAML Syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#sharing-templates">Sharing Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Custom Templates</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/templates.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="custom-templates">
+<h1>Custom Templates<a class="headerlink" href="#custom-templates" title="Link to this heading"></a></h1>
+<p>OneCite uses YAML-based templates to define citation metadata field requirements. This guide explains how templates work and how to create custom ones.</p>
+<section id="template-basics">
+<h2>Template Basics<a class="headerlink" href="#template-basics" title="Link to this heading"></a></h2>
+<p>Templates define the <strong>structure and metadata requirements</strong> for different citation types. OneCite comes with built-in templates for:</p>
+<ul class="simple">
+<li><p><strong>journal_article_full</strong> - Journal articles with complete metadata</p></li>
+<li><p><strong>conference_paper</strong> - Conference proceedings papers</p></li>
+<li><p><strong>book</strong> - Books and monographs</p></li>
+<li><p><strong>thesis</strong> - Theses and dissertations</p></li>
+<li><p><strong>software</strong> - Software and code repositories</p></li>
+<li><p><strong>dataset</strong> - Research datasets</p></li>
+</ul>
+<section id="default-templates-location">
+<h3>Default Templates Location<a class="headerlink" href="#default-templates-location" title="Link to this heading"></a></h3>
+<p>Built-in templates are located in the <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code> directory:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">journal_article_full.yaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">conference_paper.yaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">book.yaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">thesis.yaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">software.yaml</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataset.yaml</span></code></p></li>
+</ul>
+</section>
+</section>
+<section id="what-templates-actually-do">
+<h2>What Templates Actually Do<a class="headerlink" href="#what-templates-actually-do" title="Link to this heading"></a></h2>
+<p><strong>Important:</strong> OneCite templates define <strong>metadata fields and their priorities</strong>, not output formatting.</p>
+<p>Output formats (BibTeX, APA, MLA) are implemented in the Python code, not in the YAML templates.</p>
+<p>Templates control:</p>
+<ol class="arabic simple">
+<li><p><strong>Which fields</strong> are required or optional for a citation type</p></li>
+<li><p><strong>BibTeX entry type</strong> (e.g., &#64;article, &#64;book, &#64;inproceedings)</p></li>
+<li><p><strong>Optional field completion</strong> strategy (limited data sources)</p></li>
+</ol>
+<p>Templates DO NOT control:</p>
+<ul class="simple">
+<li><p>Output format style (BibTeX/APA/MLA formatting)</p></li>
+<li><p>Field ordering in the output</p></li>
+<li><p>Punctuation or capitalization rules</p></li>
+</ul>
+</section>
+<section id="template-structure">
+<h2>Template Structure<a class="headerlink" href="#template-structure" title="Link to this heading"></a></h2>
+<p>A template YAML file has three main parts:</p>
+<ol class="arabic simple">
+<li><p><strong>name</strong> - Template identifier</p></li>
+<li><p><strong>entry_type</strong> - BibTeX entry type (e.g., &#64;article, &#64;book)</p></li>
+<li><p><strong>fields</strong> - List of field definitions</p></li>
+</ol>
+<section id="example-journal-article-template">
+<h3>Example: Journal Article Template<a class="headerlink" href="#example-journal-article-template" title="Link to this heading"></a></h3>
+<p>Here’s the actual <code class="docutils literal notranslate"><span class="pre">journal_article_full.yaml</span></code> template:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">journal_article_full</span>
+<span class="n">entry_type</span><span class="p">:</span> <span class="s2">&quot;@article&quot;</span>
+<span class="n">fields</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">author</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">title</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">journal</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">year</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">volume</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">number</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">pages</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">google_scholar_scraper</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">publisher</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">doi</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+</pre></div>
+</div>
+</section>
+<section id="field-definitions">
+<h3>Field Definitions<a class="headerlink" href="#field-definitions" title="Link to this heading"></a></h3>
+<p>Each field has:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> - Field name (e.g., author, title, journal)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">required</span></code> - Whether this field is required (true/false)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_priority</span></code> - Ordered list of data sources to try (optional fields only)</p></li>
+</ul>
+</section>
+<section id="available-data-sources-for-source-priority">
+<h3>Available Data Sources for source_priority<a class="headerlink" href="#available-data-sources-for-source-priority" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">source_priority</span></code> field controls optional field completion for missing fields:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">crossref_api</span></code> - CrossRef API</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">google_scholar_scraper</span></code> - Google Scholar scraping (if enabled)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">user_prompt</span></code> - Prompt user to enter manually</p></li>
+</ul>
+</section>
+<section id="special-citation-types">
+<h3>Special Citation Types<a class="headerlink" href="#special-citation-types" title="Link to this heading"></a></h3>
+<p>Some citation types are automatically detected and enriched during identification:</p>
+<ul class="simple">
+<li><p><strong>Software:</strong> GitHub repositories via GitHub API</p></li>
+<li><p><strong>Dataset:</strong> Zenodo/Figshare via their APIs</p></li>
+<li><p><strong>Thesis:</strong> Via OpenAIRE/BASE APIs</p></li>
+<li><p><strong>Books:</strong> Via Google Books API</p></li>
+</ul>
+</section>
+</section>
+<section id="example-templates">
+<h2>Example Templates<a class="headerlink" href="#example-templates" title="Link to this heading"></a></h2>
+<section id="conference-paper-template">
+<h3>Conference Paper Template<a class="headerlink" href="#conference-paper-template" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">conference_paper.yaml</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">conference_paper</span>
+<span class="n">entry_type</span><span class="p">:</span> <span class="s2">&quot;@inproceedings&quot;</span>
+<span class="n">fields</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">author</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">title</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">booktitle</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">year</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">pages</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">google_scholar_scraper</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">organization</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">publisher</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">doi</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+</pre></div>
+</div>
+</section>
+<section id="book-template">
+<h3>Book Template<a class="headerlink" href="#book-template" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">book.yaml</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">book</span>
+<span class="n">entry_type</span><span class="p">:</span> <span class="s2">&quot;@book&quot;</span>
+<span class="n">fields</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">author</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">title</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">publisher</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">year</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">edition</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">isbn</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">address</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+      <span class="o">-</span> <span class="n">user_prompt</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">pages</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">doi</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="creating-custom-templates">
+<h2>Creating Custom Templates<a class="headerlink" href="#creating-custom-templates" title="Link to this heading"></a></h2>
+<p>To create a custom template:</p>
+<ol class="arabic simple">
+<li><p>Create a new YAML file in <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code></p></li>
+<li><p>Define the name, entry_type, and fields</p></li>
+<li><p>Specify required fields and source priorities</p></li>
+<li><p>Use the template by its name (without .yaml extension)</p></li>
+</ol>
+<section id="example-minimal-article-template">
+<h3>Example: Minimal Article Template<a class="headerlink" href="#example-minimal-article-template" title="Link to this heading"></a></h3>
+<p>Create <code class="docutils literal notranslate"><span class="pre">minimal_article.yaml</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">name</span><span class="p">:</span> <span class="n">minimal_article</span>
+<span class="n">entry_type</span><span class="p">:</span> <span class="s2">&quot;@article&quot;</span>
+<span class="n">fields</span><span class="p">:</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">author</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">title</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">year</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">true</span>
+  <span class="o">-</span> <span class="n">name</span><span class="p">:</span> <span class="n">doi</span>
+    <span class="n">required</span><span class="p">:</span> <span class="n">false</span>
+    <span class="n">source_priority</span><span class="p">:</span>
+      <span class="o">-</span> <span class="n">crossref_api</span>
+</pre></div>
+</div>
+</section>
+<section id="using-custom-templates">
+<h3>Using Custom Templates<a class="headerlink" href="#using-custom-templates" title="Link to this heading"></a></h3>
+<p>Command line:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">template</span> <span class="n">minimal_article</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
+</pre></div>
+</div>
+<p>Python API:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;minimal_article&quot;</span><span class="p">,</span>  <span class="c1"># Your custom template</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="inspecting-templates">
+<h2>Inspecting Templates<a class="headerlink" href="#inspecting-templates" title="Link to this heading"></a></h2>
+<p>You can load and inspect templates programmatically:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateLoader</span>
+
+<span class="n">loader</span> <span class="o">=</span> <span class="n">TemplateLoader</span><span class="p">()</span>
+
+<span class="c1"># Load a specific template</span>
+<span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_template</span><span class="p">(</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template name: </span><span class="si">{</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Entry type: </span><span class="si">{</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;entry_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fields: </span><span class="si">{</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use a custom templates directory</span>
+<span class="n">custom_loader</span> <span class="o">=</span> <span class="n">TemplateLoader</span><span class="p">(</span><span class="n">templates_dir</span><span class="o">=</span><span class="s2">&quot;/path/to/templates&quot;</span><span class="p">)</span>
+<span class="n">custom_template</span> <span class="o">=</span> <span class="n">custom_loader</span><span class="o">.</span><span class="n">load_template</span><span class="p">(</span><span class="s2">&quot;my_template&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="output-format-control">
+<h2>Output Format Control<a class="headerlink" href="#output-format-control" title="Link to this heading"></a></h2>
+<p><strong>Important Note:</strong> Output formats (BibTeX, APA, MLA) are controlled by the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option, not by templates.</p>
+<p>To change output format:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate BibTeX format</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
+
+<span class="c1"># Generate APA format</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
+
+<span class="c1"># Generate MLA format</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
+</pre></div>
+</div>
+<p>The template only affects which fields are collected and from where, not how they are formatted in the final output.</p>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Start Simple</strong> - Begin with a basic template and add fields as needed</p></li>
+<li><p><strong>Test with Real Data</strong> - Verify your template works with actual references</p></li>
+<li><p><strong>Prioritize Reliable Sources</strong> - List most reliable data sources first in source_priority</p></li>
+<li><p><strong>Mark Critical Fields as Required</strong> - Only mark essential fields as required</p></li>
+<li><p><strong>Document Your Templates</strong> - Add comments explaining the purpose</p></li>
+<li><p><strong>Validate YAML Syntax</strong> - Ensure proper YAML formatting</p></li>
+</ol>
+</section>
+<section id="common-field-names">
+<h2>Common Field Names<a class="headerlink" href="#common-field-names" title="Link to this heading"></a></h2>
+<p>Standard BibTeX field names:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">author</span></code> - Author names</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">title</span></code> - Work title</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">journal</span></code> - Journal name (articles)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">booktitle</span></code> - Book/conference title (proceedings)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">year</span></code> - Publication year</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">volume</span></code> - Volume number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">number</span></code> - Issue number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pages</span></code> - Page range</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">publisher</span></code> - Publisher name</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">doi</span></code> - Digital Object Identifier</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">url</span></code> - Web URL</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">isbn</span></code> - Book identifier</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">issn</span></code> - Journal identifier</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">edition</span></code> - Edition number</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">address</span></code> - Publisher location</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">organization</span></code> - Conference/organization name</p></li>
+</ul>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="template-not-found">
+<h3>Template Not Found<a class="headerlink" href="#template-not-found" title="Link to this heading"></a></h3>
+<p>If you get “template not found” error:</p>
+<ol class="arabic simple">
+<li><p>Check the template file is in <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code> directory</p></li>
+<li><p>Verify the filename matches (e.g., <code class="docutils literal notranslate"><span class="pre">my_template.yaml</span></code>)</p></li>
+<li><p>Use the template name without <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> extension</p></li>
+<li><p>Ensure YAML syntax is valid</p></li>
+</ol>
+</section>
+<section id="missing-fields-in-output">
+<h3>Missing Fields in Output<a class="headerlink" href="#missing-fields-in-output" title="Link to this heading"></a></h3>
+<p>If expected fields are missing:</p>
+<ol class="arabic simple">
+<li><p>Check that the field is defined in the template</p></li>
+<li><p>Verify data sources are available and accessible</p></li>
+<li><p>Check that source_priority lists appropriate sources</p></li>
+<li><p>Consider marking critical fields as <code class="docutils literal notranslate"><span class="pre">required:</span> <span class="pre">true</span></code></p></li>
+</ol>
+</section>
+<section id="invalid-yaml-syntax">
+<h3>Invalid YAML Syntax<a class="headerlink" href="#invalid-yaml-syntax" title="Link to this heading"></a></h3>
+<p>If template loading fails:</p>
+<ol class="arabic simple">
+<li><p>Use a YAML validator to check syntax</p></li>
+<li><p>Ensure proper indentation (use spaces, not tabs)</p></li>
+<li><p>Check that all field names are strings</p></li>
+<li><p>Verify boolean values are lowercase (true/false)</p></li>
+</ol>
+</section>
+</section>
+<section id="sharing-templates">
+<h2>Sharing Templates<a class="headerlink" href="#sharing-templates" title="Link to this heading"></a></h2>
+<p>To share custom templates:</p>
+<ol class="arabic simple">
+<li><p>Save as a <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> file with a descriptive name</p></li>
+<li><p>Include a comment at the top explaining its purpose</p></li>
+<li><p>Test with various reference types</p></li>
+<li><p>Share in the OneCite community or contribute to the project</p></li>
+</ol>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>See <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a> for basic usage</p></li>
+<li><p>Learn <a class="reference internal" href="python_api.html"><span class="doc">Python API Reference</span></a> for programmatic access</p></li>
+<li><p>Check <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced Usage</span></a> for complex scenarios</p></li>
+<li><p>View the <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code> directory for more examples</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="mcp_integration.html" class="btn btn-neutral float-left" title="AI Assistant Integration with MCP" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="output_formats.html" class="btn btn-neutral float-right" title="Output Formats" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

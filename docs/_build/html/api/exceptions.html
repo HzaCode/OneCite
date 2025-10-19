@@ -1,0 +1,389 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Exceptions Reference &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=0c446633"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Pipeline Processing Reference" href="pipeline.html" />
+    <link rel="prev" title="Core API Reference" href="core.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OneCite
+              <img src="../_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Exceptions Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#exception-hierarchy">Exception Hierarchy</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#oneciteerror">OneCiteError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validationerror">ValidationError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parseerror">ParseError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resolvererror">ResolverError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#comprehensive-error-handling">Comprehensive Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#handling-all-exceptions">Handling All Exceptions</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#batch-processing-with-error-recovery">Batch Processing with Error Recovery</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Exceptions Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/exceptions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="exceptions-reference">
+<h1>Exceptions Reference<a class="headerlink" href="#exceptions-reference" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>OneCite provides a hierarchy of custom exceptions for different error scenarios. All exceptions inherit from <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code>.</p>
+<section id="exception-hierarchy">
+<h3>Exception Hierarchy<a class="headerlink" href="#exception-hierarchy" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Exception
+└── OneCiteError
+    ├── ValidationError
+    ├── ParseError
+    └── ResolverError
+</pre></div>
+</div>
+</section>
+</section>
+<section id="oneciteerror">
+<h2>OneCiteError<a class="headerlink" href="#oneciteerror" title="Link to this heading"></a></h2>
+<p>Base exception for all OneCite errors.</p>
+<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p><strong>Usage:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">OneCiteError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># OneCite operation</span>
+    <span class="k">pass</span>
+<span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OneCite error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="validationerror">
+<h2>ValidationError<a class="headerlink" href="#validationerror" title="Link to this heading"></a></h2>
+<p>Raised when entry validation fails.</p>
+<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></p>
+<p><strong>Common Causes:</strong></p>
+<ul class="simple">
+<li><p>Empty or null input</p></li>
+<li><p>Missing required fields</p></li>
+<li><p>Invalid data format</p></li>
+<li><p>Malformed identifiers</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ValidationError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>  <span class="c1"># Empty input</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Handling:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid reference format&quot;</span><span class="p">)</span>
+    <span class="c1"># Provide user feedback or skip this entry</span>
+    <span class="k">continue</span>
+</pre></div>
+</div>
+</section>
+<section id="parseerror">
+<h2>ParseError<a class="headerlink" href="#parseerror" title="Link to this heading"></a></h2>
+<p>Raised when parsing input fails.</p>
+<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></p>
+<p><strong>Common Causes:</strong></p>
+<ul class="simple">
+<li><p>Invalid BibTeX syntax</p></li>
+<li><p>Unrecognized file format</p></li>
+<li><p>Corrupted data</p></li>
+<li><p>Incompatible encoding</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ParseError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;@article{broken syntax&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Handling:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ParseError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to parse BibTeX file&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ensure the file is valid BibTeX format&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="resolvererror">
+<h2>ResolverError<a class="headerlink" href="#resolvererror" title="Link to this heading"></a></h2>
+<p>Raised when data source resolution fails.</p>
+<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></p>
+<p><strong>Common Causes:</strong></p>
+<ul class="simple">
+<li><p>Network connectivity issues</p></li>
+<li><p>Data source unavailable</p></li>
+<li><p>API rate limiting</p></li>
+<li><p>Invalid identifier</p></li>
+<li><p>No matches found</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ResolverError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.invalid/doi&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ResolverError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resolver error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Handling:</strong></p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ResolverError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find the reference in data sources&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Check your internet connection or try again later&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="comprehensive-error-handling">
+<h2>Comprehensive Error Handling<a class="headerlink" href="#comprehensive-error-handling" title="Link to this heading"></a></h2>
+<section id="handling-all-exceptions">
+<h3>Handling All Exceptions<a class="headerlink" href="#handling-all-exceptions" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">process_references</span><span class="p">,</span>
+    <span class="n">OneCiteError</span><span class="p">,</span>
+    <span class="n">ValidationError</span><span class="p">,</span>
+    <span class="n">ParseError</span><span class="p">,</span>
+    <span class="n">ResolverError</span>
+<span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_safely</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+            <span class="n">input_content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+            <span class="n">input_type</span><span class="o">=</span><span class="n">input_type</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Parse failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="n">ResolverError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Resolver failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Unexpected error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-processing-with-error-recovery">
+<h3>Batch Processing with Error Recovery<a class="headerlink" href="#batch-processing-with-error-recovery" title="Link to this heading"></a></h3>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">OneCiteError</span>
+
+<span class="n">references</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;invalid/doi&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Vaswani et al., 2017&quot;</span>
+<span class="p">]</span>
+
+<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">references</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
+            <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span>
+            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+        <span class="p">})</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Errors:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">err</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Be Specific</strong> - Catch specific exceptions rather than generic Exception</p></li>
+<li><p><strong>Log Errors</strong> - Record error details for debugging</p></li>
+<li><p><strong>Provide Feedback</strong> - Give users clear feedback on what went wrong</p></li>
+<li><p><strong>Retry on Resolver Errors</strong> - Network issues may be temporary</p></li>
+<li><p><strong>Validate Input</strong> - Pre-validate input to catch ValidationErrors early</p></li>
+</ol>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">OneCiteError</span>
+
+<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
+<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">process_with_logging</span><span class="p">(</span><span class="n">reference</span><span class="p">):</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed: </span><span class="si">{</span><span class="n">reference</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing </span><span class="si">{</span><span class="n">reference</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">raise</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>See <a class="reference internal" href="core.html"><span class="doc">Core API Reference</span></a> for core API reference</p></li>
+<li><p>Check <a class="reference internal" href="../python_api.html"><span class="doc">Python API Reference</span></a> for usage examples</p></li>
+<li><p>Review <span class="xref std std-doc">../error</span> for error handling patterns</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="core.html" class="btn btn-neutral float-left" title="Core API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="pipeline.html" class="btn btn-neutral float-right" title="Pipeline Processing Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

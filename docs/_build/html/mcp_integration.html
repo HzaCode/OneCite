@@ -1,0 +1,420 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Assistant Integration with MCP &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Custom Templates" href="templates.html" />
+    <link rel="prev" title="Python API Reference" href="python_api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">AI Assistant Integration with MCP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-is-mcp">What is MCP?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installation-and-setup">Installation and Setup</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#install-onecite">1. Install OneCite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#test-the-mcp-server">2. Test the MCP Server</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-claude-desktop">Configuring Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#configuring-cursor-editor">Configuring Cursor Editor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#available-functions">Available Functions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cite">cite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#batch-cite">batch_cite</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#example-conversations">Example Conversations</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-1-simple-citation-generation">Example 1: Simple Citation Generation</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-2-batch-processing">Example 2: Batch Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-3-format-conversion">Example 3: Format Conversion</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#mcp-server-not-starting">MCP Server Not Starting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#claude-desktop-not-recognizing-onecite">Claude Desktop Not Recognizing OneCite</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cursor-not-finding-onecite-functions">Cursor Not Finding OneCite Functions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-configuration">Advanced Configuration</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-command-path">Custom Command Path</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#error-logging">Error Logging</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#integration-with-workflows">Integration with Workflows</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#with-claude-cursor">With Claude/Cursor</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#workflow-example">Workflow Example</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">AI Assistant Integration with MCP</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mcp_integration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="ai-assistant-integration-with-mcp">
+<h1>AI Assistant Integration with MCP<a class="headerlink" href="#ai-assistant-integration-with-mcp" title="Link to this heading"></a></h1>
+<p>OneCite provides full support for the Model Context Protocol (MCP), enabling AI assistants to directly use its citation management capabilities.</p>
+<section id="what-is-mcp">
+<h2>What is MCP?<a class="headerlink" href="#what-is-mcp" title="Link to this heading"></a></h2>
+<p>The Model Context Protocol (MCP) is an open standard for connecting AI assistants with external tools and data sources. This allows AI assistants like Claude to access OneCite’s functionality seamlessly.</p>
+</section>
+<section id="installation-and-setup">
+<h2>Installation and Setup<a class="headerlink" href="#installation-and-setup" title="Link to this heading"></a></h2>
+<section id="install-onecite">
+<h3>1. Install OneCite<a class="headerlink" href="#install-onecite" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span>
+</pre></div>
+</div>
+</section>
+<section id="test-the-mcp-server">
+<h3>2. Test the MCP Server<a class="headerlink" href="#test-the-mcp-server" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span><span class="o">-</span><span class="n">mcp</span>
+</pre></div>
+</div>
+<p>You should see output confirming the MCP server is running.</p>
+</section>
+</section>
+<section id="configuring-claude-desktop">
+<h2>Configuring Claude Desktop<a class="headerlink" href="#configuring-claude-desktop" title="Link to this heading"></a></h2>
+<p>To use OneCite with Claude Desktop:</p>
+<ol class="arabic">
+<li><p>Open <code class="docutils literal notranslate"><span class="pre">claude_desktop_config.json</span></code> (usually located at <code class="docutils literal notranslate"><span class="pre">~/.config/Claude/claude_desktop_config.json</span></code>)</p></li>
+<li><p>Add OneCite to the MCP servers configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;mcpServers&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;onecite&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;onecite-mcp&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p>Restart Claude Desktop</p></li>
+<li><p>Start a new conversation and OneCite will be available</p></li>
+</ol>
+</section>
+<section id="configuring-cursor-editor">
+<h2>Configuring Cursor Editor<a class="headerlink" href="#configuring-cursor-editor" title="Link to this heading"></a></h2>
+<p>For Cursor editor integration:</p>
+<ol class="arabic">
+<li><p>Open <cite>.cursor/settings.json</cite> (or create it if it doesn’t exist)</p></li>
+<li><p>Add OneCite configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;mcpServers&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;onecite&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;onecite-mcp&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</li>
+<li><p>Restart Cursor</p></li>
+<li><p>OneCite will now be available in the MCP tools</p></li>
+</ol>
+</section>
+<section id="available-functions">
+<h2>Available Functions<a class="headerlink" href="#available-functions" title="Link to this heading"></a></h2>
+<p>The OneCite MCP server provides the following functions:</p>
+<section id="cite">
+<h3>cite<a class="headerlink" href="#cite" title="Link to this heading"></a></h3>
+<p>Generate a single citation in various formats.</p>
+<p><strong>Example Usage:</strong></p>
+<ul class="simple">
+<li><p>“Generate an APA citation for DOI: 10.1038/nature14539”</p></li>
+<li><p>“Create a BibTeX entry for the paper titled ‘Attention is All You Need’”</p></li>
+<li><p>“Get a citation for arXiv:2103.00020 in MLA format”</p></li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">source</span></code> - The paper identifier (DOI, title, arXiv ID, etc.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style</span></code> - Output format: “bibtex”, “apa”, or “mla” (default: “bibtex”)</p></li>
+</ul>
+</section>
+<section id="batch-cite">
+<h3>batch_cite<a class="headerlink" href="#batch-cite" title="Link to this heading"></a></h3>
+<p>Process multiple references at once.</p>
+<p><strong>Example Usage:</strong></p>
+<ul class="simple">
+<li><p>“Batch process these references in BibTeX format: [list of papers]”</p></li>
+<li><p>“Convert this list of authors and years to APA citations”</p></li>
+<li><p>“Process my references.txt file and give me BibTeX output”</p></li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">sources</span></code> - List of paper identifiers or references</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">style</span></code> - Output format: “bibtex”, “apa”, or “mla” (default: “bibtex”)</p></li>
+</ul>
+</section>
+</section>
+<section id="example-conversations">
+<h2>Example Conversations<a class="headerlink" href="#example-conversations" title="Link to this heading"></a></h2>
+<section id="example-1-simple-citation-generation">
+<h3>Example 1: Simple Citation Generation<a class="headerlink" href="#example-1-simple-citation-generation" title="Link to this heading"></a></h3>
+<p><strong>User:</strong> “Can you generate a citation for the Deep Learning paper by LeCun, Bengio, and Hinton?”</p>
+<p><strong>Claude:</strong> “I’ll generate a citation for that paper.”</p>
+<p><em>Uses the cite function to retrieve and format the citation</em></p>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">LeCun2015Deep</span><span class="p">,</span>
+  <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+  <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Deep Learning&quot;</span><span class="p">,</span>
+  <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey&quot;</span><span class="p">,</span>
+  <span class="n">journal</span> <span class="o">=</span> <span class="s2">&quot;Nature&quot;</span><span class="p">,</span>
+  <span class="n">year</span> <span class="o">=</span> <span class="mi">2015</span><span class="p">,</span>
+  <span class="n">volume</span> <span class="o">=</span> <span class="mi">521</span><span class="p">,</span>
+  <span class="n">number</span> <span class="o">=</span> <span class="mi">7553</span><span class="p">,</span>
+  <span class="n">pages</span> <span class="o">=</span> <span class="s2">&quot;436-444&quot;</span><span class="p">,</span>
+  <span class="n">publisher</span> <span class="o">=</span> <span class="s2">&quot;Springer Science and Business Media LLC&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="example-2-batch-processing">
+<h3>Example 2: Batch Processing<a class="headerlink" href="#example-2-batch-processing" title="Link to this heading"></a></h3>
+<p><strong>User:</strong> “I have these papers to cite. Can you get BibTeX for all of them?
+- 10.1038/nature14539
+- 1706.03762 (arXiv)
+- Deep Learning textbook by Goodfellow, Bengio, and Courville”</p>
+<p><strong>Claude:</strong> “I’ll process all three of those for you in BibTeX format.”</p>
+<p><em>Uses batch_cite function</em></p>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span><span class="n">BibTeX</span> <span class="n">entries</span> <span class="k">for</span> <span class="nb">all</span> <span class="n">three</span> <span class="n">references</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="example-3-format-conversion">
+<h3>Example 3: Format Conversion<a class="headerlink" href="#example-3-format-conversion" title="Link to this heading"></a></h3>
+<p><strong>User:</strong> “I need to convert my paper’s bibliography to APA format. Here are the references…”</p>
+<p><strong>Claude:</strong> “I’ll convert those to APA format for you.”</p>
+<p><em>Uses batch_cite with format=”apa”</em></p>
+<p><strong>Output:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LeCun</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Hinton</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span> <span class="p">(</span><span class="mi">2015</span><span class="p">)</span><span class="o">.</span> <span class="n">Deep</span> <span class="n">learning</span><span class="o">.</span> <span class="n">Nature</span><span class="p">,</span> <span class="mi">521</span><span class="p">(</span><span class="mi">7553</span><span class="p">),</span> <span class="mi">436</span><span class="o">-</span><span class="mf">444.</span>
+<span class="p">[</span><span class="n">Additional</span> <span class="n">APA</span> <span class="n">citations</span><span class="o">...</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="mcp-server-not-starting">
+<h3>MCP Server Not Starting<a class="headerlink" href="#mcp-server-not-starting" title="Link to this heading"></a></h3>
+<p>If you see an error when running <code class="docutils literal notranslate"><span class="pre">onecite-mcp</span></code>, try:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Check if OneCite is installed</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">onecite</span>
+
+<span class="c1"># Test the installation</span>
+<span class="n">onecite</span> <span class="o">--</span><span class="n">version</span>
+</pre></div>
+</div>
+</section>
+<section id="claude-desktop-not-recognizing-onecite">
+<h3>Claude Desktop Not Recognizing OneCite<a class="headerlink" href="#claude-desktop-not-recognizing-onecite" title="Link to this heading"></a></h3>
+<ol class="arabic">
+<li><p>Check that the config file is in the correct location</p></li>
+<li><p>Verify the JSON syntax is valid (use a JSON validator)</p></li>
+<li><p>Restart Claude Desktop completely</p></li>
+<li><p>Check that OneCite MCP server is responding:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span><span class="o">-</span><span class="n">mcp</span> <span class="o">--</span><span class="n">test</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</section>
+<section id="cursor-not-finding-onecite-functions">
+<h3>Cursor Not Finding OneCite Functions<a class="headerlink" href="#cursor-not-finding-onecite-functions" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Ensure Cursor is restarted after updating <cite>.cursor/settings.json</cite></p></li>
+<li><p>Verify the command path is correct</p></li>
+<li><p>Try running <code class="docutils literal notranslate"><span class="pre">onecite-mcp</span></code> manually to check for errors</p></li>
+</ol>
+</section>
+</section>
+<section id="advanced-configuration">
+<h2>Advanced Configuration<a class="headerlink" href="#advanced-configuration" title="Link to this heading"></a></h2>
+<section id="custom-command-path">
+<h3>Custom Command Path<a class="headerlink" href="#custom-command-path" title="Link to this heading"></a></h3>
+<p>If OneCite is installed in a specific virtual environment, you can specify the full path:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;mcpServers&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;onecite&quot;</span><span class="p">:</span> <span class="p">{</span>
+      <span class="s2">&quot;command&quot;</span><span class="p">:</span> <span class="s2">&quot;/path/to/venv/bin/onecite-mcp&quot;</span>
+    <span class="p">}</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="error-logging">
+<h3>Error Logging<a class="headerlink" href="#error-logging" title="Link to this heading"></a></h3>
+<p>To debug MCP issues, check the AI assistant’s debug logs or MCP server logs.</p>
+</section>
+</section>
+<section id="best-practices">
+<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Be Specific</strong> - Provide complete information (DOI, title, authors) for best results</p></li>
+<li><p><strong>One at a Time</strong> - For complex citations, process one or two at a time</p></li>
+<li><p><strong>Verify Results</strong> - Always check the output matches your needs</p></li>
+<li><p><strong>Use Batch Processing</strong> - For multiple references, batch_cite is more efficient</p></li>
+<li><p><strong>Format Consistency</strong> - Specify your desired format to avoid back-and-forth conversions</p></li>
+</ol>
+</section>
+<section id="integration-with-workflows">
+<h2>Integration with Workflows<a class="headerlink" href="#integration-with-workflows" title="Link to this heading"></a></h2>
+<section id="with-claude-cursor">
+<h3>With Claude/Cursor<a class="headerlink" href="#with-claude-cursor" title="Link to this heading"></a></h3>
+<ol class="arabic simple">
+<li><p>Discuss your research during conversation</p></li>
+<li><p>Ask Claude to generate citations as needed</p></li>
+<li><p>Copy the formatted bibliography into your paper</p></li>
+<li><p>Use for real-time citation help while writing</p></li>
+</ol>
+</section>
+<section id="workflow-example">
+<h3>Workflow Example<a class="headerlink" href="#workflow-example" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">User</span><span class="p">:</span> <span class="s2">&quot;I&#39;m writing about deep learning. Can you help me cite the foundational papers?&quot;</span>
+<span class="n">Claude</span><span class="p">:</span> <span class="s2">&quot;I&#39;ll help you cite the key deep learning papers. Let me get those for you.&quot;</span>
+<span class="p">[</span><span class="n">Claude</span> <span class="n">uses</span> <span class="n">batch_cite</span> <span class="k">with</span> <span class="n">deep</span> <span class="n">learning</span> <span class="n">papers</span><span class="p">]</span>
+<span class="n">User</span><span class="p">:</span> <span class="s2">&quot;Great! Can I get those in APA format instead?&quot;</span>
+<span class="n">Claude</span><span class="p">:</span> <span class="s2">&quot;Of course, let me convert those to APA.&quot;</span>
+<span class="p">[</span><span class="n">Claude</span> <span class="n">uses</span> <span class="n">batch_cite</span> <span class="k">with</span> <span class="nb">format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>See <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a> for basic usage</p></li>
+<li><p>Learn <a class="reference internal" href="python_api.html"><span class="doc">Python API Reference</span></a> for programmatic access</p></li>
+<li><p>Check <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for customizing output format</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="python_api.html" class="btn btn-neutral float-left" title="Python API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="templates.html" class="btn btn-neutral float-right" title="Custom Templates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

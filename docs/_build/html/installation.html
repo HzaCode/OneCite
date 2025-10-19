@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Installation Guide &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Quick Start Guide" href="quick_start.html" />
+    <link rel="prev" title="OneCite - Universal Citation &amp; Academic Reference Toolkit" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-from-pypi-recommended">Installing from PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#installing-from-source">Installing from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#upgrading-onecite">Upgrading OneCite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#dependency-conflicts">Dependency Conflicts</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#permission-errors">Permission Errors</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#virtual-environments-recommended">Virtual Environments (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Installation Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/installation.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="installation-guide">
+<h1>Installation Guide<a class="headerlink" href="#installation-guide" title="Link to this heading"></a></h1>
+<section id="system-requirements">
+<h2>System Requirements<a class="headerlink" href="#system-requirements" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Python 3.7 or higher</p></li>
+<li><p>pip package manager</p></li>
+<li><p>Internet connection (for accessing data sources)</p></li>
+</ul>
+</section>
+<section id="installing-from-pypi-recommended">
+<h2>Installing from PyPI (Recommended)<a class="headerlink" href="#installing-from-pypi-recommended" title="Link to this heading"></a></h2>
+<p>The easiest way to install OneCite is from the Python Package Index (PyPI):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span>
+</pre></div>
+</div>
+<p>This will install OneCite and all required dependencies.</p>
+</section>
+<section id="installing-from-source">
+<h2>Installing from Source<a class="headerlink" href="#installing-from-source" title="Link to this heading"></a></h2>
+<p>If you want to install a development version from source:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">HzaCode</span><span class="o">/</span><span class="n">OneCite</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">OneCite</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[dev]&quot;</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">-e</span></code> flag installs the package in editable mode, which is useful for development.</p>
+</section>
+<section id="optional-dependencies">
+<h2>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h2>
+<p>For development and testing, install development dependencies:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span><span class="p">[</span><span class="n">dev</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>This will install the following additional packages:</p>
+<ul class="simple">
+<li><p>pytest - Testing framework</p></li>
+<li><p>pytest-cov - Coverage reporting</p></li>
+<li><p>flake8 - Code style checking</p></li>
+<li><p>black - Code formatting tool</p></li>
+</ul>
+</section>
+<section id="verifying-the-installation">
+<h2>Verifying the Installation<a class="headerlink" href="#verifying-the-installation" title="Link to this heading"></a></h2>
+<p>To verify that your installation was successful, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="o">--</span><span class="n">version</span>
+</pre></div>
+</div>
+<p>You should see the version number printed.</p>
+</section>
+<section id="mcp-server">
+<h2>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h2>
+<p>OneCite includes a Model Context Protocol (MCP) server. To test it:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span><span class="o">-</span><span class="n">mcp</span>
+</pre></div>
+</div>
+<p>This will start the MCP server. You can now configure your AI assistant to use it. For more details, see <a class="reference internal" href="mcp_integration.html"><span class="doc">AI Assistant Integration with MCP</span></a>.</p>
+</section>
+<section id="upgrading-onecite">
+<h2>Upgrading OneCite<a class="headerlink" href="#upgrading-onecite" title="Link to this heading"></a></h2>
+<p>To upgrade to the latest version:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">onecite</span>
+</pre></div>
+</div>
+</section>
+<section id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Link to this heading"></a></h2>
+<section id="dependency-conflicts">
+<h3>Dependency Conflicts<a class="headerlink" href="#dependency-conflicts" title="Link to this heading"></a></h3>
+<p>If you encounter dependency conflicts during installation, try:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">upgrade</span> <span class="n">pip</span> <span class="n">setuptools</span> <span class="n">wheel</span>
+</pre></div>
+</div>
+<p>Then reinstall OneCite.</p>
+</section>
+<section id="permission-errors">
+<h3>Permission Errors<a class="headerlink" href="#permission-errors" title="Link to this heading"></a></h3>
+<p>If you get permission errors on macOS or Linux, try using the <code class="docutils literal notranslate"><span class="pre">--user</span></code> flag:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="o">--</span><span class="n">user</span> <span class="n">onecite</span>
+</pre></div>
+</div>
+<p>Or consider using a virtual environment (recommended).</p>
+</section>
+</section>
+<section id="virtual-environments-recommended">
+<h2>Virtual Environments (Recommended)<a class="headerlink" href="#virtual-environments-recommended" title="Link to this heading"></a></h2>
+<p>Using a virtual environment helps avoid system-wide package conflicts:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create a virtual environment</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">venv</span>
+
+<span class="c1"># Activate the virtual environment</span>
+<span class="c1"># On Linux/macOS:</span>
+<span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>
+<span class="c1"># On Windows:</span>
+<span class="n">venv</span>\<span class="n">Scripts</span>\<span class="n">activate</span>
+
+<span class="c1"># Install OneCite</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span>
+
+<span class="c1"># Deactivate the virtual environment when done</span>
+<span class="n">deactivate</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<p>After installation, see <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a> to get started with OneCite.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="index.html" class="btn btn-neutral float-left" title="OneCite - Universal Citation &amp; Academic Reference Toolkit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quick_start.html" class="btn btn-neutral float-right" title="Quick Start Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

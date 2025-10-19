@@ -1,0 +1,539 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pipeline Processing Reference &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=0c446633"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Frequently Asked Questions (FAQ)" href="../faq.html" />
+    <link rel="prev" title="Exceptions Reference" href="exceptions.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            OneCite
+              <img src="../_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline Processing Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#pipeline-stages">Pipeline Stages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#stage-1-validation">Stage 1: Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-2-identification">Stage 2: Identification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-3-completion">Stage 3: Completion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stage-4-formatting">Stage 4: Formatting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#advanced-pipeline-usage">Advanced Pipeline Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#custom-data-processing">Custom Data Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-processing">Batch Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#error-handling-in-pipeline">Error Handling in Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#validation-errors">Validation Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resolution-errors">Resolution Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#partial-success">Partial Success</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#pipeline-configuration">Pipeline Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#custom-templates">Custom Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#data-source-priority">Data Source Priority</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#timeout-configuration">Timeout Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Pipeline Processing Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/pipeline.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="pipeline-processing-reference">
+<h1>Pipeline Processing Reference<a class="headerlink" href="#pipeline-processing-reference" title="Link to this heading"></a></h1>
+<section id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
+<p>The OneCite pipeline is a 4-stage process that transforms raw references into formatted citations:</p>
+<ol class="arabic simple">
+<li><p><strong>Validation</strong> - Check reference validity</p></li>
+<li><p><strong>Identification</strong> - Query data sources</p></li>
+<li><p><strong>Completion</strong> - Enrich with metadata</p></li>
+<li><p><strong>Formatting</strong> - Convert to output format</p></li>
+</ol>
+</section>
+</section>
+<section id="pipeline-stages">
+<h1>Pipeline Stages<a class="headerlink" href="#pipeline-stages" title="Link to this heading"></a></h1>
+<section id="stage-1-validation">
+<h2>Stage 1: Validation<a class="headerlink" href="#stage-1-validation" title="Link to this heading"></a></h2>
+<p><strong>Purpose:</strong> Ensure input is valid and can be processed</p>
+<p><strong>Input:</strong> Raw reference text</p>
+<p><strong>Output:</strong> Validated RawEntry object</p>
+<p><strong>Process:</strong></p>
+<ol class="arabic simple">
+<li><p>Check for empty/null input</p></li>
+<li><p>Validate format (txt or bib)</p></li>
+<li><p>Detect reference type</p></li>
+<li><p>Extract metadata hints</p></li>
+</ol>
+<p><strong>Error Handling:</strong></p>
+<p>Raises <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> if:</p>
+<ul class="simple">
+<li><p>Input is empty</p></li>
+<li><p>Format is unrecognized</p></li>
+<li><p>Data is malformed</p></li>
+<li><p>Required fields missing</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawEntry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Validator</span>
+
+<span class="n">raw</span> <span class="o">=</span> <span class="n">RawEntry</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">)</span>
+<span class="n">validator</span> <span class="o">=</span> <span class="n">Validator</span><span class="p">()</span>
+
+<span class="k">if</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Valid reference&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid reference&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="stage-2-identification">
+<h2>Stage 2: Identification<a class="headerlink" href="#stage-2-identification" title="Link to this heading"></a></h2>
+<p><strong>Purpose:</strong> Find matching citations in data sources</p>
+<p><strong>Input:</strong> Validated RawEntry</p>
+<p><strong>Output:</strong> List of IdentifiedEntry objects</p>
+<p><strong>Process:</strong></p>
+<ol class="arabic simple">
+<li><p>Detect identifier type (DOI, arXiv, etc.)</p></li>
+<li><p>Query appropriate data source</p></li>
+<li><p>Parse results</p></li>
+<li><p>Rank by relevance</p></li>
+<li><p>Return candidates</p></li>
+</ol>
+<p><strong>Data Sources:</strong></p>
+<ul class="simple">
+<li><p>CrossRef (DOI-based)</p></li>
+<li><p>Semantic Scholar (keyword search)</p></li>
+<li><p>OpenAlex (academic graph)</p></li>
+<li><p>PubMed (biomedical)</p></li>
+<li><p>DBLP (computer science)</p></li>
+<li><p>arXiv (preprints)</p></li>
+<li><p>DataCite (datasets)</p></li>
+<li><p>Zenodo (open research)</p></li>
+<li><p>Google Books (books)</p></li>
+</ul>
+<p><strong>Intelligent Routing:</strong></p>
+<p>OneCite automatically selects best sources:</p>
+<ul class="simple">
+<li><p><strong>Medical terms</strong> → PubMed priority</p></li>
+<li><p><strong>CS terms</strong> → DBLP/arXiv priority</p></li>
+<li><p><strong>DOI</strong> → CrossRef priority</p></li>
+<li><p><strong>Mixed</strong> → Semantic Scholar</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Identifier</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawEntry</span>
+
+<span class="n">identifier</span> <span class="o">=</span> <span class="n">Identifier</span><span class="p">()</span>
+<span class="n">raw</span> <span class="o">=</span> <span class="n">RawEntry</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">)</span>
+
+<span class="n">matches</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">match</span> <span class="ow">in</span> <span class="n">matches</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">title</span><span class="si">}</span><span class="s2"> (</span><span class="si">{</span><span class="n">match</span><span class="o">.</span><span class="n">year</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="stage-3-completion">
+<h2>Stage 3: Completion<a class="headerlink" href="#stage-3-completion" title="Link to this heading"></a></h2>
+<p><strong>Purpose:</strong> Enrich entries with complete metadata</p>
+<p><strong>Input:</strong> IdentifiedEntry (often incomplete)</p>
+<p><strong>Output:</strong> CompletedEntry (fully enriched)</p>
+<p><strong>Process:</strong></p>
+<ol class="arabic simple">
+<li><p>Query additional data sources</p></li>
+<li><p>Fill missing fields</p></li>
+<li><p>Normalize author names</p></li>
+<li><p>Verify publication details</p></li>
+<li><p>Calculate completeness score</p></li>
+</ol>
+<p><strong>Fields Enriched:</strong></p>
+<ul class="simple">
+<li><p>Authors</p></li>
+<li><p>Title</p></li>
+<li><p>Journal/Publisher</p></li>
+<li><p>Year</p></li>
+<li><p>Volume/Issue</p></li>
+<li><p>Pages</p></li>
+<li><p>DOI/URL</p></li>
+<li><p>Keywords</p></li>
+<li><p>Abstract</p></li>
+</ul>
+<p><strong>Completeness Scoring:</strong></p>
+<p>A score from 0-1 indicating data completeness:</p>
+<ul class="simple">
+<li><p>0.9-1.0: Excellent (all fields present)</p></li>
+<li><p>0.7-0.9: Good (most fields present)</p></li>
+<li><p>0.5-0.7: Fair (core fields present)</p></li>
+<li><p>&lt; 0.5: Poor (incomplete)</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Completer</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">IdentifiedEntry</span>
+
+<span class="n">completer</span> <span class="o">=</span> <span class="n">Completer</span><span class="p">()</span>
+<span class="n">identified</span> <span class="o">=</span> <span class="n">IdentifiedEntry</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="n">completed</span> <span class="o">=</span> <span class="n">completer</span><span class="o">.</span><span class="n">complete</span><span class="p">(</span><span class="n">identified</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Completeness: </span><span class="si">{</span><span class="n">completed</span><span class="o">.</span><span class="n">completeness_score</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="stage-4-formatting">
+<h2>Stage 4: Formatting<a class="headerlink" href="#stage-4-formatting" title="Link to this heading"></a></h2>
+<p><strong>Purpose:</strong> Convert to output format</p>
+<p><strong>Input:</strong> CompletedEntry</p>
+<p><strong>Output:</strong> Formatted string</p>
+<p><strong>Supported Formats:</strong></p>
+<ul class="simple">
+<li><p>BibTeX</p></li>
+<li><p>APA</p></li>
+<li><p>MLA</p></li>
+<li><p>Custom (via templates)</p></li>
+</ul>
+<p><strong>Process:</strong></p>
+<ol class="arabic simple">
+<li><p>Load template for format</p></li>
+<li><p>Map fields to template variables</p></li>
+<li><p>Apply formatting rules</p></li>
+<li><p>Handle special characters</p></li>
+<li><p>Return formatted string</p></li>
+</ol>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Formatter</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompletedEntry</span>
+
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">Formatter</span><span class="p">()</span>
+<span class="n">completed</span> <span class="o">=</span> <span class="n">CompletedEntry</span><span class="p">(</span><span class="o">...</span><span class="p">)</span>
+
+<span class="c1"># BibTeX output</span>
+<span class="n">bibtex</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="s2">&quot;bibtex&quot;</span><span class="p">)</span>
+
+<span class="c1"># APA output</span>
+<span class="n">apa</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="s2">&quot;apa&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complete-pipeline">
+<h1>Complete Pipeline<a class="headerlink" href="#complete-pipeline" title="Link to this heading"></a></h1>
+<p>The PipelineController orchestrates all stages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineController</span>
+
+<span class="n">controller</span> <span class="o">=</span> <span class="n">PipelineController</span><span class="p">()</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+    <span class="n">entries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">],</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+<ol class="arabic simple">
+<li><p>Validate input</p></li>
+<li><p>For each entry:
+- Identify sources
+- Select best match
+- Complete entry
+- Format output</p></li>
+<li><p>Aggregate results</p></li>
+<li><p>Return summary</p></li>
+</ol>
+</section>
+<section id="advanced-pipeline-usage">
+<h1>Advanced Pipeline Usage<a class="headerlink" href="#advanced-pipeline-usage" title="Link to this heading"></a></h1>
+<section id="custom-data-processing">
+<h2>Custom Data Processing<a class="headerlink" href="#custom-data-processing" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">Validator</span><span class="p">,</span>
+    <span class="n">Identifier</span><span class="p">,</span>
+    <span class="n">Completer</span><span class="p">,</span>
+    <span class="n">Formatter</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawEntry</span>
+
+<span class="c1"># Create components</span>
+<span class="n">validator</span> <span class="o">=</span> <span class="n">Validator</span><span class="p">()</span>
+<span class="n">identifier</span> <span class="o">=</span> <span class="n">Identifier</span><span class="p">()</span>
+<span class="n">completer</span> <span class="o">=</span> <span class="n">Completer</span><span class="p">()</span>
+<span class="n">formatter</span> <span class="o">=</span> <span class="n">Formatter</span><span class="p">()</span>
+
+<span class="c1"># Manual pipeline</span>
+<span class="n">raw</span> <span class="o">=</span> <span class="n">RawEntry</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">)</span>
+
+<span class="c1"># Stage 1</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">validator</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">raw</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="n">ValidationError</span><span class="p">(</span><span class="s2">&quot;Invalid reference&quot;</span><span class="p">)</span>
+
+<span class="c1"># Stage 2</span>
+<span class="n">matches</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
+<span class="k">if</span> <span class="ow">not</span> <span class="n">matches</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="n">ResolverError</span><span class="p">(</span><span class="s2">&quot;No matches found&quot;</span><span class="p">)</span>
+
+<span class="c1"># Stage 3</span>
+<span class="n">identified</span> <span class="o">=</span> <span class="n">matches</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+<span class="n">completed</span> <span class="o">=</span> <span class="n">completer</span><span class="o">.</span><span class="n">complete</span><span class="p">(</span><span class="n">identified</span><span class="p">)</span>
+
+<span class="c1"># Stage 4</span>
+<span class="n">formatted</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="s2">&quot;bibtex&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">formatted</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="batch-processing">
+<h2>Batch Processing<a class="headerlink" href="#batch-processing" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineController</span>
+
+<span class="n">controller</span> <span class="o">=</span> <span class="n">PipelineController</span><span class="p">()</span>
+
+<span class="n">references</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;1706.03762&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Smith (2020) Machine Learning&quot;</span>
+<span class="p">]</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+    <span class="n">entries</span><span class="o">=</span><span class="n">references</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processed: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;processed_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;failed_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="performance-optimization">
+<h2>Performance Optimization<a class="headerlink" href="#performance-optimization" title="Link to this heading"></a></h2>
+<p><strong>Single Reference:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Fast path for single reference</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Batch References:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use --quiet flag for better performance</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">quiet</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
+</pre></div>
+</div>
+<p><strong>Large Batches:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Split into chunks</span>
+<span class="n">split</span> <span class="o">-</span><span class="n">l</span> <span class="mi">100</span> <span class="n">large_file</span><span class="o">.</span><span class="n">txt</span> <span class="n">chunk_</span>
+
+<span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunk_</span><span class="o">*</span><span class="p">;</span> <span class="n">do</span>
+    <span class="n">onecite</span> <span class="n">process</span> <span class="s2">&quot;$chunk&quot;</span> <span class="o">-</span><span class="n">o</span> <span class="s2">&quot;$</span><span class="si">{chunk}</span><span class="s2">.bib&quot;</span> <span class="o">--</span><span class="n">quiet</span>
+<span class="n">done</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="error-handling-in-pipeline">
+<h1>Error Handling in Pipeline<a class="headerlink" href="#error-handling-in-pipeline" title="Link to this heading"></a></h1>
+<section id="validation-errors">
+<h2>Validation Errors<a class="headerlink" href="#validation-errors" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">ValidationError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Empty input&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="resolution-errors">
+<h2>Resolution Errors<a class="headerlink" href="#resolution-errors" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">ResolverError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="s2">&quot;invalid/doi&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ResolverError</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find reference&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Check identifier or try again later&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="partial-success">
+<h2>Partial Success<a class="headerlink" href="#partial-success" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">mixed_refs</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Success: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;processed_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;failed_count&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">warning</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;warnings&#39;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Warning: </span><span class="si">{</span><span class="n">warning</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="pipeline-configuration">
+<h1>Pipeline Configuration<a class="headerlink" href="#pipeline-configuration" title="Link to this heading"></a></h1>
+<section id="custom-templates">
+<h2>Custom Templates<a class="headerlink" href="#custom-templates" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineController</span>
+
+<span class="n">controller</span> <span class="o">=</span> <span class="n">PipelineController</span><span class="p">()</span>
+<span class="n">controller</span><span class="o">.</span><span class="n">add_template_path</span><span class="p">(</span><span class="s2">&quot;./my_templates&quot;</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+    <span class="n">entries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">],</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;my_format&quot;</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="data-source-priority">
+<h2>Data Source Priority<a class="headerlink" href="#data-source-priority" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">Identifier</span>
+
+<span class="n">identifier</span> <span class="o">=</span> <span class="n">Identifier</span><span class="p">()</span>
+
+<span class="c1"># Set priority for specific query types</span>
+<span class="n">identifier</span><span class="o">.</span><span class="n">set_source_priority</span><span class="p">(</span>
+    <span class="n">query_type</span><span class="o">=</span><span class="s2">&quot;biomedical&quot;</span><span class="p">,</span>
+    <span class="n">sources</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;pubmed&quot;</span><span class="p">,</span> <span class="s2">&quot;crossref&quot;</span><span class="p">,</span> <span class="s2">&quot;openalex&quot;</span><span class="p">]</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="timeout-configuration">
+<h2>Timeout Configuration<a class="headerlink" href="#timeout-configuration" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineController</span>
+
+<span class="n">controller</span> <span class="o">=</span> <span class="n">PipelineController</span><span class="p">()</span>
+<span class="n">controller</span><span class="o">.</span><span class="n">set_timeout</span><span class="p">(</span><span class="mi">10</span><span class="p">)</span>  <span class="c1"># 10 seconds per query</span>
+</pre></div>
+</div>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>See <a class="reference internal" href="../python_api.html"><span class="doc">Python API Reference</span></a> for usage examples</p></li>
+<li><p>Check <a class="reference internal" href="core.html"><span class="doc">Core API Reference</span></a> for class reference</p></li>
+<li><p>Review <a class="reference internal" href="../advanced_usage.html"><span class="doc">Advanced Usage</span></a> for complex scenarios</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="exceptions.html" class="btn btn-neutral float-left" title="Exceptions Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions (FAQ)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,424 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneCite - Universal Citation &amp; Academic Reference Toolkit &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation Guide" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="#" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">OneCite - Universal Citation &amp; Academic Reference Toolkit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="onecite-universal-citation-academic-reference-toolkit">
+<h1>OneCite - Universal Citation &amp; Academic Reference Toolkit<a class="headerlink" href="#onecite-universal-citation-academic-reference-toolkit" title="Link to this heading"></a></h1>
+<a class="reference external image-reference" href="https://pypi.org/project/onecite/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/onecite?color=306998&amp;logo=pypi&amp;style=flat-square" />
+</a>
+<a class="reference external image-reference" href="https://www.python.org"><img alt="Python Version" src="https://img.shields.io/badge/Python-3.7+-blue?logo=python&amp;style=flat-square" />
+</a>
+<a class="reference external image-reference" href="https://github.com/HzaCode/OneCite/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" />
+</a>
+<p><strong>OneCite</strong> is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles, arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.</p>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#system-requirements">System Requirements</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installing-from-pypi-recommended">Installing from PyPI (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#installing-from-source">Installing from Source</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#optional-dependencies">Optional Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#verifying-the-installation">Verifying the Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#mcp-server">MCP Server</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#upgrading-onecite">Upgrading OneCite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#virtual-environments-recommended">Virtual Environments (Recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#installation">1. Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#create-your-input-file">2. Create Your Input File</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#process-your-references">3. Process Your References</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#view-your-results">4. View Your Results</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#common-command-line-options">Common Command-Line Options</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#using-onecite-as-a-python-library">Using OneCite as a Python Library</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quick_start.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#command-line-interface">Command-Line Interface</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#practical-examples">Practical Examples</a></li>
+<li class="toctree-l2"><a class="reference internal" href="basic_usage.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#interactive-disambiguation">Interactive Disambiguation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#batch-processing-multiple-files">Batch Processing Multiple Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#working-with-different-data-sources">Working with Different Data Sources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#custom-templates">Custom Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#working-with-large-reference-lists">Working with Large Reference Lists</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#error-handling-and-recovery">Error Handling and Recovery</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#converting-between-formats">Converting Between Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#using-with-git-for-version-control">Using with Git for Version Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#integration-with-latex-and-overleaf">Integration with LaTeX and Overleaf</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#python-api-advanced-usage">Python API Advanced Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#basic-usage">Basic Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#processing-different-input-formats">Processing Different Input Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#output-formats">Output Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#interactive-selection-with-callbacks">Interactive Selection with Callbacks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#advanced-data-structures">Advanced Data Structures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#working-with-templates">Working with Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#using-the-pipeline-controller">Using the Pipeline Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#error-handling">Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#processing-files">Processing Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#api-reference">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#what-is-mcp">What is MCP?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#installation-and-setup">Installation and Setup</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#configuring-claude-desktop">Configuring Claude Desktop</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#configuring-cursor-editor">Configuring Cursor Editor</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#available-functions">Available Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#example-conversations">Example Conversations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#advanced-configuration">Advanced Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#integration-with-workflows">Integration with Workflows</a></li>
+<li class="toctree-l2"><a class="reference internal" href="mcp_integration.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#template-basics">Template Basics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#what-templates-actually-do">What Templates Actually Do</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#template-structure">Template Structure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#example-templates">Example Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#creating-custom-templates">Creating Custom Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#inspecting-templates">Inspecting Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#output-format-control">Output Format Control</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#common-field-names">Common Field Names</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#troubleshooting">Troubleshooting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#sharing-templates">Sharing Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="templates.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#supported-formats">Supported Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#bibtex-format">BibTeX Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#apa-format">APA Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#mla-format">MLA Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#format-comparison">Format Comparison</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#choosing-a-format">Choosing a Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#converting-between-formats">Converting Between Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#tips-for-different-formats">Tips for Different Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#main-functions">Main Functions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#data-classes">Data Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#classes">Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#exceptions">Exceptions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#advanced-usage">Advanced Usage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/core.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#oneciteerror">OneCiteError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#validationerror">ValidationError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#parseerror">ParseError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#resolvererror">ResolverError</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#comprehensive-error-handling">Comprehensive Error Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#best-practices">Best Practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#overview">Overview</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-1-validation">Stage 1: Validation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-2-identification">Stage 2: Identification</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-3-completion">Stage 3: Completion</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-4-formatting">Stage 4: Formatting</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#custom-data-processing">Custom Data Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#batch-processing">Batch Processing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#performance-optimization">Performance Optimization</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#validation-errors">Validation Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#resolution-errors">Resolution Errors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#partial-success">Partial Success</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#custom-templates">Custom Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#data-source-priority">Data Source Priority</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#timeout-configuration">Timeout Configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="toctree-wrapper compound">
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#general-questions">General Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#installation-questions">Installation Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#usage-questions">Usage Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#data-source-questions">Data Source Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#output-format-questions">Output Format Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#python-api-questions">Python API Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#mcp-integration-questions">MCP Integration Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#troubleshooting-questions">Troubleshooting Questions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#performance-and-limitations">Performance and Limitations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#contributing-support">Contributing &amp; Support</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#development-workflow">Development Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#types-of-contributions">Types of Contributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#submitting-a-pull-request">Submitting a Pull Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#testing-guidelines">Testing Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#documentation-guidelines">Documentation Guidelines</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#release-process">Release Process</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#community-standards">Community Standards</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#additional-resources">Additional Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#recognition">Recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="contributing.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#unreleased">Unreleased</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id1">[0.0.11] - 2024-10-19</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id5">[0.0.10] - 2024-10-01</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#and-earlier">[0.0.9] and Earlier</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#from-0-0-10-to-0-0-11">From 0.0.10 to 0.0.11</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#deprecation-policy">Deprecation Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#breaking-changes-policy">Breaking Changes Policy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</section>
+<section id="key-features">
+<h1>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>🔍 <strong>Smart Recognition</strong> - Fuzzy matching against multiple academic databases</p></li>
+<li><p>📚 <strong>Universal Formats</strong> - Support for BibTeX, APA, and MLA output formats</p></li>
+<li><p>🎯 <strong>High-Accuracy Pipeline</strong> - 4-stage process ensures highest quality output</p></li>
+<li><p>🤖 <strong>Auto-Completion</strong> - Automatically enriches entries with missing metadata</p></li>
+<li><p>🎓 <strong>7+ Citation Types</strong> - Handles journal articles, conference papers, books, software, datasets, theses, and preprints</p></li>
+<li><p>📄 <strong>Universal Identifiers</strong> - Accepts DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, or plain text queries</p></li>
+<li><p>🤖 <strong>AI Assistant Integration</strong> - Full Model Context Protocol (MCP) support</p></li>
+</ul>
+</section>
+<section id="data-sources">
+<h1>Data Sources<a class="headerlink" href="#data-sources" title="Link to this heading"></a></h1>
+<p>OneCite integrates with multiple authoritative academic data sources:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.crossref.org/">CrossRef</a> - Academic publication metadata</p></li>
+<li><p><a class="reference external" href="https://www.semanticscholar.org/">Semantic Scholar</a> - AI-powered literature search</p></li>
+<li><p><a class="reference external" href="https://openalex.org/">OpenAlex</a> - Open academic graph</p></li>
+<li><p><a class="reference external" href="https://pubmed.ncbi.nlm.nih.gov/">PubMed</a> - Biomedical literature</p></li>
+<li><p><a class="reference external" href="https://dblp.org/">DBLP</a> - Computer science bibliography</p></li>
+<li><p><a class="reference external" href="https://arxiv.org/">arXiv</a> - Preprint repository</p></li>
+<li><p><a class="reference external" href="https://datacite.org/">DataCite</a> - Scientific datasets</p></li>
+<li><p><a class="reference external" href="https://zenodo.org/">Zenodo</a> - Open research data</p></li>
+<li><p><a class="reference external" href="https://books.google.com/">Google Books</a> - Book metadata</p></li>
+</ul>
+</section>
+<section id="quick-start">
+<h1>Quick Start<a class="headerlink" href="#quick-start" title="Link to this heading"></a></h1>
+<p>Installation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span>
+</pre></div>
+</div>
+<p>Create a <code class="docutils literal notranslate"><span class="pre">references.txt</span></code> file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
+
+<span class="n">Attention</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">you</span> <span class="n">need</span><span class="p">,</span> <span class="n">Vaswani</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="n">NIPS</span> <span class="mi">2017</span>
+
+<span class="n">Goodfellow</span><span class="p">,</span> <span class="n">I</span><span class="o">.</span><span class="p">,</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Courville</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span><span class="o">.</span> <span class="n">Deep</span> <span class="n">Learning</span><span class="o">.</span> <span class="n">MIT</span> <span class="n">Press</span><span class="o">.</span>
+</pre></div>
+</div>
+<p>Run OneCite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">results</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="n">quiet</span>
+</pre></div>
+</div>
+<p>For more information, see <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a>.</p>
+</section>
+<section id="indices-and-tables">
+<h1>Indices and Tables<a class="headerlink" href="#indices-and-tables" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></p></li>
+<li><p><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></p></li>
+<li><p><a class="reference internal" href="search.html"><span class="std std-ref">Search Page</span></a></p></li>
+</ul>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

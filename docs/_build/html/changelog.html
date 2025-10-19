@@ -1,0 +1,384 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Changelog &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="Contributing to OneCite" href="contributing.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#fixed">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">[0.0.11] - 2024-10-19</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id3">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">[0.0.10] - 2024-10-01</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Fixed</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#and-earlier">[0.0.9] and Earlier</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#upgrade-guide">Upgrade Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#from-0-0-10-to-0-0-11">From 0.0.10 to 0.0.11</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="#release-strategy">Release Strategy</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#deprecation-policy">Deprecation Policy</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#breaking-changes-policy">Breaking Changes Policy</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="#credits">Credits</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Changelog</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/changelog.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="changelog">
+<h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
+<p>All notable changes to this project will be documented in this file.</p>
+<p>The format is based on <a class="reference external" href="https://keepachangelog.com/">Keep a Changelog</a>, and this project adheres to <a class="reference external" href="https://semver.org/">Semantic Versioning</a>.</p>
+<section id="unreleased">
+<h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Comprehensive RST documentation using Sphinx</p></li>
+<li><p>Full API reference documentation</p></li>
+<li><p>FAQ section with common questions</p></li>
+<li><p>Contributing guidelines</p></li>
+<li><p>MCP (Model Context Protocol) integration documentation</p></li>
+</ul>
+</section>
+<section id="changed">
+<h3>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Improved error handling and exception hierarchy</p></li>
+<li><p>Enhanced Python API with better type hints</p></li>
+<li><p>Updated README with more examples</p></li>
+</ul>
+</section>
+<section id="fixed">
+<h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Various bug fixes in data source integration</p></li>
+</ul>
+</section>
+</section>
+<section id="id1">
+<h2>[0.0.11] - 2024-10-19<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<section id="id2">
+<h3>Added<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>MCP server support for AI assistant integration</p></li>
+<li><p>Custom YAML-based template system</p></li>
+<li><p>Support for multiple output formats (BibTeX, APA, MLA)</p></li>
+<li><p>Interactive mode for ambiguous reference selection</p></li>
+<li><p>Support for DOI, arXiv, PMID, ISBN, and GitHub identifiers</p></li>
+<li><p>Integration with 9 major academic data sources</p></li>
+<li><p>Comprehensive test suite</p></li>
+</ul>
+</section>
+<section id="id3">
+<h3>Changed<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Refactored core processing pipeline</p></li>
+<li><p>Improved data source prioritization</p></li>
+<li><p>Enhanced error messages</p></li>
+</ul>
+</section>
+<section id="id4">
+<h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fixed encoding issues with special characters</p></li>
+<li><p>Improved robustness of DOI parsing</p></li>
+<li><p>Fixed compatibility with older Python versions</p></li>
+</ul>
+</section>
+</section>
+<section id="id5">
+<h2>[0.0.10] - 2024-10-01<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<section id="id6">
+<h3>Added<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Initial Python API</p></li>
+<li><p>Basic citation processing</p></li>
+<li><p>Support for journal articles and conference papers</p></li>
+</ul>
+</section>
+<section id="id7">
+<h3>Changed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Improved search accuracy</p></li>
+</ul>
+</section>
+<section id="id8">
+<h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Fixed several data source API issues</p></li>
+</ul>
+</section>
+</section>
+<section id="and-earlier">
+<h2>[0.0.9] and Earlier<a class="headerlink" href="#and-earlier" title="Link to this heading"></a></h2>
+<p>See <a class="reference external" href="https://github.com/HzaCode/OneCite/releases">GitHub Releases</a> for details on older versions.</p>
+</section>
+</section>
+<section id="upgrade-guide">
+<h1>Upgrade Guide<a class="headerlink" href="#upgrade-guide" title="Link to this heading"></a></h1>
+<section id="from-0-0-10-to-0-0-11">
+<h2>From 0.0.10 to 0.0.11<a class="headerlink" href="#from-0-0-10-to-0-0-11" title="Link to this heading"></a></h2>
+<p><strong>Breaking Changes:</strong> None</p>
+<p><strong>New Features:</strong></p>
+<ul class="simple">
+<li><p>MCP server for AI integration - set up using <code class="docutils literal notranslate"><span class="pre">onecite-mcp</span></code></p></li>
+<li><p>Custom template support - create YAML templates for custom formats</p></li>
+<li><p>APA and MLA formats - use <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">apa</span></code> or <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">mla</span></code></p></li>
+<li><p>Interactive mode - use <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> flag for ambiguous references</p></li>
+</ul>
+<p><strong>Migration:</strong></p>
+<p>No migration needed. All existing functionality is backward compatible. New features are opt-in.</p>
+</section>
+</section>
+<section id="planned-features">
+<h1>Planned Features<a class="headerlink" href="#planned-features" title="Link to this heading"></a></h1>
+<p><strong>Version 0.1.0 (Planned)</strong></p>
+<ul class="simple">
+<li><p>Web interface at hezhiang.com/onecite</p></li>
+<li><p>Support for more citation formats (Chicago, IEEE, etc.)</p></li>
+<li><p>Citation deduplication tools</p></li>
+<li><p>Bibliography merging utilities</p></li>
+<li><p>Advanced search filters</p></li>
+</ul>
+<p><strong>Version 0.2.0 (Planned)</strong></p>
+<ul class="simple">
+<li><p>Database support for storing citations</p></li>
+<li><p>Collaborative features</p></li>
+<li><p>Export to popular reference managers (Zotero, Mendeley)</p></li>
+<li><p>Advanced batch processing</p></li>
+</ul>
+<p><strong>Future Roadmap</strong></p>
+<ul class="simple">
+<li><p>Machine learning-based citation quality assessment</p></li>
+<li><p>Automatic citation error detection</p></li>
+<li><p>Citation trend analysis</p></li>
+<li><p>Integration with more academic platforms</p></li>
+</ul>
+</section>
+<section id="version-history">
+<h1>Version History<a class="headerlink" href="#version-history" title="Link to this heading"></a></h1>
+<p><strong>Latest Stable:</strong> 0.0.11</p>
+<p><strong>Python Support:</strong></p>
+<ul class="simple">
+<li><p>3.7+</p></li>
+<li><p>3.8+</p></li>
+<li><p>3.9+</p></li>
+<li><p>3.10+</p></li>
+<li><p>3.11+</p></li>
+</ul>
+<p><strong>Requirements:</strong></p>
+<p>See <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> for current dependencies.</p>
+</section>
+<section id="getting-help">
+<h1>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading"></a></h1>
+<ul class="simple">
+<li><p>Check <a class="reference internal" href="faq.html"><span class="doc">Frequently Asked Questions (FAQ)</span></a> for common issues</p></li>
+<li><p>Search <a class="reference external" href="https://github.com/HzaCode/OneCite/issues">GitHub Issues</a></p></li>
+<li><p>Ask in <a class="reference external" href="https://github.com/HzaCode/OneCite/discussions">GitHub Discussions</a></p></li>
+<li><p>See <a class="reference internal" href="contributing.html"><span class="doc">Contributing to OneCite</span></a> to report bugs or suggest features</p></li>
+</ul>
+</section>
+<section id="release-strategy">
+<h1>Release Strategy<a class="headerlink" href="#release-strategy" title="Link to this heading"></a></h1>
+<p><strong>Versioning:</strong></p>
+<p>OneCite follows <a class="reference external" href="https://semver.org/">Semantic Versioning</a>:</p>
+<ul class="simple">
+<li><p>MAJOR.MINOR.PATCH</p></li>
+<li><p>MAJOR: Breaking API changes</p></li>
+<li><p>MINOR: New backward-compatible features</p></li>
+<li><p>PATCH: Bug fixes</p></li>
+</ul>
+<p><strong>Release Cadence:</strong></p>
+<ul class="simple">
+<li><p>Major releases: Annually or as needed for major features</p></li>
+<li><p>Minor releases: Quarterly or as needed</p></li>
+<li><p>Patch releases: As needed for critical bugs</p></li>
+</ul>
+<p><strong>Support:</strong></p>
+<ul class="simple">
+<li><p>Latest version: Full support</p></li>
+<li><p>Previous major version: Limited support</p></li>
+<li><p>Older versions: Community support only</p></li>
+</ul>
+<section id="deprecation-policy">
+<h2>Deprecation Policy<a class="headerlink" href="#deprecation-policy" title="Link to this heading"></a></h2>
+<p>Features marked as deprecated will:</p>
+<ol class="arabic simple">
+<li><p>Be announced in release notes</p></li>
+<li><p>Work for at least one minor version</p></li>
+<li><p>Be removed in the next major version</p></li>
+</ol>
+</section>
+<section id="breaking-changes-policy">
+<h2>Breaking Changes Policy<a class="headerlink" href="#breaking-changes-policy" title="Link to this heading"></a></h2>
+<p>Breaking changes are:</p>
+<ol class="arabic simple">
+<li><p>Announced in advance</p></li>
+<li><p>Clearly documented</p></li>
+<li><p>Provided with migration guide</p></li>
+<li><p>Only released in major versions</p></li>
+</ol>
+</section>
+</section>
+<section id="credits">
+<h1>Credits<a class="headerlink" href="#credits" title="Link to this heading"></a></h1>
+<p>Contributors and acknowledgments:</p>
+<ul class="simple">
+<li><p>OneCite Team</p></li>
+<li><p>Open source community</p></li>
+<li><p>Data source providers (CrossRef, PubMed, arXiv, etc.)</p></li>
+<li><p>All contributors on GitHub</p></li>
+</ul>
+<p>See <a class="reference external" href="https://github.com/HzaCode/OneCite/blob/main/CONTRIBUTORS.md">CONTRIBUTORS.md</a> for a full list.</p>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Check <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a> to get started</p></li>
+<li><p>Read <a class="reference internal" href="contributing.html"><span class="doc">Contributing to OneCite</span></a> to contribute</p></li>
+<li><p>See <a class="reference internal" href="faq.html"><span class="doc">Frequently Asked Questions (FAQ)</span></a> for common questions</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="contributing.html" class="btn btn-neutral float-left" title="Contributing to OneCite" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contributing to OneCite &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Changelog" href="changelog.html" />
+    <link rel="prev" title="Frequently Asked Questions (FAQ)" href="faq.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Contributing to OneCite</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#fork-the-repository">1. Fork the Repository</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#clone-your-fork">2. Clone Your Fork</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#create-a-branch">3. Create a Branch</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#set-up-development-environment">4. Set Up Development Environment</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#development-workflow">Development Workflow</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code-style">Code Style</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#linting">Linting</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#running-tests">Running Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#creating-commits">Creating Commits</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#types-of-contributions">Types of Contributions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#bug-reports">Bug Reports</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#feature-requests">Feature Requests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#code-contributions">Code Contributions</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#small-fixes">1. Small Fixes</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#new-features">2. New Features</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#bug-fixes">3. Bug Fixes</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#documentation-improvements">Documentation Improvements</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#submitting-a-pull-request">Submitting a Pull Request</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#testing-guidelines">Testing Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#writing-tests">Writing Tests</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">Running Tests</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#documentation-guidelines">Documentation Guidelines</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code-comments">Code Comments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#api-documentation">API Documentation</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#release-process">Release Process</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#versioning">Versioning</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#community-standards">Community Standards</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#code-of-conduct">Code of Conduct</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#communication">Communication</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#project-leadership">Project Leadership</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#getting-help">Getting Help</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#additional-resources">Additional Resources</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recognition">Recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Contributing to OneCite</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contributing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="contributing-to-onecite">
+<h1>Contributing to OneCite<a class="headerlink" href="#contributing-to-onecite" title="Link to this heading"></a></h1>
+<p>Thank you for your interest in contributing to OneCite! This guide will help you get started.</p>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading"></a></h2>
+<section id="fork-the-repository">
+<h3>1. Fork the Repository<a class="headerlink" href="#fork-the-repository" title="Link to this heading"></a></h3>
+<p>Click the “Fork” button on the GitHub repository page.</p>
+</section>
+<section id="clone-your-fork">
+<h3>2. Clone Your Fork<a class="headerlink" href="#clone-your-fork" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">your</span><span class="o">-</span><span class="n">username</span><span class="o">/</span><span class="n">OneCite</span><span class="o">.</span><span class="n">git</span>
+<span class="n">cd</span> <span class="n">OneCite</span>
+</pre></div>
+</div>
+</section>
+<section id="create-a-branch">
+<h3>3. Create a Branch<a class="headerlink" href="#create-a-branch" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">checkout</span> <span class="o">-</span><span class="n">b</span> <span class="n">feature</span><span class="o">/</span><span class="n">your</span><span class="o">-</span><span class="n">feature</span><span class="o">-</span><span class="n">name</span>
+<span class="c1"># or for bug fixes</span>
+<span class="n">git</span> <span class="n">checkout</span> <span class="o">-</span><span class="n">b</span> <span class="n">fix</span><span class="o">/</span><span class="n">issue</span><span class="o">-</span><span class="n">description</span>
+</pre></div>
+</div>
+</section>
+<section id="set-up-development-environment">
+<h3>4. Set Up Development Environment<a class="headerlink" href="#set-up-development-environment" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Create virtual environment</span>
+<span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">venv</span> <span class="n">venv</span>
+<span class="n">source</span> <span class="n">venv</span><span class="o">/</span><span class="nb">bin</span><span class="o">/</span><span class="n">activate</span>  <span class="c1"># On Windows: venv\Scripts\activate</span>
+
+<span class="c1"># Install dependencies</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">e</span> <span class="s2">&quot;.[dev]&quot;</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="development-workflow">
+<h2>Development Workflow<a class="headerlink" href="#development-workflow" title="Link to this heading"></a></h2>
+<section id="code-style">
+<h3>Code Style<a class="headerlink" href="#code-style" title="Link to this heading"></a></h3>
+<p>We follow PEP 8 style guidelines. Use <code class="docutils literal notranslate"><span class="pre">black</span></code> for formatting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">black</span> <span class="n">onecite</span><span class="o">/</span> <span class="n">tests</span><span class="o">/</span>
+</pre></div>
+</div>
+</section>
+<section id="linting">
+<h3>Linting<a class="headerlink" href="#linting" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">flake8</span></code> to check code quality:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">flake8</span> <span class="n">onecite</span><span class="o">/</span> <span class="n">tests</span><span class="o">/</span>
+</pre></div>
+</div>
+</section>
+<section id="running-tests">
+<h3>Running Tests<a class="headerlink" href="#running-tests" title="Link to this heading"></a></h3>
+<p>Run the test suite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="n">tests</span><span class="o">/</span>
+</pre></div>
+</div>
+<p>Check coverage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pytest</span> <span class="o">--</span><span class="n">cov</span><span class="o">=</span><span class="n">onecite</span> <span class="n">tests</span><span class="o">/</span>
+</pre></div>
+</div>
+</section>
+<section id="creating-commits">
+<h3>Creating Commits<a class="headerlink" href="#creating-commits" title="Link to this heading"></a></h3>
+<p>Write clear, descriptive commit messages:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Good</span>
+<span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s2">&quot;Add support for custom templates&quot;</span>
+
+<span class="c1"># Bad</span>
+<span class="n">git</span> <span class="n">commit</span> <span class="o">-</span><span class="n">m</span> <span class="s2">&quot;Fix stuff&quot;</span>
+</pre></div>
+</div>
+<p>Use the imperative mood: “Add feature” not “Added feature”</p>
+</section>
+</section>
+<section id="types-of-contributions">
+<h2>Types of Contributions<a class="headerlink" href="#types-of-contributions" title="Link to this heading"></a></h2>
+<section id="bug-reports">
+<h3>Bug Reports<a class="headerlink" href="#bug-reports" title="Link to this heading"></a></h3>
+<p>Before submitting a bug report:</p>
+<ol class="arabic simple">
+<li><p>Check existing issues to avoid duplicates</p></li>
+<li><p>Include your Python and OneCite version</p></li>
+<li><p>Provide a minimal code example to reproduce</p></li>
+<li><p>Describe expected vs actual behavior</p></li>
+</ol>
+<p><strong>Template:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">**</span><span class="n">Describe</span> <span class="n">the</span> <span class="n">bug</span><span class="o">**</span>
+<span class="p">[</span><span class="n">Description</span> <span class="n">of</span> <span class="n">the</span> <span class="n">bug</span><span class="p">]</span>
+
+<span class="o">**</span><span class="n">To</span> <span class="n">Reproduce</span><span class="o">**</span>
+<span class="p">[</span><span class="n">Steps</span> <span class="n">to</span> <span class="n">reproduce</span><span class="p">]</span>
+
+<span class="o">**</span><span class="n">Expected</span> <span class="n">behavior</span><span class="o">**</span>
+<span class="p">[</span><span class="n">What</span> <span class="n">should</span> <span class="n">happen</span><span class="p">]</span>
+
+<span class="o">**</span><span class="n">Actual</span> <span class="n">behavior</span><span class="o">**</span>
+<span class="p">[</span><span class="n">What</span> <span class="n">actually</span> <span class="n">happens</span><span class="p">]</span>
+
+<span class="o">**</span><span class="n">Environment</span><span class="o">**</span>
+<span class="o">-</span> <span class="n">Python</span> <span class="n">version</span><span class="p">:</span> <span class="mf">3.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span>
+<span class="o">-</span> <span class="n">OneCite</span> <span class="n">version</span><span class="p">:</span> <span class="mf">0.</span><span class="n">x</span><span class="o">.</span><span class="n">x</span>
+<span class="o">-</span> <span class="n">OS</span><span class="p">:</span> <span class="n">Windows</span><span class="o">/</span><span class="n">macOS</span><span class="o">/</span><span class="n">Linux</span>
+</pre></div>
+</div>
+</section>
+<section id="feature-requests">
+<h3>Feature Requests<a class="headerlink" href="#feature-requests" title="Link to this heading"></a></h3>
+<p>Describe:</p>
+<ol class="arabic simple">
+<li><p>What problem it solves</p></li>
+<li><p>How it would be used</p></li>
+<li><p>Any alternative approaches</p></li>
+</ol>
+<p><strong>Template:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>**Is your feature request related to a problem?**
+[Describe the problem]
+
+**Describe the solution**
+[Describe the proposed solution]
+
+**Describe alternatives considered**
+[Alternative solutions or features]
+</pre></div>
+</div>
+</section>
+<section id="code-contributions">
+<h3>Code Contributions<a class="headerlink" href="#code-contributions" title="Link to this heading"></a></h3>
+<section id="small-fixes">
+<h4>1. Small Fixes<a class="headerlink" href="#small-fixes" title="Link to this heading"></a></h4>
+<p>For typos, documentation, or small bugs:</p>
+<ol class="arabic simple">
+<li><p>Create a branch</p></li>
+<li><p>Make the change</p></li>
+<li><p>Test thoroughly</p></li>
+<li><p>Submit a PR with clear description</p></li>
+</ol>
+</section>
+<section id="new-features">
+<h4>2. New Features<a class="headerlink" href="#new-features" title="Link to this heading"></a></h4>
+<p>For larger features:</p>
+<ol class="arabic simple">
+<li><p>Open an issue first to discuss</p></li>
+<li><p>Wait for feedback from maintainers</p></li>
+<li><p>Once approved, implement</p></li>
+<li><p>Include tests and documentation</p></li>
+<li><p>Submit PR</p></li>
+</ol>
+</section>
+<section id="bug-fixes">
+<h4>3. Bug Fixes<a class="headerlink" href="#bug-fixes" title="Link to this heading"></a></h4>
+<p>For bug fixes:</p>
+<ol class="arabic simple">
+<li><p>Open an issue describing the bug</p></li>
+<li><p>Create a branch from the issue</p></li>
+<li><p>Include a test that demonstrates the bug</p></li>
+<li><p>Implement the fix</p></li>
+<li><p>Ensure the test now passes</p></li>
+</ol>
+</section>
+</section>
+<section id="documentation-improvements">
+<h3>Documentation Improvements<a class="headerlink" href="#documentation-improvements" title="Link to this heading"></a></h3>
+<p>Documentation is crucial! Contributions include:</p>
+<ul class="simple">
+<li><p>Fixing typos</p></li>
+<li><p>Clarifying explanations</p></li>
+<li><p>Adding examples</p></li>
+<li><p>Improving API documentation</p></li>
+<li><p>Translating documentation</p></li>
+</ul>
+<p>Submit documentation changes as PRs to the repository.</p>
+</section>
+</section>
+<section id="submitting-a-pull-request">
+<h2>Submitting a Pull Request<a class="headerlink" href="#submitting-a-pull-request" title="Link to this heading"></a></h2>
+<ol class="arabic simple">
+<li><p><strong>Push to Your Fork</strong></p></li>
+</ol>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">push</span> <span class="n">origin</span> <span class="n">feature</span><span class="o">/</span><span class="n">your</span><span class="o">-</span><span class="n">feature</span><span class="o">-</span><span class="n">name</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="2">
+<li><p><strong>Create a Pull Request</strong></p></li>
+</ol>
+<p>Go to GitHub and click “New Pull Request”</p>
+<ol class="arabic simple" start="3">
+<li><p><strong>PR Description</strong></p></li>
+</ol>
+<p>Include:</p>
+<ul class="simple">
+<li><p>What change does it make?</p></li>
+<li><p>Why is this change needed?</p></li>
+<li><p>How has it been tested?</p></li>
+<li><p>Any breaking changes?</p></li>
+</ul>
+<p><strong>Template:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">## Description</span>
+<span class="p">[</span><span class="n">Brief</span> <span class="n">description</span> <span class="n">of</span> <span class="n">changes</span><span class="p">]</span>
+
+<span class="c1">## Related Issues</span>
+<span class="n">Closes</span> <span class="c1">#123</span>
+
+<span class="c1">## Type of Change</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">Bug</span> <span class="n">fix</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">New</span> <span class="n">feature</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">Documentation</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">Other</span>
+
+<span class="c1">## Testing</span>
+<span class="p">[</span><span class="n">Describe</span> <span class="n">testing</span> <span class="n">performed</span><span class="p">]</span>
+
+<span class="c1">## Checklist</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">Tests</span> <span class="k">pass</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">Code</span> <span class="n">follows</span> <span class="n">style</span> <span class="n">guidelines</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">Documentation</span> <span class="n">updated</span>
+<span class="o">-</span> <span class="p">[</span> <span class="p">]</span> <span class="n">No</span> <span class="n">breaking</span> <span class="n">changes</span>
+</pre></div>
+</div>
+<ol class="arabic simple" start="4">
+<li><p><strong>Code Review</strong></p></li>
+</ol>
+<p>A maintainer will review your PR. Be prepared to:</p>
+<ul class="simple">
+<li><p>Discuss implementation</p></li>
+<li><p>Address feedback</p></li>
+<li><p>Make requested changes</p></li>
+<li><p>Ensure tests pass</p></li>
+</ul>
+<ol class="arabic simple" start="5">
+<li><p><strong>Merge</strong></p></li>
+</ol>
+<p>Once approved, a maintainer will merge your PR.</p>
+</section>
+<section id="testing-guidelines">
+<h2>Testing Guidelines<a class="headerlink" href="#testing-guidelines" title="Link to this heading"></a></h2>
+<section id="writing-tests">
+<h3>Writing Tests<a class="headerlink" href="#writing-tests" title="Link to this heading"></a></h3>
+<p>Tests should be:</p>
+<ul class="simple">
+<li><p><strong>Isolated</strong> - Not dependent on other tests</p></li>
+<li><p><strong>Clear</strong> - Easy to understand intent</p></li>
+<li><p><strong>Focused</strong> - Test one thing</p></li>
+<li><p><strong>Fast</strong> - Complete quickly</p></li>
+</ul>
+<p><strong>Example:</strong></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_process_references_with_doi</span><span class="p">():</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+    <span class="p">)</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;processed_count&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="s1">&#39;10.1038/nature14539&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;output_content&#39;</span><span class="p">]</span>
+</pre></div>
+</div>
+</section>
+<section id="id1">
+<h3>Running Tests<a class="headerlink" href="#id1" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Run all tests</span>
+<span class="n">pytest</span>
+
+<span class="c1"># Run specific test file</span>
+<span class="n">pytest</span> <span class="n">tests</span><span class="o">/</span><span class="n">test_cli</span><span class="o">.</span><span class="n">py</span>
+
+<span class="c1"># Run specific test</span>
+<span class="n">pytest</span> <span class="n">tests</span><span class="o">/</span><span class="n">test_cli</span><span class="o">.</span><span class="n">py</span><span class="p">::</span><span class="n">test_process_command</span>
+
+<span class="c1"># Run with coverage</span>
+<span class="n">pytest</span> <span class="o">--</span><span class="n">cov</span><span class="o">=</span><span class="n">onecite</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="documentation-guidelines">
+<h2>Documentation Guidelines<a class="headerlink" href="#documentation-guidelines" title="Link to this heading"></a></h2>
+<section id="code-comments">
+<h3>Code Comments<a class="headerlink" href="#code-comments" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Add docstrings to all functions and classes</p></li>
+<li><p>Use Google-style docstrings</p></li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">process_references</span><span class="p">(</span><span class="n">input_content</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process references and return formatted bibliography.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        input_content (str): The reference content to process</span>
+<span class="sd">        input_type (str): Type of input - &quot;txt&quot; or &quot;bib&quot;</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: Dictionary with output_content, processed_count, etc.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        ValidationError: If input is invalid</span>
+<span class="sd">        ParseError: If parsing fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+</pre></div>
+</div>
+</section>
+<section id="api-documentation">
+<h3>API Documentation<a class="headerlink" href="#api-documentation" title="Link to this heading"></a></h3>
+<p>Update docstrings when changing:</p>
+<ul class="simple">
+<li><p>Function signatures</p></li>
+<li><p>Parameters</p></li>
+<li><p>Return values</p></li>
+<li><p>Exceptions</p></li>
+<li><p>Behavior</p></li>
+</ul>
+</section>
+</section>
+<section id="release-process">
+<h2>Release Process<a class="headerlink" href="#release-process" title="Link to this heading"></a></h2>
+<section id="versioning">
+<h3>Versioning<a class="headerlink" href="#versioning" title="Link to this heading"></a></h3>
+<p>OneCite follows <a class="reference external" href="https://semver.org/">Semantic Versioning</a>:</p>
+<ul class="simple">
+<li><p><strong>MAJOR.MINOR.PATCH</strong> (e.g., 1.2.3)</p></li>
+<li><p>MAJOR: Breaking changes</p></li>
+<li><p>MINOR: New features (backward compatible)</p></li>
+<li><p>PATCH: Bug fixes</p></li>
+</ul>
+</section>
+</section>
+<section id="community-standards">
+<h2>Community Standards<a class="headerlink" href="#community-standards" title="Link to this heading"></a></h2>
+<section id="code-of-conduct">
+<h3>Code of Conduct<a class="headerlink" href="#code-of-conduct" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Be respectful</p></li>
+<li><p>Be inclusive</p></li>
+<li><p>Provide constructive feedback</p></li>
+<li><p>Accept criticism gracefully</p></li>
+<li><p>Report inappropriate behavior</p></li>
+</ul>
+</section>
+<section id="communication">
+<h3>Communication<a class="headerlink" href="#communication" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Use clear, professional language</p></li>
+<li><p>Be patient with new contributors</p></li>
+<li><p>Assume good intentions</p></li>
+<li><p>Help educate when needed</p></li>
+</ul>
+</section>
+<section id="project-leadership">
+<h3>Project Leadership<a class="headerlink" href="#project-leadership" title="Link to this heading"></a></h3>
+<p>The OneCite Team:</p>
+<ul class="simple">
+<li><p>Makes final decisions on features and releases</p></li>
+<li><p>Reviews and merges PRs</p></li>
+<li><p>Maintains project standards</p></li>
+<li><p>Responds to issues and discussions</p></li>
+</ul>
+</section>
+<section id="getting-help">
+<h3>Getting Help<a class="headerlink" href="#getting-help" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p>Check existing documentation</p></li>
+<li><p>Search closed issues and PRs</p></li>
+<li><p>Ask in GitHub Discussions</p></li>
+<li><p>Contact maintainers if needed</p></li>
+</ul>
+</section>
+</section>
+<section id="additional-resources">
+<h2>Additional Resources<a class="headerlink" href="#additional-resources" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://guides.github.com/introduction/flow/">GitHub Flow Guide</a></p></li>
+<li><p><a class="reference external" href="https://www.python.org/dev/peps/pep-0008/">PEP 8 Style Guide</a></p></li>
+<li><p><a class="reference external" href="https://semver.org/">Semantic Versioning</a></p></li>
+<li><p><a class="reference external" href="https://www.conventionalcommits.org/">Conventional Commits</a></p></li>
+</ul>
+</section>
+<section id="recognition">
+<h2>Recognition<a class="headerlink" href="#recognition" title="Link to this heading"></a></h2>
+<p>Contributors are recognized in:</p>
+<ul class="simple">
+<li><p>Release notes</p></li>
+<li><p>README acknowledgments</p></li>
+<li><p>GitHub contributors page</p></li>
+</ul>
+<p>Thank you for making OneCite better!</p>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Check the issues page for <a class="reference external" href="https://github.com/HzaCode/OneCite/labels/good%20first%20issue">good first issues</a></p></li>
+<li><p>Read existing code and tests</p></li>
+<li><p>Start with documentation or small fixes</p></li>
+<li><p>Ask questions in discussions</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="faq.html" class="btn btn-neutral float-left" title="Frequently Asked Questions (FAQ)" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="changelog.html" class="btn btn-neutral float-right" title="Changelog" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

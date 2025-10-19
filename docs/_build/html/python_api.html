@@ -1,0 +1,545 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Python API Reference &mdash; OneCite 0.0.11 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="AI Assistant Integration with MCP" href="mcp_integration.html" />
+    <link rel="prev" title="Advanced Usage" href="advanced_usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Python API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic Usage</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#simple-citation-processing">Simple Citation Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#the-result-dictionary">The Result Dictionary</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#processing-different-input-formats">Processing Different Input Formats</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#plain-text-input">Plain Text Input</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#bibtex-input">BibTeX Input</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#output-formats">Output Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#interactive-selection-with-callbacks">Interactive Selection with Callbacks</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#custom-callback-logic">Custom Callback Logic</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#advanced-data-structures">Advanced Data Structures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#rawentry">RawEntry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#identifiedentry">IdentifiedEntry</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#completedentry">CompletedEntry</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#working-with-templates">Working with Templates</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-the-pipeline-controller">Using the Pipeline Controller</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#handling-exceptions">Handling Exceptions</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#processing-files">Processing Files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#reading-from-file">Reading from File</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#complete-example">Complete Example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#api-reference">API Reference</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">AI Assistant Integration with MCP</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#planned-features">Planned Features</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Python API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/python_api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="python-api-reference">
+<h1>Python API Reference<a class="headerlink" href="#python-api-reference" title="Link to this heading"></a></h1>
+<p>This guide covers using OneCite as a Python library in your own code.</p>
+<section id="basic-usage">
+<h2>Basic Usage<a class="headerlink" href="#basic-usage" title="Link to this heading"></a></h2>
+<section id="simple-citation-processing">
+<h3>Simple Citation Processing<a class="headerlink" href="#simple-citation-processing" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="c1"># Process a simple reference</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Auto-select first match</span>
+<span class="p">)</span>
+
+<span class="c1"># Print results</span>
+<span class="k">for</span> <span class="n">citation</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">citation</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="the-result-dictionary">
+<h3>The Result Dictionary<a class="headerlink" href="#the-result-dictionary" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">process_references</span></code> function returns a dictionary containing:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">results</span></code> (List[str]): List of formatted citation strings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">report</span></code> (dict): Processing report with the following keys:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">total</span></code> (int): Total number of entries processed</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">succeeded</span></code> (int): Number of successfully processed entries</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">failed_entries</span></code> (List[Dict]): List of failed entries with error details</p></li>
+</ul>
+</li>
+</ul>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Succeeded: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;succeeded&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;failed_entries&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="processing-different-input-formats">
+<h2>Processing Different Input Formats<a class="headerlink" href="#processing-different-input-formats" title="Link to this heading"></a></h2>
+<section id="plain-text-input">
+<h3>Plain Text Input<a class="headerlink" href="#plain-text-input" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="n">txt_content</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">10.1038/nature14539</span>
+
+<span class="s2">Vaswani et al., 2017, Attention is all you need</span>
+
+<span class="s2">Smith (2020) Neural Architecture Search</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="n">txt_content</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="c1"># Access results</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</section>
+<section id="bibtex-input">
+<h3>BibTeX Input<a class="headerlink" href="#bibtex-input" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="n">bibtex_content</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">@article{LeCun2015,</span>
+<span class="s2">    title = {Deep Learning},</span>
+<span class="s2">    author = {LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey},</span>
+<span class="s2">    journal = </span><span class="si">{Nature}</span><span class="s2">,</span>
+<span class="s2">    year = </span><span class="si">{2015}</span>
+<span class="s2">}</span>
+<span class="s2">&quot;&quot;&quot;</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="n">bibtex_content</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="output-formats">
+<h2>Output Formats<a class="headerlink" href="#output-formats" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX format</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="c1"># APA format</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="c1"># MLA format</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;mla&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="interactive-selection-with-callbacks">
+<h2>Interactive Selection with Callbacks<a class="headerlink" href="#interactive-selection-with-callbacks" title="Link to this heading"></a></h2>
+<p>For handling ambiguous references programmatically, use a callback function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">auto_select_best</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Always select the first (best match) candidate&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">0</span>  <span class="c1"># Return the index of the selected candidate (0-based)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;Deep learning Hinton&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">auto_select_best</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<section id="custom-callback-logic">
+<h3>Custom Callback Logic<a class="headerlink" href="#custom-callback-logic" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">smart_selector</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select candidate with most complete metadata&quot;&quot;&quot;</span>
+    <span class="n">best_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">best_score</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+        <span class="c1"># Score based on number of fields</span>
+        <span class="n">score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">candidate</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">best_score</span><span class="p">:</span>
+            <span class="n">best_score</span> <span class="o">=</span> <span class="n">score</span>
+            <span class="n">best_idx</span> <span class="o">=</span> <span class="n">idx</span>
+
+    <span class="k">return</span> <span class="n">best_idx</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;Deep learning nature 2015&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">smart_selector</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="advanced-data-structures">
+<h2>Advanced Data Structures<a class="headerlink" href="#advanced-data-structures" title="Link to this heading"></a></h2>
+<p>OneCite defines three TypedDict classes representing different stages of the processing pipeline:</p>
+<section id="rawentry">
+<h3>RawEntry<a class="headerlink" href="#rawentry" title="Link to this heading"></a></h3>
+<p>A TypedDict representing an unprocessed reference entry (Stage 1):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">RawEntry</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Optional</span>
+
+<span class="c1"># RawEntry is a TypedDict with these fields:</span>
+<span class="n">entry</span><span class="p">:</span> <span class="n">RawEntry</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;id&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;raw_text&#39;</span><span class="p">:</span> <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;doi&#39;</span><span class="p">:</span> <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;url&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;query_string&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="s1">&#39;original_entry&#39;</span><span class="p">:</span> <span class="kc">None</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</section>
+<section id="identifiedentry">
+<h3>IdentifiedEntry<a class="headerlink" href="#identifiedentry" title="Link to this heading"></a></h3>
+<p>A TypedDict representing an entry after identification from data sources (Stage 2):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">IdentifiedEntry</span>
+
+<span class="c1"># IdentifiedEntry includes fields like:</span>
+<span class="c1"># id, raw_text, doi, arxiv_id, url, metadata, status</span>
+</pre></div>
+</div>
+</section>
+<section id="completedentry">
+<h3>CompletedEntry<a class="headerlink" href="#completedentry" title="Link to this heading"></a></h3>
+<p>A TypedDict representing a fully processed entry with all metadata (Stage 3):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompletedEntry</span>
+
+<span class="c1"># CompletedEntry includes fields like:</span>
+<span class="c1"># id, doi, status, bib_key, bib_data</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> These are TypedDict classes without methods. They are primarily used internally by the pipeline. Most users should interact with OneCite through the <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> function.</p>
+</section>
+</section>
+<section id="working-with-templates">
+<h2>Working with Templates<a class="headerlink" href="#working-with-templates" title="Link to this heading"></a></h2>
+<p>Load and inspect templates:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">TemplateLoader</span>
+
+<span class="n">loader</span> <span class="o">=</span> <span class="n">TemplateLoader</span><span class="p">()</span>
+
+<span class="c1"># Load a specific template</span>
+<span class="n">template</span> <span class="o">=</span> <span class="n">loader</span><span class="o">.</span><span class="n">load_template</span><span class="p">(</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Template name: </span><span class="si">{</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Entry type: </span><span class="si">{</span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;entry_type&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Fields: </span><span class="si">{</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">f</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">template</span><span class="p">[</span><span class="s1">&#39;fields&#39;</span><span class="p">]]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Use a custom templates directory</span>
+<span class="n">custom_loader</span> <span class="o">=</span> <span class="n">TemplateLoader</span><span class="p">(</span><span class="n">templates_dir</span><span class="o">=</span><span class="s2">&quot;/path/to/templates&quot;</span><span class="p">)</span>
+<span class="n">custom_template</span> <span class="o">=</span> <span class="n">custom_loader</span><span class="o">.</span><span class="n">load_template</span><span class="p">(</span><span class="s2">&quot;my_template&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="using-the-pipeline-controller">
+<h2>Using the Pipeline Controller<a class="headerlink" href="#using-the-pipeline-controller" title="Link to this heading"></a></h2>
+<p>For advanced use cases requiring more control over the processing pipeline:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineController</span>
+
+<span class="c1"># Create controller (optionally enable Google Scholar)</span>
+<span class="n">controller</span> <span class="o">=</span> <span class="n">PipelineController</span><span class="p">(</span><span class="n">use_google_scholar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+<span class="c1"># Process with full control</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">controller</span><span class="o">.</span><span class="n">process</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+</pre></div>
+</div>
+<p><strong>Note:</strong> Most users should use <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> instead, which is simpler and provides the same functionality.</p>
+</section>
+<section id="error-handling">
+<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
+<section id="handling-exceptions">
+<h3>Handling Exceptions<a class="headerlink" href="#handling-exceptions" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">ParseError</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;invalid_reference&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Processing error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="processing-files">
+<h2>Processing Files<a class="headerlink" href="#processing-files" title="Link to this heading"></a></h2>
+<section id="reading-from-file">
+<h3>Reading from File<a class="headerlink" href="#reading-from-file" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="c1"># Read from file</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;references.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">content</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+<span class="p">)</span>
+
+<span class="c1"># Write to file</span>
+<span class="n">output_content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;output.bib&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_content</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+</section>
+<section id="complete-example">
+<h2>Complete Example<a class="headerlink" href="#complete-example" title="Link to this heading"></a></h2>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
+
+<span class="c1"># Read references</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;my_references.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">references</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+
+<span class="c1"># Process with APA format</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="n">references</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Auto-select first match</span>
+<span class="p">)</span>
+
+<span class="c1"># Check results</span>
+<span class="n">report</span> <span class="o">=</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total entries: </span><span class="si">{</span><span class="n">report</span><span class="p">[</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed: </span><span class="si">{</span><span class="n">report</span><span class="p">[</span><span class="s1">&#39;succeeded&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">report</span><span class="p">[</span><span class="s1">&#39;failed_entries&#39;</span><span class="p">])</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">report</span><span class="p">[</span><span class="s1">&#39;failed_entries&#39;</span><span class="p">]:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Failed entries:&quot;</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">failed</span> <span class="ow">in</span> <span class="n">report</span><span class="p">[</span><span class="s1">&#39;failed_entries&#39;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - Entry </span><span class="si">{</span><span class="n">failed</span><span class="p">[</span><span class="s1">&#39;id&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">failed</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;error&#39;</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Unknown error&#39;</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+<span class="c1"># Save output</span>
+<span class="n">output_content</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">])</span>
+<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;formatted_refs.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_content</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Done!&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="api-reference">
+<h2>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h2>
+<p>See <a class="reference internal" href="api/core.html"><span class="doc">Core API Reference</span></a> for the complete API documentation.</p>
+</section>
+<section id="next-steps">
+<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p>Learn <a class="reference internal" href="mcp_integration.html"><span class="doc">AI Assistant Integration with MCP</span></a> for AI assistant integration</p></li>
+<li><p>Explore <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for custom formatting</p></li>
+<li><p>Check <a class="reference internal" href="faq.html"><span class="doc">Frequently Asked Questions (FAQ)</span></a> for common questions</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advanced_usage.html" class="btn btn-neutral float-left" title="Advanced Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="mcp_integration.html" class="btn btn-neutral float-right" title="AI Assistant Integration with MCP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

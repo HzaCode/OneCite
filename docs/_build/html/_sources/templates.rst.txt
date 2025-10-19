@@ -1,0 +1,373 @@
+Custom Templates
+================
+
+OneCite uses YAML-based templates to define citation metadata field requirements. This guide explains how templates work and how to create custom ones.
+
+Template Basics
+---------------
+
+Templates define the **structure and metadata requirements** for different citation types. OneCite comes with built-in templates for:
+
+- **journal_article_full** - Journal articles with complete metadata
+- **conference_paper** - Conference proceedings papers
+- **book** - Books and monographs
+- **thesis** - Theses and dissertations
+- **software** - Software and code repositories
+- **dataset** - Research datasets
+
+Default Templates Location
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Built-in templates are located in the ``onecite/templates/`` directory:
+
+- ``journal_article_full.yaml``
+- ``conference_paper.yaml``
+- ``book.yaml``
+- ``thesis.yaml``
+- ``software.yaml``
+- ``dataset.yaml``
+
+What Templates Actually Do
+---------------------------
+
+**Important:** OneCite templates define **metadata fields and their priorities**, not output formatting.
+
+Output formats (BibTeX, APA, MLA) are implemented in the Python code, not in the YAML templates.
+
+Templates control:
+
+1. **Which fields** are required or optional for a citation type
+2. **BibTeX entry type** (e.g., @article, @book, @inproceedings)
+3. **Optional field completion** strategy (limited data sources)
+
+Templates DO NOT control:
+
+- Output format style (BibTeX/APA/MLA formatting)
+- Field ordering in the output
+- Punctuation or capitalization rules
+
+Template Structure
+------------------
+
+A template YAML file has three main parts:
+
+1. **name** - Template identifier
+2. **entry_type** - BibTeX entry type (e.g., @article, @book)
+3. **fields** - List of field definitions
+
+Example: Journal Article Template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Here's the actual ``journal_article_full.yaml`` template::
+
+    name: journal_article_full
+    entry_type: "@article"
+    fields:
+      - name: author
+        required: true
+      - name: title
+        required: true
+      - name: journal
+        required: true
+      - name: year
+        required: true
+      - name: volume
+        required: false
+        source_priority: 
+          - crossref_api
+          - user_prompt
+      - name: number
+        required: false
+        source_priority:
+          - crossref_api
+          - user_prompt
+      - name: pages
+        required: false
+        source_priority:
+          - crossref_api
+          - google_scholar_scraper
+      - name: publisher
+        required: false
+        source_priority:
+          - crossref_api
+          - user_prompt
+      - name: doi
+        required: false
+        source_priority:
+          - crossref_api
+
+Field Definitions
+~~~~~~~~~~~~~~~~~
+
+Each field has:
+
+- ``name`` - Field name (e.g., author, title, journal)
+- ``required`` - Whether this field is required (true/false)
+- ``source_priority`` - Ordered list of data sources to try (optional fields only)
+
+Available Data Sources for source_priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``source_priority`` field controls optional field completion for missing fields:
+
+- ``crossref_api`` - CrossRef API
+- ``google_scholar_scraper`` - Google Scholar scraping (if enabled)
+- ``user_prompt`` - Prompt user to enter manually
+
+Special Citation Types
+~~~~~~~~~~~~~~~~~~~~~~
+
+Some citation types are automatically detected and enriched during identification:
+
+- **Software:** GitHub repositories via GitHub API
+- **Dataset:** Zenodo/Figshare via their APIs
+- **Thesis:** Via OpenAIRE/BASE APIs
+- **Books:** Via Google Books API
+
+Example Templates
+-----------------
+
+Conference Paper Template
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``conference_paper.yaml``::
+
+    name: conference_paper
+    entry_type: "@inproceedings"
+    fields:
+      - name: author
+        required: true
+      - name: title
+        required: true
+      - name: booktitle
+        required: true
+      - name: year
+        required: true
+      - name: pages
+        required: false
+        source_priority:
+          - crossref_api
+          - google_scholar_scraper
+      - name: organization
+        required: false
+        source_priority:
+          - crossref_api
+          - user_prompt
+      - name: publisher
+        required: false
+        source_priority:
+          - crossref_api
+          - user_prompt
+      - name: doi
+        required: false
+        source_priority:
+          - crossref_api
+
+Book Template
+~~~~~~~~~~~~~
+
+``book.yaml``::
+
+    name: book
+    entry_type: "@book"
+    fields:
+      - name: author
+        required: true
+      - name: title
+        required: true
+      - name: publisher
+        required: true
+      - name: year
+        required: true
+      - name: edition
+        required: false
+        source_priority:
+          - crossref_api
+          - user_prompt
+      - name: isbn
+        required: false
+        source_priority:
+          - crossref_api
+      - name: address
+        required: false
+        source_priority:
+          - crossref_api
+          - user_prompt
+      - name: pages
+        required: false
+        source_priority:
+          - crossref_api
+      - name: doi
+        required: false
+        source_priority:
+          - crossref_api
+
+Creating Custom Templates
+--------------------------
+
+To create a custom template:
+
+1. Create a new YAML file in ``onecite/templates/``
+2. Define the name, entry_type, and fields
+3. Specify required fields and source priorities
+4. Use the template by its name (without .yaml extension)
+
+Example: Minimal Article Template
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create ``minimal_article.yaml``::
+
+    name: minimal_article
+    entry_type: "@article"
+    fields:
+      - name: author
+        required: true
+      - name: title
+        required: true
+      - name: year
+        required: true
+      - name: doi
+        required: false
+        source_priority:
+          - crossref_api
+
+Using Custom Templates
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Command line::
+
+    onecite process references.txt --template minimal_article -o output.bib
+
+Python API::
+
+    from onecite import process_references
+    
+    result = process_references(
+        input_content="10.1038/nature14539",
+        input_type="txt",
+        template_name="minimal_article",  # Your custom template
+        output_format="bibtex",
+        interactive_callback=lambda candidates: 0
+    )
+    
+    print('\n\n'.join(result['results']))
+
+Inspecting Templates
+--------------------
+
+You can load and inspect templates programmatically::
+
+    from onecite import TemplateLoader
+    
+    loader = TemplateLoader()
+    
+    # Load a specific template
+    template = loader.load_template("journal_article_full")
+    print(f"Template name: {template['name']}")
+    print(f"Entry type: {template['entry_type']}")
+    print(f"Fields: {[f['name'] for f in template['fields']]}")
+    
+    # Use a custom templates directory
+    custom_loader = TemplateLoader(templates_dir="/path/to/templates")
+    custom_template = custom_loader.load_template("my_template")
+
+Output Format Control
+---------------------
+
+**Important Note:** Output formats (BibTeX, APA, MLA) are controlled by the ``--output-format`` option, not by templates.
+
+To change output format::
+
+    # Generate BibTeX format
+    onecite process refs.txt --output-format bibtex
+    
+    # Generate APA format
+    onecite process refs.txt --output-format apa
+    
+    # Generate MLA format
+    onecite process refs.txt --output-format mla
+
+The template only affects which fields are collected and from where, not how they are formatted in the final output.
+
+Best Practices
+--------------
+
+1. **Start Simple** - Begin with a basic template and add fields as needed
+2. **Test with Real Data** - Verify your template works with actual references
+3. **Prioritize Reliable Sources** - List most reliable data sources first in source_priority
+4. **Mark Critical Fields as Required** - Only mark essential fields as required
+5. **Document Your Templates** - Add comments explaining the purpose
+6. **Validate YAML Syntax** - Ensure proper YAML formatting
+
+Common Field Names
+------------------
+
+Standard BibTeX field names:
+
+- ``author`` - Author names
+- ``title`` - Work title
+- ``journal`` - Journal name (articles)
+- ``booktitle`` - Book/conference title (proceedings)
+- ``year`` - Publication year
+- ``volume`` - Volume number
+- ``number`` - Issue number
+- ``pages`` - Page range
+- ``publisher`` - Publisher name
+- ``doi`` - Digital Object Identifier
+- ``url`` - Web URL
+- ``isbn`` - Book identifier
+- ``issn`` - Journal identifier
+- ``edition`` - Edition number
+- ``address`` - Publisher location
+- ``organization`` - Conference/organization name
+
+Troubleshooting
+---------------
+
+Template Not Found
+~~~~~~~~~~~~~~~~~~
+
+If you get "template not found" error:
+
+1. Check the template file is in ``onecite/templates/`` directory
+2. Verify the filename matches (e.g., ``my_template.yaml``)
+3. Use the template name without ``.yaml`` extension
+4. Ensure YAML syntax is valid
+
+Missing Fields in Output
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If expected fields are missing:
+
+1. Check that the field is defined in the template
+2. Verify data sources are available and accessible
+3. Check that source_priority lists appropriate sources
+4. Consider marking critical fields as ``required: true``
+
+Invalid YAML Syntax
+~~~~~~~~~~~~~~~~~~~~
+
+If template loading fails:
+
+1. Use a YAML validator to check syntax
+2. Ensure proper indentation (use spaces, not tabs)
+3. Check that all field names are strings
+4. Verify boolean values are lowercase (true/false)
+
+Sharing Templates
+-----------------
+
+To share custom templates:
+
+1. Save as a ``.yaml`` file with a descriptive name
+2. Include a comment at the top explaining its purpose
+3. Test with various reference types
+4. Share in the OneCite community or contribute to the project
+
+Next Steps
+----------
+
+- See :doc:`quick_start` for basic usage
+- Learn :doc:`python_api` for programmatic access
+- Check :doc:`advanced_usage` for complex scenarios
+- View the ``onecite/templates/`` directory for more examples
