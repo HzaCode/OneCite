@@ -1,0 +1,24 @@
+name: thesis
+entry_type: "@phdthesis"
+fields:
+  - name: author
+    required: true
+  - name: title
+    required: true
+  - name: school
+    required: true
+  - name: year
+    required: true
+  - name: type
+    required: false
+  - name: address
+    required: false
+  - name: month
+    required: false
+  - name: note
+    required: false
+  - name: url
+    required: false
+    source_priority:
+      - base_api
+      - openaire_api

@@ -1,0 +1,38 @@
+name: book
+entry_type: "@book"
+fields:
+  - name: author
+    required: true
+  - name: title
+    required: true
+  - name: publisher
+    required: true
+  - name: year
+    required: true
+  - name: edition
+    required: false
+    source_priority:
+      - crossref_api
+      - google_books_api
+      - user_prompt
+  - name: isbn
+    required: false
+    source_priority:
+      - crossref_api
+      - google_books_api
+  - name: address
+    required: false
+    source_priority:
+      - crossref_api
+      - google_books_api
+      - user_prompt
+  - name: pages
+    required: false
+    source_priority:
+      - crossref_api
+      - google_books_api
+  - name: doi
+    required: false
+    source_priority:
+      - crossref_api
+
