@@ -10,7 +10,7 @@ citations in multiple formats.
 
 __version__ = "0.0.11"
 __author__ = "OneCite Team"
-__email__ = "team@onecite.org"
+__email__ = "ang@hezhiang.com"
 __license__ = "MIT"
 
 from .core import (
