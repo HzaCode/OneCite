@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = {text = "MIT"}
 authors = [
-    {name = "OneCite Team", email = "team@onecite.org"}
+    {name = "He Zhiang", email = "ang@hezhiang.com"}
 ]
 keywords = ["citation", "bibliography", "bibtex", "academic", "reference", "doi", "arxiv"]
 classifiers = [
