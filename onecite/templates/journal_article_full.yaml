@@ -1,0 +1,35 @@
+name: journal_article_full
+entry_type: "@article"
+fields:
+  - name: author
+    required: true
+  - name: title
+    required: true
+  - name: journal
+    required: true
+  - name: year
+    required: true
+  - name: volume
+    required: false
+    source_priority: 
+      - crossref_api
+      - user_prompt
+  - name: number
+    required: false
+    source_priority:
+      - crossref_api
+      - user_prompt
+  - name: pages
+    required: false
+    source_priority:
+      - crossref_api
+      - google_scholar_scraper
+  - name: publisher
+    required: false
+    source_priority:
+      - crossref_api
+      - user_prompt
+  - name: doi
+    required: false
+    source_priority:
+      - crossref_api

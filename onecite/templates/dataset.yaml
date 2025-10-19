@@ -1,0 +1,30 @@
+name: dataset
+entry_type: "@misc"
+fields:
+  - name: author
+    required: true
+  - name: title
+    required: true
+  - name: year
+    required: true
+  - name: howpublished
+    required: true
+  - name: doi
+    required: false
+    source_priority:
+      - zenodo_api
+      - datacite_api
+      - figshare_api
+  - name: url
+    required: false
+    source_priority:
+      - zenodo_api
+      - figshare_api
+      - datacite_api
+  - name: version
+    required: false
+    source_priority:
+      - zenodo_api
+      - figshare_api
+  - name: note
+    required: false
