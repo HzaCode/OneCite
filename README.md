@@ -26,6 +26,7 @@
 [![Python Version](https://img.shields.io/badge/Python-3.7+-blue?logo=python&style=flat-square)](https://www.python.org)
 [![Downloads](https://static.pepy.tech/badge/onecite?style=flat-square)](https://pepy.tech/project/onecite)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github&style=flat-square)](https://hzacode.github.io/OneCite/)
 [![MCP Registry](https://img.shields.io/badge/MCP-Registry-blue?logo=modelcontextprotocol&style=flat-square)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.HzaCode/onecite)
 
 </div>
@@ -43,8 +44,6 @@
 <p align="center">
   OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles, arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
 </p>
-
-> **🚀 OneCite for Web is coming soon at [hezhiang.com/onecite](http://hezhiang.com/onecite)**
 
 ---
 
