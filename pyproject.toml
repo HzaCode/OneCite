@@ -36,6 +36,7 @@ dependencies = [
     "scholarly>=1.5.0",
     "pyyaml>=5.4.0",
     "mcp>=0.9.0",
+    "feedparser>=6.0.0",
 ]
 
 [project.optional-dependencies]
