@@ -13,8 +13,10 @@ class TestInputFormats:
     def run_onecite_process(self, input_content, input_type="txt"):
         """Helper method to run onecite processing with mocked API calls"""
         try:
-            # Mock requests.get to avoid real API calls
-            with patch('requests.get', side_effect=mock_requests_get):
+            # Mock requests.get in all modules to avoid real API calls
+            with patch('onecite.pipeline.requests.get', side_effect=mock_requests_get), \
+                 patch('onecite.core.requests.get', side_effect=mock_requests_get), \
+                 patch('requests.get', side_effect=mock_requests_get):
                 from onecite import process_references
                 
                 def mock_callback(candidates):
