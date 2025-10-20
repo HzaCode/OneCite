@@ -56,10 +56,9 @@ Changelog = "https://github.com/HzaCode/OneCite/blob/main/docs/changelog.rst"
 
 [project.scripts]
 onecite = "onecite.cli:main"
-onecite-mcp = "onecite_mcp.mcp_server:main"
 
 [tool.setuptools]
-packages = ["onecite", "onecite_mcp"]
+packages = ["onecite"]
 
 [tool.setuptools.package-data]
 onecite = ["templates/*.yaml"]
