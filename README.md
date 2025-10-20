@@ -24,7 +24,7 @@
 [![Tests](https://github.com/HzaCode/OneCite/workflows/Tests/badge.svg?style=flat-square)](https://github.com/HzaCode/OneCite/actions)
 [![Status](https://img.shields.io/badge/Status-Active-green.svg?style=flat-square)](https://github.com/HzaCode/OneCite)
 [![PyPI Version](https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi&style=flat-square)](https://pypi.org/project/onecite/)
-[![Python Version](https://img.shields.io/badge/Python-3.7+-blue?logo=python&style=flat-square)](https://www.python.org)
+[![Python Version](https://img.shields.io/badge/Python-3.10+-blue?logo=python&style=flat-square)](https://www.python.org)
 [![Downloads](https://static.pepy.tech/badge/onecite?style=flat-square)](https://pepy.tech/project/onecite)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github&style=flat-square)](https://hzacode.github.io/OneCite/)
