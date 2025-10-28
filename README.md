@@ -17,7 +17,13 @@
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
     <img src="https://img.shields.io/badge/Awesome-LaTeX-008B8B?logo=awesome-lists&logoColor=white&labelColor=493267&style=flat" alt="Awesome LaTeX">
   </a>
+  &nbsp;
+  <a href="https://github.com/modelcontextprotocol/servers">
+    <img src="https://img.shields.io/badge/MCP%20%7C%20Official-brightgreen?logo=github&labelColor=24292e&style=flat" alt="MCP | Official">
+  </a>
 </p>
+
+
 
 <div align="center">
 
@@ -29,6 +35,7 @@
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github&style=flat-square)](https://hzacode.github.io/OneCite/)
 [![MCP Registry](https://img.shields.io/badge/MCP-Registry-blue?logo=modelcontextprotocol&style=flat-square)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.HzaCode/onecite)
+
 
 </div>
 
