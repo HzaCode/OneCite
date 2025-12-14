@@ -2261,6 +2261,12 @@ class IdentifierModule:
 
             scores['citations'] = citation_score
 
+            # DOI presence score - CRITICAL
+            doi_score = 0
+            if candidate.get('doi'):
+                doi_score = 100
+            scores['doi'] = doi_score
+
             # Domain-specific bonuses
             domain_bonus = 0
             authors_text = ' '.join(candidate['authors']).lower() if candidate.get('authors') else ''
@@ -2306,24 +2312,26 @@ class IdentifierModule:
             if is_candidate_book:
                 # Book-specific weights: year matters less, title and publisher matter more
                 match_score = (
-                    scores['title'] * 0.45 +      # Title most important for books
-                    scores['author'] * 0.30 +     # Author very important
-                    scores['year'] * 0.02 +       # Year much less critical for books (decreased)
+                    scores['title'] * 0.40 +      # Title most important for books
+                    scores['author'] * 0.25 +     # Author very important
+                    scores['year'] * 0.02 +       # Year much less critical for books
                     scores['venue'] * 0.05 +      # Venue less relevant for books
                     scores['source'] * 0.08 +     # Source reliability more important
                     scores['citations'] * 0.02 +  # Citations least important
-                    scores['domain'] * 0.08       # Domain/publisher bonus more important
+                    scores['domain'] * 0.08 +     # Domain/publisher bonus
+                    scores['doi'] * 0.10          # DOI bonus
                 )
             else:
-                # Article weights
+                # Article weights - DOI is heavily weighted
                 match_score = (
-                    scores['title'] * 0.40 +      # Title most important (increased)
-                    scores['author'] * 0.30 +     # Author very important (increased)
-                    scores['year'] * 0.10 +       # Year less critical (decreased)
-                    scores['venue'] * 0.10 +      # Venue helpful
+                    scores['title'] * 0.30 +      # Title important
+                    scores['author'] * 0.25 +     # Author important
+                    scores['year'] * 0.08 +       # Year less critical
+                    scores['venue'] * 0.07 +      # Venue helpful
                     scores['source'] * 0.05 +     # Source reliability
                     scores['citations'] * 0.03 +  # Citations least important
-                    scores['domain'] * 0.02       # Domain bonus
+                    scores['domain'] * 0.02 +     # Domain bonus
+                    scores['doi'] * 0.20          # DOI is extremely important (20% weight)
                 )
 
             candidate_copy = candidate.copy()
