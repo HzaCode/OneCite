@@ -19,8 +19,7 @@ def test_pypi_version():
         print(f" : {onecite.__version__}")
         print(f" : {onecite.__author__}")
     except ImportError as e:
-        print(f" : {e}")
-        return False
+        raise AssertionError(f"Import failed: {e}")
 
     # 
     print("\n---  ---")
@@ -34,11 +33,9 @@ def test_pypi_version():
             print(":")
             print(result.stdout[:200] + "..." if len(result.stdout) > 200 else result.stdout)
         else:
-            print(f" CLI : {result.stderr}")
-            return False
+            raise AssertionError(f"CLI failed: {result.stderr}")
     except Exception as e:
-        print(f" CLI : {e}")
-        return False
+        raise AssertionError(f"CLI error: {e}")
 
     # 
     print("\n---  ---")
@@ -67,12 +64,10 @@ BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
             if len(output_lines) > 5:
                 print(f"  ... ( {len(output_lines)} )")
         else:
-            print(f" : {result.stderr}")
-            return False
+            raise AssertionError(f"Processing failed: {result.stderr}")
 
     except Exception as e:
-        print(f" : {e}")
-        return False
+        raise AssertionError(f"Processing error: {e}")
     finally:
         # 
         try:
@@ -104,17 +99,12 @@ BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding
             print("API :")
             print(result['results'][0][:200] + "..." if len(result['results'][0]) > 200 else result['results'][0])
         else:
-            print(" Python API ")
-            return False
+            raise AssertionError("Python API returned empty results")
 
     except Exception as e:
-        print(f" API : {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+        raise AssertionError(f"API error: {e}")
 
-    print("\n PyPI  onecite 0.0.6 ")
-    return True
+    assert True  # All checks passed
 
 if __name__ == "__main__":
     success = test_pypi_version()

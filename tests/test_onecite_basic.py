@@ -13,89 +13,56 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 def test_basic_import():
     """"""
-    try:
-        from onecite import process_references
-        print(" OneCite ")
-        return True
-    except Exception as e:
-        print(f" OneCite : {e}")
-        return False
+    from onecite import process_references
+    assert process_references is not None
 
 def test_readme_example():
     """ README """
-    try:
-        from onecite import process_references
-        
-        # README 
-        input_content = """10.1038/nature14539
+    from onecite import process_references
+    
+    # README 
+    input_content = """10.1038/nature14539
 
 Attention is all you need
 Vaswani et al.
 NIPS 2017"""
-        
+    
+    # 
+    def auto_select_callback(candidates):
         # 
-        def auto_select_callback(candidates):
-            # 
-            return 0 if candidates else -1
-        
-        print("  README ...")
-        
-        result = process_references(
-            input_content=input_content,
-            input_type="txt",
-            template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=auto_select_callback
-        )
-        
-        print(" README ")
-        print(f" :")
-        print(f"  - : {result['report']['total']}")
-        print(f"  - : {result['report']['succeeded']}")
-        print(f"  - : {len(result['report']['failed_entries'])}")
-        
-        if result['results']:
-            print("\n :")
-            for i, citation in enumerate(result['results'], 1):
-                print(f"\n{i}. {citation}")
-        
-        return True
-        
-    except Exception as e:
-        print(f" README : {e}")
-        import traceback
-        traceback.print_exc()
-        return False
+        return 0 if candidates else -1
+    
+    result = process_references(
+        input_content=input_content,
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
+        interactive_callback=auto_select_callback
+    )
+    
+    assert result is not None
+    assert 'results' in result
+    assert 'report' in result
 
 def test_apa_format():
     """ APA """
-    try:
-        from onecite import process_references
-        
-        input_content = "10.1038/nature14539"
-        
-        def auto_select_callback(candidates):
-            return 0 if candidates else -1
-        
-        print("  APA ...")
-        
-        result = process_references(
-            input_content=input_content,
-            input_type="txt",
-            template_name="journal_article_full",
-            output_format="apa",
-            interactive_callback=auto_select_callback
-        )
-        
-        print(" APA ")
-        if result['results']:
-            print(f" APA : {result['results'][0]}")
-        
-        return True
-        
-    except Exception as e:
-        print(f" APA : {e}")
-        return False
+    from onecite import process_references
+    
+    input_content = "10.1038/nature14539"
+    
+    def auto_select_callback(candidates):
+        return 0 if candidates else -1
+    
+    result = process_references(
+        input_content=input_content,
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="apa",
+        interactive_callback=auto_select_callback
+    )
+    
+    assert result is not None
+    assert 'results' in result
 
 def main():
     """"""

@@ -1506,8 +1506,9 @@ class IdentifierModule:
         best_candidate = scored_candidates[0]
         
         # For likely books, strongly prefer Google Books results if available
-        is_likely_book = any(pub in query_string.lower() for pub in 
-                            ['wiley', 'pearson', "o'reilly", 'springer', 'press', 'publisher', 'edition', 'ed.'])
+        if not is_likely_book:
+            is_likely_book = any(pub in query_string.lower() for pub in 
+                                ['wiley', 'pearson', "o'reilly", 'springer', 'press', 'publisher', 'edition', 'ed.'])
         if is_likely_book:
             # Find primary Google Books match (the first one returned by API)
             primary_google_books = next((c for c in scored_candidates if c.get('is_primary_google_books_match')), None)
@@ -1525,7 +1526,7 @@ class IdentifierModule:
                     self.logger.info(f"Selected book: {best_candidate.get('title', 'Unknown')} by {', '.join(best_candidate.get('authors', [])[:2])} ({best_candidate.get('year', 'N/A')})")
         
         # Otherwise, prefer candidates with DOI when scores are close
-        if not (is_likely_book and best_candidate.get('source') == 'google_books'):
+        if best_candidate.get('source') != 'google_books':
             doi_candidates = [c for c in scored_candidates if c.get('doi')]
             if doi_candidates:
                 best_doi_candidate = doi_candidates[0]
@@ -1611,22 +1612,22 @@ class IdentifierModule:
         # Further lower threshold for better recall - many valid papers are being rejected
         # For books, use even lower threshold (books often have less complete metadata)
         # Check if any keyword suggests this is a book
-        is_likely_book = (
+        is_best_candidate_book = (
             best_candidate.get('is_book') or 
             best_candidate.get('type') in ['book', 'monograph', 'edited-book', 'reference-book'] or
             any(publisher in best_candidate.get('publisher', '').lower() 
                 for publisher in ['wiley', 'pearson', "o'reilly", 'springer'])
         )
         # For Google Books results, use even lower threshold (they're very accurate)
-        if best_candidate.get('source') == 'google_books' and is_likely_book:
+        if best_candidate.get('source') == 'google_books' and is_best_candidate_book:
             threshold = 35  # Very low threshold for Google Books + book detection
-        elif is_likely_book:
+        elif is_best_candidate_book:
             threshold = 42  # Lower threshold for books
         else:
             threshold = 48  # Normal threshold for articles
         
         if best_candidate['match_score'] >= threshold and best_candidate.get('title'):
-            self.logger.info(f"Entry {raw_entry['id']} adopting best candidate with score {best_candidate['match_score']} (type: {best_candidate.get('type', 'unknown')}, is_book: {is_likely_book})")
+            self.logger.info(f"Entry {raw_entry['id']} adopting best candidate with score {best_candidate['match_score']} (type: {best_candidate.get('type', 'unknown')}, is_book: {is_best_candidate_book})")
             return {
                 'id': raw_entry['id'],
                 'raw_text': raw_entry['raw_text'],
@@ -2334,6 +2335,7 @@ class IdentifierModule:
                     scores['doi'] * 0.20          # DOI is extremely important (20% weight)
                 )
 
+            match_score = min(max(match_score, 0), 100)
             candidate_copy = candidate.copy()
             candidate_copy['match_score'] = round(match_score, 2)
             candidate_copy['score_breakdown'] = scores
@@ -2767,8 +2769,9 @@ class EnricherModule:
             if not is_book:
                 if metadata.get('volume'):
                     result['volume'] = metadata['volume']
-                if metadata.get('number'):
-                    result['number'] = metadata['number']
+                number = metadata.get('number') or metadata.get('issue')
+                if number:
+                    result['number'] = number
             
             return {k: v for k, v in result.items() if v}
             
