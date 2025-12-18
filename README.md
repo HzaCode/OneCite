@@ -9,28 +9,16 @@
   <h3>The Universal Citation & Academic Reference Toolkit</h3>
 </div>
 
-<p align="center">
-  <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Recommended%20by%3A-%28Updating%29-brightgreen?style=flat" alt="Recommended by: (Updating)">
-  </a>
-  &nbsp;
-  <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
-    <img src="https://img.shields.io/badge/Awesome-LaTeX-008B8B?logo=awesome-lists&logoColor=white&labelColor=493267&style=flat" alt="Awesome LaTeX">
-  </a>
-</p>
-
-
-
 <div align="center">
 
-[![Tests](https://github.com/HzaCode/OneCite/workflows/Tests/badge.svg?style=flat-square)](https://github.com/HzaCode/OneCite/actions)
-[![codecov](https://codecov.io/gh/HzaCode/OneCite/branch/main/graph/badge.svg)](https://codecov.io/gh/HzaCode/OneCite)
-[![Status](https://img.shields.io/badge/Status-Active-green.svg?style=flat-square)](https://github.com/HzaCode/OneCite)
-[![PyPI Version](https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi&style=flat-square)](https://pypi.org/project/onecite/)
-[![Python Version](https://img.shields.io/badge/Python-3.10+-blue?logo=python&style=flat-square)](https://www.python.org)
-[![Downloads](https://static.pepy.tech/badge/onecite?style=flat-square)](https://pepy.tech/project/onecite)
-[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github&style=flat-square)](https://hzacode.github.io/OneCite/)
+[![Tests](https://img.shields.io/github/actions/workflow/status/HzaCode/OneCite/tests.yml?style=flat-square&logo=github&label=Tests)](https://github.com/HzaCode/OneCite/actions)
+[![codecov](https://img.shields.io/codecov/c/github/HzaCode/OneCite?style=flat-square&logo=codecov)](https://codecov.io/gh/HzaCode/OneCite)
+[![PyPI Version](https://img.shields.io/pypi/v/onecite?style=flat-square&color=306998&logo=pypi)](https://pypi.org/project/onecite/)
+[![Python Version](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)](https://www.python.org)
+[![Downloads](https://img.shields.io/pepy/dt/onecite?style=flat-square)](https://pepy.tech/project/onecite)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat-square&logo=github)](https://hzacode.github.io/OneCite/)
+[![Awesome LaTeX](https://img.shields.io/badge/Awesome-LaTeX-008B8B?style=flat-square&logo=awesome-lists&logoColor=white&labelColor=493267)](https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools)
 
 
 </div>
