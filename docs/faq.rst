@@ -239,28 +239,6 @@ Yes! Use the ``interactive_callback`` parameter::
         interactive_callback=my_selector
     )
 
-MCP Integration Questions
--------------------------
-
-What is MCP?
-~~~~~~~~~~~~
-
-MCP (Model Context Protocol) is an open standard for connecting MCP clients with tools. It lets MCP client and other MCP clients directly use OneCite.
-
-How do I set up MCP integration?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See :doc:`mcp_integration` for detailed setup instructions for MCP desktop client and editor client.
-
-Can I use OneCite with other MCP clients?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-OneCite is compatible with any MCP client that supports MCP, including:
-
-- MCP client (MCP desktop client)
-- editor client Editor
-- Other future MCP-compatible assistants
-
 Troubleshooting Questions
 -------------------------
 
@@ -378,4 +356,3 @@ Next Steps
 - See :doc:`quick_start` to get started
 - Learn :doc:`python_api` for programmatic access
 - Explore :doc:`templates` for custom formats
-- Check :doc:`mcp_integration` for MCP client integration

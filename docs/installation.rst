@@ -51,15 +51,6 @@ To verify that your installation was successful, run::
 
 You should see the version number printed.
 
-MCP Server
-----------
-
-OneCite includes a Model Context Protocol (MCP) server. To test it::
-
-    onecite-mcp
-
-This will start the MCP server. You can now configure your MCP client to use it. For more details, see :doc:`mcp_integration`.
-
 Upgrading OneCite
 -----------------
 

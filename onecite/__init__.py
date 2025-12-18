@@ -58,4 +58,4 @@ __all__ = [
 # Package metadata
 __title__ = "onecite"
 __description__ = "Universal citation management and academic reference toolkit"
-__url__ = "https://github.com/onecite/onecite"
+__url__ = "https://github.com/HzaCode/OneCite"
