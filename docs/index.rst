@@ -29,7 +29,6 @@ OneCite - Universal Citation & Academic Reference Toolkit
 
    advanced_usage
    python_api
-   mcp_integration
    templates
    output_formats
 
@@ -58,7 +57,6 @@ Key Features
 - 🤖 **Auto-Completion** - Automatically enriches entries with missing metadata
 - 🎓 **7+ Citation Types** - Handles journal articles, conference papers, books, software, datasets, theses, and preprints
 - 📄 **Universal Identifiers** - Accepts DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, or plain text queries
-- 🤖 **AI Assistant Integration** - Full Model Context Protocol (MCP) support
 
 Data Sources
 ============

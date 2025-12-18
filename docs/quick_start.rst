@@ -121,6 +121,5 @@ Next Steps
 ----------
 
 - Learn more about :doc:`advanced_usage`
-- Explore :doc:`mcp_integration` for AI assistant integration
 - Check :doc:`templates` to customize output format
 - See :doc:`api/core` for Python API reference

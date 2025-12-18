@@ -169,6 +169,5 @@ Next Steps
 ----------
 
 - Explore :doc:`templates` for custom output formats
-- Learn :doc:`mcp_integration` for AI assistant usage
 - Check :doc:`api/core` for complete API reference
 - See :doc:`faq` for common questions

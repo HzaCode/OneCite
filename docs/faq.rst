@@ -239,28 +239,6 @@ Yes! Use the ``interactive_callback`` parameter::
         interactive_callback=my_selector
     )
 
-MCP Integration Questions
--------------------------
-
-What is MCP?
-~~~~~~~~~~~~
-
-MCP (Model Context Protocol) is an open standard for connecting AI assistants with tools. It lets Claude and other AI assistants directly use OneCite.
-
-How do I set up MCP integration?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See :doc:`mcp_integration` for detailed setup instructions for Claude Desktop and Cursor.
-
-Can I use OneCite with other AI assistants?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-OneCite is compatible with any AI assistant that supports MCP, including:
-
-- Claude (Claude Desktop)
-- Cursor Editor
-- Other future MCP-compatible assistants
-
 Troubleshooting Questions
 -------------------------
 
@@ -378,4 +356,3 @@ Next Steps
 - See :doc:`quick_start` to get started
 - Learn :doc:`python_api` for programmatic access
 - Explore :doc:`templates` for custom formats
-- Check :doc:`mcp_integration` for AI assistant integration

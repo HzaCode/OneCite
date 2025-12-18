@@ -384,6 +384,5 @@ See :doc:`api/core` for the complete API documentation.
 Next Steps
 ----------
 
-- Learn :doc:`mcp_integration` for AI assistant integration
 - Explore :doc:`templates` for custom formatting
 - Check :doc:`faq` for common questions

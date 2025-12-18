@@ -17,10 +17,6 @@
   <a href="https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools">
     <img src="https://img.shields.io/badge/Awesome-LaTeX-008B8B?logo=awesome-lists&logoColor=white&labelColor=493267&style=flat" alt="Awesome LaTeX">
   </a>
-  &nbsp;
-  <a href="https://github.com/modelcontextprotocol/servers">
-    <img src="https://img.shields.io/badge/MCP%20%7C%20Official-brightgreen?logo=github&labelColor=24292e&style=flat" alt="MCP | Official">
-  </a>
 </p>
 
 
@@ -35,7 +31,6 @@
 [![Downloads](https://static.pepy.tech/badge/onecite?style=flat-square)](https://pepy.tech/project/onecite)
 [![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](LICENSE)
 [![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?logo=github&style=flat-square)](https://hzacode.github.io/OneCite/)
-[![MCP Registry](https://img.shields.io/badge/MCP-Registry-blue?logo=modelcontextprotocol&style=flat-square)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.HzaCode/onecite)
 
 
 </div>
@@ -44,7 +39,6 @@
   <a href="#-features">✨ Features</a> •
   <a href="#-quick-start">🚀 Quick Start</a> •
   <a href="#-advanced-usage">📖 Advanced Usage</a> •
-  <a href="#-ai-assistant-integration-mcp">🤖 AI Integration</a> •
   <a href="#-contributing">🤝 Contributing</a>
 </p>
 
@@ -224,49 +218,6 @@ print(result['output_content'])
 ```
 </details>
 
-
-## 🤖 AI Assistant Integration (MCP)
-
-OneCite provides complete Model Context Protocol (MCP) support, enabling AI assistants to directly use its functionality for literature search, processing, and formatting.
-
-<details>
-<summary><strong>🚀 Setup & Usage</strong></summary>
-
-### 1. Installation & Testing
-
-```bash
-# Install OneCite (includes MCP server)
-pip install onecite
-
-# Test the MCP server
-onecite-mcp
-```
-
-### 2. Configure Your AI Assistant
-
-#### For Claude Desktop
-Add the following to `claude_desktop_config.json`:
-```json
-{
-  "mcpServers": { "onecite": { "command": "onecite-mcp" } }
-}
-```
-
-#### For Cursor
-Add the following to `.cursor/settings.json`:
-```json
-{
-  "mcpServers": { "onecite": { "command": "onecite-mcp" } }
-}
-```
-Restart your editor to enable the integration.
-
-### 3. Available Functions & Examples
-- **`cite`**: Generate a single citation (e.g., *"Generate an APA citation for DOI: 10.1038/nature14539"*).
-- **`batch_cite`**: Process a list of references (e.g., *"Batch process these references in BibTeX format"*).
-- **`search`**: Search academic literature by keywords (e.g., *"Search for papers on machine learning"*).
-
-</details>
 
 
 ## 🤝 Contributing
