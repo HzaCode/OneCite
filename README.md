@@ -11,6 +11,8 @@
 
 <div align="center">
 
+[![Awesome CLI Apps](https://img.shields.io/badge/Featured%20in-Awesome%20CLI%20Apps%20(18.2k%20⭐)-FF6B35?style=flat-square&logo=awesome-lists&logoColor=white)](https://github.com/agarrharr/awesome-cli-apps)
+
 [![Tests](https://img.shields.io/github/actions/workflow/status/HzaCode/OneCite/tests.yml?style=flat-square&logo=github&label=Tests)](https://github.com/HzaCode/OneCite/actions)
 [![codecov](https://img.shields.io/codecov/c/github/HzaCode/OneCite?style=flat-square&logo=codecov)](https://codecov.io/gh/HzaCode/OneCite)
 [![PyPI Version](https://img.shields.io/pypi/v/onecite?style=flat-square&color=306998&logo=pypi)](https://pypi.org/project/onecite/)
