@@ -11,15 +11,15 @@
 
 <div align="center">
 
-[![Awesome CLI Apps](https://img.shields.io/badge/Featured%20in-Awesome%20CLI%20Apps%20(18.2k%20⭐)-FF6B35?style=flat-square&logo=awesome-lists&logoColor=white)](https://github.com/agarrharr/awesome-cli-apps)
+[![Awesome CLI Apps](https://img.shields.io/badge/Featured-Awesome%20CLI%20Apps%2018.2k⭐-FF6B35?style=flat-square&logo=awesome-lists&logoColor=white)](https://github.com/agarrharr/awesome-cli-apps)
 
-[![Tests](https://img.shields.io/github/actions/workflow/status/HzaCode/OneCite/tests.yml?style=flat-square&logo=github&label=Tests)](https://github.com/HzaCode/OneCite/actions)
+[![Tests](https://img.shields.io/github/actions/workflow/status/HzaCode/OneCite/tests.yml?style=flat-square&logo=github)](https://github.com/HzaCode/OneCite/actions)
 [![codecov](https://img.shields.io/codecov/c/github/HzaCode/OneCite?style=flat-square&logo=codecov)](https://codecov.io/gh/HzaCode/OneCite)
-[![PyPI Version](https://img.shields.io/pypi/v/onecite?style=flat-square&color=306998&logo=pypi)](https://pypi.org/project/onecite/)
-[![Python Version](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)](https://www.python.org)
+[![PyPI](https://img.shields.io/pypi/v/onecite?style=flat-square&logo=pypi)](https://pypi.org/project/onecite/)
+[![Python](https://img.shields.io/badge/3.10+-blue?style=flat-square&logo=python)](https://www.python.org)
 [![Downloads](https://img.shields.io/pepy/dt/onecite?style=flat-square)](https://pepy.tech/project/onecite)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![Documentation](https://img.shields.io/badge/docs-GitHub%20Pages-blue?style=flat-square&logo=github)](https://hzacode.github.io/OneCite/)
+[![MIT](https://img.shields.io/badge/MIT-green?style=flat-square)](LICENSE)
+[![Docs](https://img.shields.io/badge/Docs-Pages-blue?style=flat-square&logo=github)](https://hzacode.github.io/OneCite/)
 [![Awesome LaTeX](https://img.shields.io/badge/Awesome-LaTeX-008B8B?style=flat-square&logo=awesome-lists&logoColor=white&labelColor=493267)](https://github.com/egeerardyn/awesome-LaTeX?tab=readme-ov-file#bibliography-tools)
 
 
