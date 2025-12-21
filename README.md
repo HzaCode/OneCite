@@ -11,7 +11,7 @@
 
 <div align="center">
 
-[![Awesome CLI Apps](https://img.shields.io/badge/Featured-Awesome%20CLI%20Apps%2018.2k⭐-FF6B35?style=flat-square&logo=awesome-lists&logoColor=white)](https://github.com/agarrharr/awesome-cli-apps)
+[![Awesome CLI Apps](https://img.shields.io/badge/Featured-Awesome%20CLI%20Apps%2018.2k⭐-FF6B35?style=flat-square&logo=awesome-lists&logoColor=white)](https://github.com/agarrharr/awesome-cli-apps?tab=readme-ov-file#academia)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/HzaCode/OneCite/tests.yml?style=flat-square&logo=github)](https://github.com/HzaCode/OneCite/actions)
 [![codecov](https://img.shields.io/codecov/c/github/HzaCode/OneCite?style=flat-square&logo=codecov)](https://codecov.io/gh/HzaCode/OneCite)
