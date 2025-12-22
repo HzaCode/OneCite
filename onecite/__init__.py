@@ -8,7 +8,7 @@ A comprehensive Python package for managing bibliographic data and generating
 citations in multiple formats.
 """
 
-__version__ = "0.0.11"
+__version__ = "0.0.12"
 __author__ = "OneCite Team"
 __email__ = "ang@hezhiang.com"
 __license__ = "MIT"
