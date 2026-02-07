@@ -212,9 +212,13 @@ print(result['output_content'])
 
 Contributions are always welcome! Please see [**CONTRIBUTING.md**](CONTRIBUTING.md) for development guidelines and instructions on how to submit a pull request.
 
-## License
+## 📄 License
 
 This project is licensed under the **MIT License**. See the [**LICENSE**](LICENSE) file for details.
+
+### Disclosure
+
+Development was assisted by standard productivity tools including Generative AI for streamlining implementation details. All output was verified and integrated by the maintainer, and **no LLMs are used by the package at runtime**.
 
 ---
 
