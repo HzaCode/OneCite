@@ -1,7 +1,7 @@
-﻿# !/usr/bin/env python3
+# !/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-"""OneCite Processing Pipeline Module Implementation of various modules for the 4-stage processing pipeline"""
+"""OneCite 4-stage processing pipeline."""
 
 import re
 import os
@@ -12,12 +12,27 @@ import requests
 from bs4 import BeautifulSoup
 import bibtexparser
 from thefuzz import fuzz
-from scholarly import scholarly
+try:
+    from scholarly import scholarly
+except ImportError:
+    scholarly = None
 from html import unescape
 
 from .core import RawEntry, IdentifiedEntry, CompletedEntry
 from .exceptions import ParseError, ResolverError
 import urllib.parse
+
+
+def _safe_year(date_obj):
+    """Safely extract year from a CrossRef date object like {'date-parts': [[2015, 3, 1]]}."""
+    if not date_obj:
+        return None
+    parts = date_obj.get('date-parts', [])
+    if parts and isinstance(parts, list) and len(parts) > 0:
+        inner = parts[0]
+        if isinstance(inner, list) and len(inner) > 0:
+            return inner[0]
+    return None
 
 
 class ParserModule:
@@ -27,7 +42,7 @@ class ParserModule:
         self.logger = logging.getLogger(__name__)
     
     def parse(self, input_content: str, input_type: str) -> List[RawEntry]:
-        """Parse input content into a list of raw entries Args: input_content: Input content string input_type: Input type ('txt' or 'bib') Returns: List of raw entries"""
+        """Parse input content into raw entries."""
         self.logger.info(f"Starting to parse {input_type} format input content")
         
         if input_type.lower() == 'bib':
@@ -43,12 +58,9 @@ class ParserModule:
         try:
             bib_database = bibtexparser.loads(bibtex_content)
             for i, entry in enumerate(bib_database.entries):
-                # Preserve original entry data (Bug #5 fix)
-                # Use dict() to create a proper copy, not just a reference
                 original_entry = dict(entry)
                 
-                # Debug: log what we're preserving
-                self.logger.debug(f"Entry {i}: Preserving original fields: {list(original_entry.keys())}")
+                self.logger.debug(f"Entry {i}: original fields: {list(original_entry.keys())}")
                 
                 raw_entry: RawEntry = {
                     'id': i,
@@ -56,7 +68,7 @@ class ParserModule:
                     'doi': entry.get('doi'),
                     'url': entry.get('url'),
                     'query_string': None,
-                    'original_entry': original_entry  # Store complete original entry
+                    'original_entry': original_entry
                 }
                 
                 # If no DOI is available, generate query string
@@ -99,10 +111,9 @@ class ParserModule:
                 'query_string': None
             }
             
-            # Find DOI (standard format)
             doi_match = re.search(r'10\.\d{4,}/[^\s,}]+', block)
             if doi_match:
-                raw_entry['doi'] = doi_match.group()
+                raw_entry['doi'] = doi_match.group().rstrip('.,;:)]')
             else:
                 # Try to find article ID patterns that might be convertible to DOI
                 # Common patterns: e0000429, PMC123456, etc.
@@ -112,11 +123,9 @@ class ParserModule:
                     # Note potential PLOS article ID but don't assume specific journal
                     # Let Cross resolve the actual DOI during identification
                     self.logger.info(f"Entry {i} found potential PLOS article ID {article_id}, will attempt resolution via CrossRef")
-                    # Add to query string instead of assuming DOI
                     if not raw_entry['query_string']:
                         raw_entry['query_string'] = block
             
-            # Find URL
             url_match = re.search(r'https?://[^\s]+', block)
             if url_match:
                 raw_entry['url'] = url_match.group()
@@ -205,22 +214,19 @@ class IdentifierModule:
         # If valid DOI already exists, verify it against Crossref API
         if raw_entry.get('doi'):
             if self._validate_doi(raw_entry['doi']):
-                # DOI format is valid, now verify it exists and get real metadata
                 real_metadata = self._verify_doi_and_get_metadata(raw_entry['doi'])
                 if real_metadata:
-                    # Check if input is DOI-only (no additional text content)
                     text_without_doi = raw_entry['raw_text'].replace(raw_entry['doi'], '').strip()
                     is_doi_only = len(text_without_doi) < 10  # Less than 10 chars means mostly just DOI
                     
                     if is_doi_only:
-                        # DOI-only entry, skip consistency check
                         self.logger.info(f"Entry {raw_entry['id']} is DOI-only, accepting without consistency check")
                         identified_entry['doi'] = raw_entry['doi']
                         identified_entry['metadata'] = real_metadata
                         identified_entry['status'] = 'identified'
                         return identified_entry
                     
-                    # Compare user input with real metadata for automation detection
+                    # Compare user input with fetched metadata
                     consistency_score = self._check_doi_content_consistency(raw_entry['raw_text'], real_metadata)
                     
                     identified_entry['doi'] = raw_entry['doi']
@@ -246,7 +252,6 @@ class IdentifierModule:
                     self.logger.warning(f"Entry {raw_entry['id']} has valid DOI format but DOI does not exist: {raw_entry['doi']}")
                     # Continue to fuzzy search as fallback
         
-        # Check for GitHub repository URL
         github_info = self._extract_github_info(raw_entry['raw_text'])
         if github_info:
             identified_entry['metadata'] = github_info
@@ -255,7 +260,6 @@ class IdentifierModule:
             self.logger.info(f"Entry {raw_entry['id']} identified as GitHub repository: {github_info.get('repo')}")
             return identified_entry
         
-        # Check for Zenodo/Figshare DOI (dataset indicators)
         zenodo_info = self._extract_zenodo_info(raw_entry['raw_text'])
         if zenodo_info:
             identified_entry['doi'] = zenodo_info.get('doi')
@@ -264,7 +268,6 @@ class IdentifierModule:
             self.logger.info(f"Entry {raw_entry['id']} identified as Zenodo dataset")
             return identified_entry
         
-        # Check for thesis keywords
         thesis_info = self._detect_thesis(raw_entry['raw_text'])
         if thesis_info:
             identified_entry['metadata'] = thesis_info
@@ -272,7 +275,6 @@ class IdentifierModule:
             self.logger.info(f"Entry {raw_entry['id']} identified as thesis")
             return identified_entry
         
-        # Check for arXiv ID in raw text
         arxiv_id = self._extract_arxiv_id(raw_entry['raw_text'])
         if arxiv_id:
             identified_entry['arxiv_id'] = arxiv_id
@@ -282,7 +284,6 @@ class IdentifierModule:
         
         # Try to extract DOI or arXiv ID from URL
         if raw_entry.get('url'):
-            # Bug #3 fix: Check if it's a GitHub URL first
             if 'github.com' in raw_entry['url']:
                 github_info = self._extract_github_info(raw_entry['url'])
                 if github_info:
@@ -292,7 +293,6 @@ class IdentifierModule:
                     self.logger.info(f"Entry {raw_entry['id']} identified as GitHub repository from URL: {github_info.get('repo')}")
                     return identified_entry
             
-            # Check if it's an arXiv URL
             if 'arxiv.org' in raw_entry['url']:
                 arxiv_id = self._extract_arxiv_id_from_url(raw_entry['url'])
                 if arxiv_id:
@@ -321,7 +321,6 @@ class IdentifierModule:
                     self.logger.info(f"Entry {raw_entry['id']} extracted metadata from URL")
                     return identified_entry
                 
-                # Store URL for conference papers
                 identified_entry['url'] = raw_entry['url']
         
         # Fuzzy search
@@ -348,15 +347,13 @@ class IdentifierModule:
             data = response.json()
             work = data.get('message', {})
             
-            # Extract real metadata from CrossRef
             real_metadata = {
                 'source': 'crossref_verification',
                 'doi': work.get('DOI'),
                 'title': work.get('title', [''])[0] if work.get('title') else '',
                 'authors': [f"{a.get('given', '')} {a.get('family', '')}" 
                           for a in work.get('author', [])],
-                'year': work.get('published-print', {}).get('date-parts', [[None]])[0][0] or
-                       work.get('published-online', {}).get('date-parts', [[None]])[0][0],
+                'year': _safe_year(work.get('published-print')) or _safe_year(work.get('published-online')),
                 'journal': work.get('container-title', [''])[0] if work.get('container-title') else '',
                 'volume': work.get('volume'),
                 'number': work.get('issue'),
@@ -386,13 +383,11 @@ class IdentifierModule:
             # Normalize user input
             user_input_lower = user_input.lower()
             
-            # Extract real information
             real_title = real_metadata.get('title', '').lower()
             real_authors = [author.lower() for author in real_metadata.get('authors', [])]
             real_year = str(real_metadata.get('year', ''))
             real_journal = real_metadata.get('journal', '').lower()
             
-            # Calculate consistency scores for different fields
             scores = []
             
             # Title consistency (most important)
@@ -430,7 +425,6 @@ class IdentifierModule:
                 )
                 scores.append(('journal', journal_score, 0.1))  # 10% weight
             
-            # Calculate weighted average
             if not scores:
                 return 0.0
             
@@ -439,7 +433,6 @@ class IdentifierModule:
             
             final_score = total_weighted_score / total_weight if total_weight > 0 else 0.0
             
-            # Log detailed scores for debugging
             score_details = {field: score for field, score, _ in scores}
             self.logger.info(f"DOI consistency check details: {score_details}, final: {final_score:.2f}")
             
@@ -452,17 +445,16 @@ class IdentifierModule:
     def _extract_github_info(self, text: str) -> Optional[Dict]:
         """Extract GitHub repository information"""
         try:
-            # Match GitHub URLs - improved pattern (Bug #3 fix)
+            # Match GitHub URLs
             github_pattern = r'github\.com/([a-zA-Z0-9_-]+)/([a-zA-Z0-9_.-]+)'
             match = re.search(github_pattern, text, re.IGNORECASE)
             
             if match:
                 owner = match.group(1)
                 repo = match.group(2)
-                # Remove any trailing punctuation or special chars more robustly
+                # Remove any trailing punctuation or special chars
                 repo = re.sub(r'[^a-zA-Z0-9_.-].*$', '', repo)
                 
-                # Query GitHub API for metadata
                 url = f"{self.github_api_base}/repos/{owner}/{repo}"
                 headers = {
                     'Accept': 'application/vnd.github.v3+json',
@@ -474,7 +466,6 @@ class IdentifierModule:
                 if response.status_code == 200:
                     data = response.json()
                     
-                    # Extract release/tag for version
                     version = None
                     try:
                         tags_url = f"{self.github_api_base}/repos/{owner}/{repo}/tags"
@@ -483,7 +474,7 @@ class IdentifierModule:
                             tags = tags_response.json()
                             if tags and len(tags) > 0:
                                 version = tags[0].get('name', '').lstrip('v')
-                    except:
+                    except Exception:
                         pass
                     
                     return {
@@ -510,7 +501,6 @@ class IdentifierModule:
     def _extract_zenodo_info(self, text: str) -> Optional[Dict]:
         """Extract Zenodo/Figshare dataset information"""
         try:
-            # Check for Zenodo DOI pattern (10.5281/zenodo.xxxxx)
             zenodo_pattern = r'10\.5281/zenodo\.(\d+)'
             match = re.search(zenodo_pattern, text)
             
@@ -518,7 +508,6 @@ class IdentifierModule:
                 zenodo_id = match.group(1)
                 doi = f"10.5281/zenodo.{zenodo_id}"
                 
-                # Query Zenodo API
                 url = f"https://zenodo.org/api/records/{zenodo_id}"
                 response = requests.get(url, timeout=10)
                 
@@ -540,7 +529,6 @@ class IdentifierModule:
                         'resource_type': metadata.get('resource_type', {}).get('type', 'dataset')
                     }
             
-            # Check for Figshare DOI pattern (10.6084/m9.figshare.xxxxx)
             figshare_pattern = r'10\.6084/m9\.figshare\.(\d+)'
             match = re.search(figshare_pattern, text)
             
@@ -555,7 +543,6 @@ class IdentifierModule:
                     'url': f"https://doi.org/{doi}"
                 }
             
-            # Check for generic DataCite DOI patterns
             # DataCite DOIs often start with specific prefixes
             datacite_patterns = [
                 r'10\.5061/',  # Dryad
@@ -567,7 +554,6 @@ class IdentifierModule:
                 match = re.search(pattern + r'[^\s,}]+', text)
                 if match:
                     doi = match.group(0)
-                    # Query DataCite API
                     datacite_info = self._query_datacite(doi)
                     if datacite_info:
                         return datacite_info
@@ -587,11 +573,9 @@ class IdentifierModule:
                 data = response.json()
                 attributes = data.get('data', {}).get('attributes', {})
                 
-                # Extract creators
                 creators = attributes.get('creators', [])
                 authors = [c.get('name', '') for c in creators if c.get('name')]
                 
-                # Extract publication year
                 pub_year = attributes.get('publicationYear')
                 
                 return {
@@ -617,7 +601,6 @@ class IdentifierModule:
         try:
             text_lower = text.lower()
             
-            # Check for thesis keywords
             thesis_keywords = [
                 'phd thesis', 'ph.d. thesis', 'doctoral thesis', 'dissertation',
                 'master thesis', "master's thesis", 'msc thesis', 'm.s. thesis'
@@ -632,18 +615,13 @@ class IdentifierModule:
             is_phd = any(kw in text_lower for kw in ['phd', 'ph.d.', 'doctoral', 'dissertation'])
             thesis_type = 'phdthesis' if is_phd else 'mastersthesis'
             
-            # Extract basic information
             # Pattern: Author (Year). Title. Type. University.
-            
-            # Extract author (before year)
             author_match = re.match(r'^([^(]+?)\s*\(', text)
             author = author_match.group(1).strip() if author_match else 'Unknown Author'
             
-            # Extract year
             year_match = re.search(r'\((\d{4})\)', text)
             year = int(year_match.group(1)) if year_match else None
             
-            # Extract title (between year and thesis keyword)
             title = None
             title_pattern = r'\(\d{4}\)\.\s*(.+?)\.\s*(?:PhD|Ph\.D\.|Master|Doctoral|Dissertation)'
             title_match = re.search(title_pattern, text, re.IGNORECASE)
@@ -675,7 +653,6 @@ class IdentifierModule:
                     school = match.group(1).strip().rstrip('.')
                     break
             
-            # Search for thesis metadata using multiple sources
             if title and len(title) > 10:
                 # Try external providerRE first (better for European theses)
                 openaire_metadata = self._search_openaire_for_thesis(title, year)
@@ -722,7 +699,6 @@ class IdentifierModule:
             # Clean query
             query_clean = re.sub(r'\b(phd|ph\.d\.|thesis|dissertation)\b', '', query, flags=re.IGNORECASE).strip()
             
-            # Build query
             base_query = f'dccoll:ftthesis {query_clean}'
             if year:
                 base_query += f' dcyear:{year}'
@@ -741,9 +717,8 @@ class IdentifierModule:
                 docs = data.get('response', {}).get('docs', [])
                 
                 if docs:
-                    doc = docs[0]  # Use first result
+                    doc = docs[0]
                     
-                    # Extract authors
                     authors = doc.get('dcauthor', [])
                     if isinstance(authors, str):
                         authors = [authors]
@@ -766,7 +741,6 @@ class IdentifierModule:
     def _search_openaire_for_thesis(self, title: str, year: Optional[int] = None) -> Optional[Dict]:
         """Search external providerRE for thesis/dissertation"""
         try:
-            # Build query
             query = f'"{title}"'
             if year:
                 query += f' AND yearofacceptance exact "{year}"'
@@ -790,20 +764,17 @@ class IdentifierModule:
                     result = results[0] if isinstance(results, list) else results
                     metadata_elem = result.get('metadata', {}).get('oaf:entity', {}).get('oaf:result', {})
                     
-                    # Extract title
                     title_elem = metadata_elem.get('title', {})
                     if isinstance(title_elem, list):
                         title_text = title_elem[0].get('$', '') if title_elem else ''
                     else:
                         title_text = title_elem.get('$', '')
                     
-                    # Extract creators/authors
                     creators = metadata_elem.get('creator', [])
                     if not isinstance(creators, list):
                         creators = [creators]
                     authors = [c.get('$', '') if isinstance(c, dict) else str(c) for c in creators if c]
                     
-                    # Extract year
                     year_elem = metadata_elem.get('dateofacceptance', {})
                     year_text = year_elem.get('$', '')[:4] if isinstance(year_elem, dict) and year_elem.get('$') else None
                     
@@ -811,7 +782,6 @@ class IdentifierModule:
                     publisher_elem = metadata_elem.get('publisher', {})
                     publisher = publisher_elem.get('$', 'Unknown University') if isinstance(publisher_elem, dict) else str(publisher_elem)
                     
-                    # Extract URL
                     url = None
                     children = result.get('metadata', {}).get('oaf:entity', {}).get('oaf:result', {}).get('children', {})
                     instances = children.get('instance', [])
@@ -846,7 +816,6 @@ class IdentifierModule:
     def _search_pubmed_by_id(self, pmid: str) -> Optional[Dict]:
         """Search PubMed by PMID"""
         try:
-            # Fetch article details
             url = f"{self.pubmed_base}/esummary.fcgi"
             params = {
                 'db': 'pubmed',
@@ -861,7 +830,6 @@ class IdentifierModule:
             result = data.get('result', {}).get(pmid, {})
             
             if result and result.get('title'):
-                # Extract DOI if available
                 doi = None
                 article_ids = result.get('articleids', [])
                 for aid in article_ids:
@@ -869,7 +837,6 @@ class IdentifierModule:
                         doi = aid.get('value')
                         break
                 
-                # Extract authors
                 authors = []
                 for author in result.get('authors', []):
                     name = author.get('name', '')
@@ -917,7 +884,6 @@ class IdentifierModule:
             if not pmids:
                 return []
             
-            # Fetch details for found PMIDs
             results = []
             for pmid in pmids:
                 result = self._search_pubmed_by_id(pmid)
@@ -949,12 +915,10 @@ class IdentifierModule:
                 
                 results = []
                 for paper in papers:
-                    # Extract DOI from externalIds (handle None)
                     external_ids = paper.get('externalIds') or {}
                     doi = external_ids.get('DOI') if external_ids else None
                     arxiv_id = external_ids.get('ArXiv') if external_ids else None
                     
-                    # Extract authors
                     authors = []
                     author_list = paper.get('authors') or []
                     for author in author_list:
@@ -963,14 +927,12 @@ class IdentifierModule:
                             if name:
                                 authors.append(name)
                     
-                    # Extract journal/venue
                     venue = paper.get('venue') or ''
                     if not venue:
                         journal_obj = paper.get('journal')
                         if journal_obj and isinstance(journal_obj, dict):
                             venue = journal_obj.get('name', '')
                     
-                    # Build URL
                     paper_url = paper.get('url')
                     if not paper_url and paper.get('paperId'):
                         paper_url = f"https://www.semanticscholar.org/paper/{paper.get('paperId')}"
@@ -1025,10 +987,15 @@ class IdentifierModule:
         return None
     
     def _extract_doi_from_url(self, url: str) -> Optional[str]:
-        """Extract DOI from URL page. Bug #4 fix: Prioritize meta tags and avoid extracting DOIs from reference sections."""
+        """Extract DOI from URL page. Prioritize meta tags and avoid extracting DOIs from reference sections."""
         try:
-            response = requests.get(url, timeout=10, headers={'User-Agent': 'OneCite/1.0'})
-            soup = BeautifulSoup(response.content, 'html.parser')
+            response = requests.get(url, timeout=10, headers={'User-Agent': 'OneCite/1.0'}, stream=True)
+            content_len = response.headers.get('content-length')
+            if content_len and int(content_len) > 5 * 1024 * 1024:
+                self.logger.warning(f"Skipping URL {url}: response too large ({content_len} bytes)")
+                return None
+            content = response.raw.read(5 * 1024 * 1024)
+            soup = BeautifulSoup(content, 'html.parser')
             
             # 1. Look for DOI in meta tags (most reliable)
             doi_meta = soup.find('meta', attrs={'name': 'citation_doi'}) or \
@@ -1052,7 +1019,7 @@ class IdentifierModule:
                         if isinstance(identifier, str) and self._validate_doi(identifier):
                             self.logger.info(f"Found DOI in structured data: {identifier}")
                             return identifier
-                except:
+                except Exception:
                     pass
             
             # 3. Limited search in main content only (exclude reference sections)
@@ -1097,7 +1064,12 @@ class IdentifierModule:
     def _extract_metadata_from_url(self, url: str) -> Optional[Dict]:
         """Extract metadata from PDF or HTML page"""
         try:
-            response = requests.get(url, timeout=15, headers={'User-Agent': 'OneCite/1.0'})
+            response = requests.get(url, timeout=15, headers={'User-Agent': 'OneCite/1.0'}, stream=True)
+            content_len = response.headers.get('content-length')
+            if content_len and int(content_len) > 5 * 1024 * 1024:
+                self.logger.warning(f"Skipping URL {url}: response too large ({content_len} bytes)")
+                return None
+            response._content = response.raw.read(5 * 1024 * 1024)
             response.raise_for_status()
             
             # Check if it's a PDF
@@ -1361,7 +1333,7 @@ class IdentifierModule:
                     'status': 'identified'
                 }
         
-        # Multi-source query with intelligent fallback
+        # Multi-source query with fallback
         candidates = []
         semantic_results = []  # Initialize to avoid UnboundLocalError
         
@@ -1382,7 +1354,7 @@ class IdentifierModule:
                     'status': 'identified'
                 }
         
-        # Check if it might be a book (comprehensive detection)
+        # Check if it might be a book
         query_lower = query_string.lower()
         
         # === Strongest book indicators ===
@@ -1422,9 +1394,8 @@ class IdentifierModule:
         else:
             is_likely_book = False  # Default to article (safer)
         
-        # === Intelligent routing strategy: select the optimal API based on content type ===
+        # === Route to the best API based on content type ===
         
-        # Check for medical/health keywords
         is_medical = any(keyword in query_lower for keyword in 
                         ['health', 'medical', 'clinical', 'patient', 'disease', 'treatment', 
                          'therapy', 'diagnosis', 'biology', 'gene', 'protein', 'cell', 
@@ -1499,7 +1470,6 @@ class IdentifierModule:
                 'status': 'identification_failed'
             }
         
-        # Calculate match scores
         scored_candidates = self._score_candidates(candidates, query_string)
         scored_candidates.sort(key=lambda x: x['match_score'], reverse=True)
 
@@ -1609,7 +1579,7 @@ class IdentifierModule:
                     }
         
         # Low confidence but if score is decent and has title, mark as identified
-        # Further lower threshold for better recall - many valid papers are being rejected
+        # Lower threshold to avoid rejecting valid papers
         # For books, use even lower threshold (books often have less complete metadata)
         # Check if any keyword suggests this is a book
         is_best_candidate_book = (
@@ -1669,7 +1639,7 @@ class IdentifierModule:
                 'query.title': candidate_title,
                 'query.bibliographic': focused_query,
                 'rows': 5,
-                'mailto': 'omnicite@example.com'
+                'mailto': 'onecite@users.noreply.github.com'
             }
             response = requests.get(url, params=params, timeout=5)
             response.raise_for_status()
@@ -1681,7 +1651,7 @@ class IdentifierModule:
                 title = (item.get('title', [''])[0] or '').lower()
                 if not title:
                     continue
-                # Use robust fuzzy comparison against candidate title
+                # Fuzzy comparison against candidate title
                 base = candidate_title.lower()
                 score = max(
                     fuzz.ratio(base, title),
@@ -1697,8 +1667,7 @@ class IdentifierModule:
                     'doi': best_item.get('DOI'),
                     'title': (best_item.get('title', [''])[0] or ''),
                     'authors': [f"{a.get('given', '')} {a.get('family', '')}" for a in best_item.get('author', [])],
-                    'year': best_item.get('published-print', {}).get('date-parts', [[None]])[0][0] or
-                            best_item.get('published-online', {}).get('date-parts', [[None]])[0][0],
+                    'year': _safe_year(best_item.get('published-print')) or _safe_year(best_item.get('published-online')),
                     'journal': best_item.get('container-title', [''])[0] if best_item.get('container-title') else '',
                     'citations': best_item.get('is-referenced-by-count', 0)
                 }
@@ -1707,7 +1676,7 @@ class IdentifierModule:
         return None
     
     def _search_crossref(self, query: str, limit: int = 15) -> List[Dict]:
-        """Enhanced CrossRef search with better query optimization"""
+        """CrossRef search with query optimization."""
         try:
             # Optimize query parameters
             params = {
@@ -1716,7 +1685,7 @@ class IdentifierModule:
                 'query.title': query,
                 'rows': limit,
                 'sort': 'relevance',
-                'mailto': 'omnicite@example.com'
+                'mailto': 'onecite@users.noreply.github.com'
             }
 
             # Try multiple query strategies
@@ -1869,9 +1838,8 @@ class IdentifierModule:
             if not query_clean or len(query_clean) < 5:
                 query_clean = query.strip()
             
-            self.logger.info(f"Google Books optimized query: {query_clean}")
+            self.logger.info(f"Google Books query: {query_clean}")
             
-            # Build API URL
             base_url = "https://www.googleapis.com/books/v1/volumes"
             params = {
                 'q': query_clean,
@@ -1890,7 +1858,6 @@ class IdentifierModule:
             for item in items:
                 volume_info = item.get('volumeInfo', {})
                 
-                # Extract book information
                 result = {
                     'source': 'google_books',
                     'is_book': True,
@@ -1912,7 +1879,6 @@ class IdentifierModule:
                     if year_match:
                         result['year'] = int(year_match.group())
                 
-                # Extract ISBN
                 industry_identifiers = volume_info.get('industryIdentifiers', [])
                 for identifier in industry_identifiers:
                     if identifier.get('type') in ['ISBN_13', 'ISBN_10']:
@@ -1938,7 +1904,7 @@ class IdentifierModule:
             return []
     
     def _search_google_scholar(self, query: str, limit: int = 5) -> List[Dict]:
-        """Search in Google Scholar (with intelligent retry and captcha handling)"""
+        """Search in Google Scholar (with retry and captcha handling)."""
         try:
             import threading
             import time
@@ -1951,7 +1917,7 @@ class IdentifierModule:
 
             self._last_scholar_request = time.time()
 
-            # Intelligent retry mechanism - reduce the number of retries and increase the delay
+            # Retry with fewer attempts and longer delay
             max_retries = 2  
             for attempt in range(max_retries):
                 if attempt > 0:
@@ -1982,7 +1948,6 @@ class IdentifierModule:
                                 break
 
                             try:
-                                # Extract more fields from Google Scholar
                                 bib = pub.get('bib', {})
 
                                 result = {
@@ -2004,7 +1969,6 @@ class IdentifierModule:
                                     if arxiv_match:
                                         result['arxiv_id'] = arxiv_match.group(1)
 
-                                # Extract DOI from URL if available
                                 if result['url'] and 'doi.org' in result['url']:
                                     doi_match = re.search(r'doi\.org/(.+)', result['url'])
                                     if doi_match:
@@ -2095,17 +2059,17 @@ class IdentifierModule:
             return []
     
     def _score_candidates(self, candidates: List[Dict], query_string: str) -> List[Dict]:
-        """Enhanced candidate scoring with domain-specific optimizations"""
+        """Score candidates with domain-specific adjustments."""
         scored_candidates = []
 
-        # Normalize query for robust title matching
+        # Normalize query for title matching
         normalized_query = query_string.strip()
         # Try to derive a probable title part: cut at first 4-digit year
         title_part = re.split(r'\b(19|20)\d{2}\b', normalized_query)[0].strip() or normalized_query
         # Remove common "et al." noise
         title_part = re.sub(r'\bet\s*al\.?\b', '', title_part, flags=re.IGNORECASE).strip()
 
-        # Enhanced domain-specific synonyms mapping
+        # Domain-specific venue synonyms
         synonyms = {
             'nips': 'neural information processing systems',
             'neurips': 'neural information processing systems',
@@ -2136,7 +2100,6 @@ class IdentifierModule:
                     return venue.replace(k, v).replace(k.upper(), v)
             return venue
 
-        # Extract key components from query for better matching
         query_year = None
         year_match = re.search(r'\b(19|20)\d{2}\b', normalized_query)
         if year_match:
@@ -2145,7 +2108,7 @@ class IdentifierModule:
         for candidate in candidates:
             scores = {}
 
-            # Title similarity (enhanced scoring)
+            # Title similarity
             candidate_title = candidate.get('title', '').lower()
             base_title = title_part.lower()
 
@@ -2195,7 +2158,10 @@ class IdentifierModule:
             # Year matching (critical for academic papers)
             year_score = 0
             if candidate.get('year') and query_year:
-                candidate_year = int(candidate['year']) if isinstance(candidate['year'], str) and candidate['year'].isdigit() else candidate['year']
+                try:
+                    candidate_year = int(candidate['year'])
+                except (ValueError, TypeError):
+                    candidate_year = None
                 if candidate_year:
                     year_diff = abs(candidate_year - query_year)
                     if year_diff == 0:
@@ -2354,6 +2320,7 @@ class EnricherModule:
         self.logger = logging.getLogger(__name__)
         self.crossref_base_url = "https://api.crossref.org/works"
         self.use_google_scholar = use_google_scholar
+        self._used_keys: set = set()
     
     def enrich(self, identified_entries: List[IdentifiedEntry], 
                template: Dict, raw_entries: List[RawEntry] = None) -> List[CompletedEntry]:
@@ -2442,10 +2409,10 @@ class EnricherModule:
             # Generate BibTeX key
             bib_key = self._generate_bibtex_key(base_record)
             
-            # Complete missing fields according to the template
+            # Fill in missing fields per template
             completed_data = self._complete_fields(base_record, template)
             
-            # Bug #5 fix: Preserve original BibTeX entry fields when available
+            # Preserve original BibTeX entry fields when available
             if raw_entry and raw_entry.get('original_entry'):
                 original = raw_entry['original_entry']
                 self.logger.info(f"Entry {identified_entry['id']}: Found original_entry with keys: {list(original.keys()) if original else 'None'}")
@@ -2470,28 +2437,24 @@ class EnricherModule:
                 self.logger.warning(f"Entry {identified_entry['id']}: No original_entry available in raw_entry - raw_entry={raw_entry is not None}")
             
             # Set the entry type based on content
-            # Check for thesis type
             is_thesis_type = (
                 metadata.get('is_thesis') == True or
                 metadata.get('type') in ['phdthesis', 'mastersthesis', 'thesis'] or
                 base_record.get('is_thesis') == True
             )
             
-            # Check for software type
             is_software_type = (
                 metadata.get('is_software') == True or
                 metadata.get('type') == 'software' or
                 base_record.get('is_software') == True
             )
             
-            # Check for dataset type
             is_dataset_type = (
                 metadata.get('is_dataset') == True or
                 metadata.get('type') == 'dataset' or
                 base_record.get('is_dataset') == True
             )
             
-            # Check for book type
             is_book_type = (
                 metadata.get('is_book') == True or 
                 str(metadata.get('is_book')).lower() == 'true' or
@@ -2552,7 +2515,7 @@ class EnricherModule:
             }
     
     def _strip_html_tags(self, text: str) -> str:
-        """Strip HTML tags from text and convert to plain text. Bug #2 fix: Remove HTML markup from CrossRef titles."""
+        """Strip HTML tags from text and convert to plain text."""
         if not text:
             return text
         
@@ -2579,7 +2542,7 @@ class EnricherModule:
             data = response.json()
             work = data.get('message', {})
             
-            # Extract title and clean HTML tags (Bug #2 fix)
+            # Extract title and clean HTML tags
             raw_title = work.get('title', [''])[0] if work.get('title') else ''
             clean_title = self._strip_html_tags(raw_title)
             
@@ -2636,7 +2599,6 @@ class EnricherModule:
             
             entry = feed.entries[0]
             
-            # Extract authors
             authors = []
             for author in entry.get('authors', []):
                 name = author.get('name', '')
@@ -2829,10 +2791,17 @@ class EnricherModule:
                 first_word = re.sub(r'[^\w]', '', title_words[0])
                 key_parts.append(first_word)
         
-        return ''.join(key_parts) or 'unknown'
+        base_key = ''.join(key_parts) or 'unknown'
+        key = base_key
+        suffix = ord('a')
+        while key in self._used_keys:
+            key = f"{base_key}{chr(suffix)}"
+            suffix += 1
+        self._used_keys.add(key)
+        return key
     
     def _complete_fields(self, base_record: Dict, template: Dict) -> Dict:
-        """Complete missing fields according to template"""
+        """Fill in missing fields per template definition."""
         completed_data = base_record.copy()
         
         # Check required fields in template
@@ -2849,7 +2818,7 @@ class EnricherModule:
         return completed_data
     
     def _fetch_missing_field(self, field_name: str, source_priority: List[str], base_record: Dict) -> Optional[str]:
-        """Get missing fields according to priority strategy"""
+        """Try each source in priority order to fill a missing field."""
         for source in source_priority:
             if source == 'crossref_api':
                 # Already got fromCrossref, skip
@@ -2932,7 +2901,7 @@ class FormatterModule:
     def __init__(self):
         self.logger = logging.getLogger(__name__)
         
-        # Bug #1 fix: LaTeX character escape mapping for common Unicode characters
+        # LaTeX character escape mapping for common Unicode characters
         self.unicode_to_latex = {
             'ä': r'{\"a}', 'Ä': r'{\"A}',
             'ë': r'{\"e}', 'Ë': r'{\"E}',
@@ -2968,12 +2937,12 @@ class FormatterModule:
             'ł': r'{\l}', 'Ł': r'{\L}',
             '–': '--',  # en-dash
             '—': '---',  # em-dash
-            ''': "'", ''': "'",  # smart quotes (curly single quotes)
-            '"': '``', '"': "''",  # smart quotes (curly double quotes) - NOT ASCII "
+            ''': "'", ''': "'",  # curly single quotes
+            '"': '``', '"': "''",  # curly double quotes (non-ASCII)
         }
     
     def _escape_latex_chars(self, text: str) -> str:
-        """Convert Unicode characters to LaTeX escape sequences. Bug #1 fix: Preserve special characters in BibTeX output."""
+        """Convert Unicode characters to LaTeX escape sequences."""
         if not text:
             return text
         
@@ -3056,7 +3025,7 @@ class FormatterModule:
         
         for key, value in bib_data.items():
             if key not in ['ENTRYTYPE', 'ID'] and value:
-                # Bug #1 fix: Preserve LaTeX escape sequences
+                # Preserve LaTeX escape sequences
                 # Don't strip braces blindly, they may be part of LaTeX commands
                 value_str = str(value)
                 
@@ -3142,10 +3111,8 @@ class FormatterModule:
             entry_type = bib_data.get('ENTRYTYPE', 'article')
             
             if entry_type in ['book', 'phdthesis', 'mastersthesis']:
-                # Books and theses: italicized (we'll use title case)
-                parts.append(f'"{title}."')
+                parts.append(f'*{title}*.')
             else:
-                # Articles: in quotes
                 parts.append(f'"{title}."')
         
         # Container (journal, book title, website)

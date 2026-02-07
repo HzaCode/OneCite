@@ -1,97 +1,37 @@
-﻿#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""Quick sanity checks for the public Python API.
 
+These run against the real network, so they're skipped when the ``--offline``
+marker is active.  For fully-mocked equivalents see ``test_python_api.py``.
 """
- OneCite 
-"""
+from onecite import process_references
 
-import sys
-import os
 
-#  Python 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+def _auto_pick(candidates):
+    """Always pick the first candidate – good enough for smoke tests."""
+    return 0 if candidates else -1
 
-def test_basic_import():
-    """"""
-    from onecite import process_references
-    assert process_references is not None
 
 def test_readme_example():
-    """ README """
-    from onecite import process_references
-    
-    # README 
-    input_content = """10.1038/nature14539
-
-Attention is all you need
-Vaswani et al.
-NIPS 2017"""
-    
-    # 
-    def auto_select_callback(candidates):
-        # 
-        return 0 if candidates else -1
-    
+    """Make sure the snippet we show in README.md keeps working."""
     result = process_references(
-        input_content=input_content,
+        input_content="10.1038/nature14539\n\nAttention is all you need\nVaswani et al.\nNIPS 2017",
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=auto_select_callback
+        interactive_callback=_auto_pick,
     )
-    
-    assert result is not None
-    assert 'results' in result
-    assert 'report' in result
+    assert isinstance(result, dict)
+    assert result.get("results"), "Expected at least one formatted entry"
+    assert "report" in result
 
-def test_apa_format():
-    """ APA """
-    from onecite import process_references
-    
-    input_content = "10.1038/nature14539"
-    
-    def auto_select_callback(candidates):
-        return 0 if candidates else -1
-    
+
+def test_apa_output():
+    """APA is the second-most requested format after BibTeX."""
     result = process_references(
-        input_content=input_content,
+        input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
         output_format="apa",
-        interactive_callback=auto_select_callback
+        interactive_callback=_auto_pick,
     )
-    
-    assert result is not None
-    assert 'results' in result
-
-def main():
-    """"""
-    print("  OneCite \n")
-    
-    tests = [
-        ("", test_basic_import),
-        ("README ", test_readme_example),
-        ("APA ", test_apa_format),
-    ]
-    
-    passed = 0
-    total = len(tests)
-    
-    for test_name, test_func in tests:
-        print(f"\n{'='*50}")
-        print(f" {test_name}")
-        print('='*50)
-        
-        if test_func():
-            passed += 1
-        
-    print(f"\n{'='*50}")
-    print(f" : {passed}/{total} ")
-    print('='*50)
-    
-    return passed == total
-
-if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
-
+    assert result.get("results")

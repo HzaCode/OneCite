@@ -1,4 +1,4 @@
-﻿
+
 
 <div align="center">
   <p align="center">
@@ -6,7 +6,7 @@
   </p>
 
   <h1>OneCite</h1>
-  <h3>The Universal Citation & Academic Reference Toolkit</h3>
+  <h3>Citation & Academic Reference Toolkit</h3>
 </div>
 
 <div align="center">
@@ -26,8 +26,8 @@
 </div>
 
 <p align="center">
-  <a href="#-features">✨ Features</a> •
-  <a href="#-quick-start">🚀 Quick Start</a> •
+  <a href="#-features">Features</a> •
+  <a href="#-quick-start">Quick Start</a> •
   <a href="#-advanced-usage">📖 Advanced Usage</a> •
   <a href="#-contributing">🤝 Contributing</a>
 </p>
@@ -35,24 +35,24 @@
 ---
 
 <p align="center">
-  OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles, arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
+  OneCite is a command-line tool and Python library for citation management. It accepts DOIs, paper titles, arXiv IDs, and mixed inputs, and outputs formatted bibliographic entries.
 </p>
 
 ---
 
-## ✨ Features
+## Features
 
 | Feature                 | Description                                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| 🔍 **Smart Recognition**    | Fuzzy matching against multiple academic databases to find references from incomplete or inaccurate info. |
-| 📚 **Universal Formats**    | Input `.txt`/`.bib` → Output **BibTeX**, **APA**, or **MLA** formats with ease.                     |
-| 🎯 **High-Accuracy Pipeline** | A 4-stage process (clean → query → validate → format) ensures the highest quality output.             |
-| 🤖 **Auto-Completion**      | Automatically enriches entries by filling in missing data like journal, volume, pages, and authors.   |
+| **Fuzzy Matching**          | Match references against multiple academic databases even from incomplete or inaccurate info.         |
+| **Multiple Formats**        | Input `.txt`/`.bib` → Output **BibTeX**, **APA**, or **MLA**.                                         |
+| **4-stage Pipeline**        | A 4-stage process (clean → query → validate → format) to produce consistent output.                  |
+| **Field Completion**        | Enrich entries by filling in missing fields like journal, volume, pages, and authors.                |
 | 🎓 **7+ Citation Types**    | Handles journal articles, conference papers, books, software, datasets, theses, and preprints.        |
-| 🧠 **Intelligent Routing**  | Auto-detects content type and domain (Medical/CS/General) for optimal data retrieval.                 |
-| 📄 **Universal Identifiers**| Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or even plain text queries.               |
+| **Domain-Aware Routing**    | Auto-detects content type and domain (Medical/CS/General) to pick the best data source.              |
+| **Many Identifier Types**   | Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text queries.                    |
 | 🎛️ **Interactive Mode**    | Manually select the correct entry when multiple potential matches are found.                          |
-| ⚙️ **Custom Templates**     | A YAML-based template system provides complete control over the final output format.                  |
+| **Custom Templates**        | YAML-based templates to control which fields are collected and how entries are typed.                 |
 
 
 ## 🌐 Data Sources
@@ -71,9 +71,9 @@
 </div>
 
 
-## 🚀 Quick Start
+## Quick Start
 
-Get up and running with OneCite in under a minute.
+Install and try OneCite in a few steps.
 
 ### 1. Installation
 ```bash
@@ -85,7 +85,7 @@ pip install onecite
 Create a file named `references.txt` with your mixed-format references:
 ```text
 # references.txt
-# ⚠️ Important: Add blank lines between entries to avoid misidentification
+# Add blank lines between entries to avoid misidentification
 
 10.1038/nature14539
 
@@ -108,11 +108,11 @@ Execute the command to process your file and generate a clean `.bib` output.
 onecite process references.txt -o results.bib --quiet
 ```
 
-### 4. Get Perfectly Formatted Output
-Your `results.bib` file now contains 7 perfectly formatted entries of different types.
+### 4. View Output
+Your `results.bib` file now contains entries of different types.
 
 <details>
-<summary><strong>📄 View Complete Output (results.bib)</strong></summary>
+<summary><strong>View Complete Output (results.bib)</strong></summary>
 
 ```bibtex
 @article{LeCun2015Deep,
@@ -147,18 +147,16 @@ Your `results.bib` file now contains 7 perfectly formatted entries of different 
 <summary><strong>🎨 Multiple Output Formats (APA, MLA)</strong></summary>
 
 ```bash
-# Generate APA formatted citations
 onecite process refs.txt --output-format apa
 # → LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
 
-# Generate MLA formatted citations
 onecite process refs.txt --output-format mla
 # → LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
 ```
 </details>
 
 <details>
-<summary><strong>🤖 Interactive Disambiguation</strong></summary>
+<summary><strong>Interactive Disambiguation</strong></summary>
 
 For ambiguous entries, use the `--interactive` flag to manually select the correct match and ensure accuracy.
 
@@ -181,14 +179,14 @@ Found multiple possible matches for "Deep learning Hinton":
    DOI: 10.4249/scholarpedia.5947
 
 Please select (1-2, 0=skip): 1
-✅ Selected: Deep learning
+Selected: Deep learning
 ```
 </details>
 
 <details>
 <summary><strong>🐍 Use as a Python Library</strong></summary>
 
-Integrate OneCite's processing power directly into your Python scripts.
+Use OneCite directly in your Python scripts.
 
 ```python
 from onecite import process_references
@@ -214,7 +212,7 @@ print(result['output_content'])
 
 Contributions are always welcome! Please see [**CONTRIBUTING.md**](CONTRIBUTING.md) for development guidelines and instructions on how to submit a pull request.
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License**. See the [**LICENSE**](LICENSE) file for details.
 
@@ -222,13 +220,13 @@ This project is licensed under the **MIT License**. See the [**LICENSE**](LICENS
 
 <div align="center">
 
-**OneCite: The all-in-one toolkit for every academic reference.**
+**OneCite**
 
 <p>
-  <a href="https://github.com/HzaCode/OneCite">⭐ Star on GitHub</a> •
-  <a href="http://hezhiang.com/onecite">🚀 Try the Web App</a> •
+  <a href="https://github.com/HzaCode/OneCite">Star on GitHub</a> •
+  <a href="http://hezhiang.com/onecite">Web App</a> •
   <a href="https://github.com/HzaCode/OneCite/issues">🐛 Report an Issue</a> •
-  <a href="https://github.com/HzaCode/OneCite/discussions">💬 Start a Discussion</a>
+  <a href="https://github.com/HzaCode/OneCite/discussions">Discussions</a>
 </p>
 
 </div>

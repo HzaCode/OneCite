@@ -62,12 +62,12 @@ latex_elements = {
 
 # Man page output configuration
 man_pages = [
-    ('cli', 'onecite', 'Universal citation and academic reference toolkit', ['OneCite Team'], 1)
+    ('cli', 'onecite', 'Citation and academic reference toolkit', ['OneCite Team'], 1)
 ]
 
 # Texinfo output configuration
 texinfo_documents = [
-    ('index', 'OneCite', 'Universal Citation & Academic Reference Toolkit',
+    ('index', 'OneCite', 'Citation & Academic Reference Toolkit',
      'OneCite Team', 'OneCite', 'Automate academic reference management', 'Miscellaneous'),
 ]
 

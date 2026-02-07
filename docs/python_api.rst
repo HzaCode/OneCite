@@ -32,7 +32,7 @@ The Result Dictionary
 The ``process_references`` function returns a dictionary containing:
 
 - ``results`` (List[str]): List of formatted citation strings
-- ``report`` (dict): Processing report with the following keys:
+- ``report`` (dict): Processing report with keys:
   
   - ``total`` (int): Total number of entries processed
   - ``succeeded`` (int): Number of successfully processed entries
@@ -148,16 +148,16 @@ For handling ambiguous references programmatically, use a callback function:
 
     from onecite import process_references
     
-    def auto_select_best(candidates):
-        """Always select the first (best match) candidate"""
-        return 0  # Return the index of the selected candidate (0-based)
+    def pick_first(candidates):
+        """Select the first candidate."""
+        return 0
     
     result = process_references(
         input_content="Deep learning Hinton",
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=auto_select_best
+        interactive_callback=pick_first
     )
     
     print('\n\n'.join(result['results']))
@@ -167,8 +167,8 @@ Custom Callback Logic
 
 ::
 
-    def smart_selector(candidates):
-        """Select candidate with most complete metadata"""
+    def pick_most_complete(candidates):
+        """Pick the candidate with the most filled-in fields."""
         best_idx = 0
         best_score = 0
         
@@ -186,7 +186,7 @@ Custom Callback Logic
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=smart_selector
+        interactive_callback=pick_most_complete
     )
     
     print('\n\n'.join(result['results']))
@@ -240,7 +240,7 @@ A TypedDict representing a fully processed entry with all metadata (Stage 3):
     # CompletedEntry includes fields like:
     # id, doi, status, bib_key, bib_data
 
-**Note:** These are TypedDict classes without methods. They are primarily used internally by the pipeline. Most users should interact with OneCite through the ``process_references()`` function.
+These are TypedDict classes used internally by the pipeline. For typical usage, call ``process_references()`` directly.
 
 Working with Templates
 ----------------------
@@ -284,7 +284,7 @@ For advanced use cases requiring more control over the processing pipeline:
     
     print('\n\n'.join(result['results']))
 
-**Note:** Most users should use ``process_references()`` instead, which is simpler and provides the same functionality.
+For typical usage, ``process_references()`` is simpler and covers the same functionality.
 
 Error Handling
 --------------

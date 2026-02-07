@@ -31,11 +31,15 @@ The ``-e`` flag installs the package in editable mode, which is useful for devel
 Optional Dependencies
 ---------------------
 
-For development and testing, install development dependencies::
+For Google Scholar support (disabled by default)::
+
+    pip install onecite[scholar]
+
+For development and testing::
 
     pip install onecite[dev]
 
-This will install the following additional packages:
+Dev extras:
 
 - pytest - Testing framework
 - pytest-cov - Coverage reporting

@@ -3,7 +3,6 @@
 
 """
 OneCite Core Engine - 4-Stage Processing Pipeline
-Core processing engine implemented strictly according to requirements
 """
 
 import re
@@ -17,12 +16,14 @@ import requests
 from bs4 import BeautifulSoup
 import bibtexparser
 from thefuzz import fuzz
-from scholarly import scholarly
+try:
+    from scholarly import scholarly
+except ImportError:
+    scholarly = None
 
 from .exceptions import ValidationError, ParseError, ResolverError
 
 
-# Data structure definitions (according to requirement document section 5)
 class RawEntry(TypedDict, total=False):
     """Stage 1: Raw Entry"""
     id: int
@@ -54,22 +55,20 @@ class CompletedEntry(TypedDict, total=False):
 
 
 class TemplateLoader:
-    """Template Loader - Responsible for reading and parsing YAML template files"""
+    """Loads YAML template files."""
     
     def __init__(self, templates_dir: Optional[str] = None):
         self.logger = logging.getLogger(__name__)
         if templates_dir is None:
-            # Default template directory
             self.templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
         else:
             self.templates_dir = templates_dir
     
     def load_template(self, template_name: str) -> Dict[str, Any]:
-        """Load specified YAML template"""
+        """Load a YAML template by name, falling back to defaults."""
         template_path = os.path.join(self.templates_dir, f"{template_name}.yaml")
         
         if not os.path.exists(template_path):
-            # If template doesn't exist, create default template
             return self._get_default_template()
         
         try:
@@ -101,7 +100,7 @@ class TemplateLoader:
 
 
 class PipelineController:
-    """Main Pipeline Controller - Manages the flow of four stages"""
+    """Runs the 4-stage pipeline: Parse -> Identify -> Enrich -> Format."""
     
     def __init__(self, use_google_scholar: bool = False):
         self.logger = logging.getLogger(__name__)
@@ -115,35 +114,14 @@ class PipelineController:
     
     def process(self, input_content: str, input_type: str, template_name: str,
                 output_format: str, interactive_callback: Callable[[List[Dict]], int]) -> Dict[str, Any]:
-        """
-        Execute complete 4-stage processing pipeline
-        
-        Args:
-            input_content: Input content
-            input_type: Input type
-            template_name: Template name
-            output_format: Output format
-            interactive_callback: Interactive callback function
-        
-        Returns:
-            Processing results and report
-        """
+        """Run all four stages and return results with a report."""
         self.logger.info("Starting OneCite processing pipeline")
         
         try:
-            # Load template
             template = self.template_loader.load_template(template_name)
-            
-            # Stage 1: Parse
             raw_entries = self.parser.parse(input_content, input_type)
-            
-            # Stage 2: Identify
             identified_entries = self.identifier.identify(raw_entries, interactive_callback)
-            
-            # Stage 3: Enrich (pass raw_entries to preserve original fields)
             completed_entries = self.enricher.enrich(identified_entries, template, raw_entries)
-            
-            # Stage 4: Format
             result = self.formatter.format(completed_entries, output_format)
             
             self.logger.info("OneCite processing pipeline completed")
@@ -154,7 +132,6 @@ class PipelineController:
             raise
 
 
-# Main API interface (according to requirement document section 6)
 def process_references(
     input_content: str,
     input_type: str,
@@ -162,31 +139,6 @@ def process_references(
     output_format: str,
     interactive_callback: Callable[[List[Dict]], int]
 ) -> Dict[str, Any]:
-    """
-    OneCite core processing function
-    
-    Args:
-        input_content: Complete string containing references
-        input_type: Input type ('txt' or 'bib')
-        template_name: Template name to use
-        output_format: Final output format ('bibtex', 'apa', etc.)
-        interactive_callback: A callback function to handle ambiguous matching selection
-                              It receives a candidate list and should return user's choice index
-    
-    Returns:
-        A dictionary containing processing results and report
-        {
-            "results": List[str], # List of formatted citation strings
-            "report": {
-                "total": int,
-                "succeeded": int,
-                "failed_entries": List[Dict]
-            }
-        }
-    """
-    # Set up logging
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    
-    # Create pipeline controller and execute processing with intelligent search strategy
-    pipeline = PipelineController(use_google_scholar=False)  # Will auto-fallback when needed
+    """Process references and return formatted citations with a report."""
+    pipeline = PipelineController(use_google_scholar=False)
     return pipeline.process(input_content, input_type, template_name, output_format, interactive_callback)

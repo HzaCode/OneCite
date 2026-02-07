@@ -1,5 +1,5 @@
-OneCite - Universal Citation & Academic Reference Toolkit
-===========================================================
+OneCite - Citation & Academic Reference Toolkit
+=================================================
 
 .. image:: https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi&style=flat-square
    :target: https://pypi.org/project/onecite/
@@ -13,7 +13,7 @@ OneCite - Universal Citation & Academic Reference Toolkit
    :target: https://github.com/HzaCode/OneCite/blob/main/LICENSE
    :alt: License
 
-**OneCite** is a powerful command-line tool and Python library designed to automate the tedious process of citation management. Feed it anything—DOIs, paper titles, arXiv IDs, or even a mix—and get clean, accurate bibliographic entries in return.
+**OneCite** is a command-line tool and Python library for citation management. It accepts DOIs, paper titles, arXiv IDs, and mixed inputs, and outputs formatted bibliographic entries.
 
 .. toctree::
    :maxdepth: 2
@@ -51,12 +51,12 @@ OneCite - Universal Citation & Academic Reference Toolkit
 Key Features
 ============
 
-- 🔍 **Smart Recognition** - Fuzzy matching against multiple academic databases
-- 📚 **Universal Formats** - Support for BibTeX, APA, and MLA output formats
-- 🎯 **High-Accuracy Pipeline** - 4-stage process ensures highest quality output
-- 🤖 **Auto-Completion** - Automatically enriches entries with missing metadata
+- **Fuzzy Matching** - Match references against multiple academic databases
+- **Multiple Formats** - BibTeX, APA, and MLA output
+- **4-stage Pipeline** - 4-stage process for consistent output
+- **Field Completion** - Enrich entries with missing metadata
 - 🎓 **7+ Citation Types** - Handles journal articles, conference papers, books, software, datasets, theses, and preprints
-- 📄 **Universal Identifiers** - Accepts DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, or plain text queries
+- **Many Identifier Types** - DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, or plain text queries
 
 Data Sources
 ============

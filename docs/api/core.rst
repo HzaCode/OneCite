@@ -142,7 +142,7 @@ A TypedDict representing a fully processed entry with all metadata (Stage 3).
 - ``bib_key`` (str): BibTeX citation key (e.g., "LeCun2015Deep")
 - ``bib_data`` (dict): Complete bibliographic data with all fields
 
-**Note:** CompletedEntry is a TypedDict without methods. Use the ``FormatterModule`` from ``pipeline.py`` to convert entries to different output formats.
+CompletedEntry is a TypedDict. Use ``FormatterModule`` from ``pipeline.py`` to convert entries to different output formats.
 
 Classes
 -------
@@ -200,7 +200,7 @@ Manages the 4-stage processing pipeline (Parse → Identify → Enrich → Forma
 
 - ``process(input_content: str, input_type: str, template_name: str, output_format: str, interactive_callback: Callable) -> Dict[str, Any]``: Execute the complete 4-stage processing pipeline
 
-**Note:** Most users should use the ``process_references()`` function instead, which provides a simpler interface. PipelineController is a lower-level API for advanced use cases.
+For typical usage, ``process_references()`` is simpler. PipelineController exposes a lower-level API for advanced use cases.
 
 **Example:**
 
