@@ -1,9 +1,16 @@
 """
-Mock responses for external API calls in tests.
-This module provides mock data to simulate API responses from Crossref, arXiv, etc.
+Hand-crafted mock responses for the external APIs we hit at runtime.
+
+Why only Crossref + arXiv?
+  These two cover the two most common lookup paths (DOI-based and
+  arXiv-based).  Semantic Scholar / PubMed / Google Books paths are
+  exercised through unit-level mocks in ``test_pipeline_unit.py``
+  instead, because their real API shapes change too often to maintain
+  a single canned response here.
 """
 
-# Mock Crossref API response for DOI 10.1038/nature14539
+# -- Crossref -----------------------------------------------------------------
+# Corresponds to DOI 10.1038/nature14539 (Mnih et al., 2015 – DQN paper).
 MOCK_CROSSREF_RESPONSE = {
     "status": "ok",
     "message-type": "work",
@@ -14,7 +21,7 @@ MOCK_CROSSREF_RESPONSE = {
         "author": [
             {"given": "Volodymyr", "family": "Mnih", "sequence": "first"},
             {"given": "Koray", "family": "Kavukcuoglu", "sequence": "additional"},
-            {"given": "David", "family": "Silver", "sequence": "additional"}
+            {"given": "David", "family": "Silver", "sequence": "additional"},
         ],
         "container-title": ["Nature"],
         "published-print": {"date-parts": [[2015, 2, 26]]},
@@ -22,12 +29,14 @@ MOCK_CROSSREF_RESPONSE = {
         "issue": "7540",
         "page": "529-533",
         "publisher": "Springer Nature",
-        "ISSN": ["0028-0836", "1476-4687"]
-    }
+        "ISSN": ["0028-0836", "1476-4687"],
+    },
 }
 
-# Mock arXiv API response for 1706.03762
-MOCK_ARXIV_RESPONSE = """<?xml version="1.0" encoding="UTF-8"?>
+# -- arXiv --------------------------------------------------------------------
+# 1706.03762 = "Attention Is All You Need"
+MOCK_ARXIV_RESPONSE = """\
+<?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom">
   <entry>
     <id>http://arxiv.org/abs/1706.03762v5</id>
@@ -35,24 +44,59 @@ MOCK_ARXIV_RESPONSE = """<?xml version="1.0" encoding="UTF-8"?>
     <published>2017-06-12T00:00:00Z</published>
     <title>Attention Is All You Need</title>
     <summary>The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.</summary>
-    <author>
-      <name>Ashish Vaswani</name>
-    </author>
-    <author>
-      <name>Noam Shazeer</name>
-    </author>
-    <author>
-      <name>Niki Parmar</name>
-    </author>
+    <author><name>Ashish Vaswani</name></author>
+    <author><name>Noam Shazeer</name></author>
+    <author><name>Niki Parmar</name></author>
     <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.5555/3295222.3295349</arxiv:doi>
     <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">15 pages, 5 figures</arxiv:comment>
-    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom" term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom"
+        term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
   </entry>
 </feed>
 """
 
-# Mock BibTeX output for DOI
-MOCK_BIBTEX_DOI = """@article{Mnih2015,
+# -- Crossref title search (used by _resolve_doi_via_crossref_title) ----------
+MOCK_CROSSREF_SEARCH_RESPONSE = {
+    "status": "ok",
+    "message-type": "work-list",
+    "message": {
+        "items": [
+            {
+                "DOI": "10.5555/3295222.3295349",
+                "title": ["Attention Is All You Need"],
+                "author": [{"given": "Ashish", "family": "Vaswani"}],
+                "container-title": ["Advances in Neural Information Processing Systems"],
+                "type": "proceedings-article",
+                "issued": {"date-parts": [[2017]]},
+                "is-referenced-by-count": 90000,
+            }
+        ],
+    },
+}
+
+# -- Semantic Scholar (partial, for the arXiv paper) --------------------------
+MOCK_S2_RESPONSE = {
+    "data": [
+        {
+            "title": "Attention Is All You Need",
+            "authors": [{"name": "Ashish Vaswani"}, {"name": "Noam Shazeer"}],
+            "year": 2017,
+            "venue": "NeurIPS",
+            "journal": {"name": "Advances in Neural Information Processing Systems"},
+            "citationCount": 90000,
+            "publicationDate": "2017-06-12",
+            "externalIds": {"DOI": "10.5555/3295222.3295349", "ArXiv": "1706.03762"},
+            "paperId": "204e3073870fae3d05bcbc2f6a8e263d9b72e776",
+            "url": "https://www.semanticscholar.org/paper/204e3073870fae3d05bcbc2f6a8e263d9b72e776",
+        }
+    ]
+}
+
+
+# -- Pre-rendered BibTeX strings (for tests that check final output) ----------
+
+MOCK_BIBTEX_DOI = """\
+@article{Mnih2015,
   author = {Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David},
   title = {Human-level control through deep reinforcement learning},
   journal = {Nature},
@@ -64,8 +108,8 @@ MOCK_BIBTEX_DOI = """@article{Mnih2015,
   publisher = {Springer Nature}
 }"""
 
-# Mock BibTeX output for arXiv
-MOCK_BIBTEX_ARXIV = """@article{Vaswani2017,
+MOCK_BIBTEX_ARXIV = """\
+@article{Vaswani2017,
   author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki},
   title = {Attention Is All You Need},
   journal = {arXiv preprint arXiv:1706.03762},
@@ -73,8 +117,8 @@ MOCK_BIBTEX_ARXIV = """@article{Vaswani2017,
   url = {https://arxiv.org/abs/1706.03762}
 }"""
 
-# Mock response for conference paper
-MOCK_BIBTEX_CONFERENCE = """@inproceedings{Vaswani2017,
+MOCK_BIBTEX_CONFERENCE = """\
+@inproceedings{Vaswani2017,
   author = {Vaswani, Ashish and Shazeer, Noam and Parmar, Niki},
   title = {Attention Is All You Need},
   booktitle = {Advances in Neural Information Processing Systems},
@@ -83,53 +127,73 @@ MOCK_BIBTEX_CONFERENCE = """@inproceedings{Vaswani2017,
 }"""
 
 
+# ---------------------------------------------------------------------------
+# Router
+# ---------------------------------------------------------------------------
+
+class MockResponse:
+    """Minimal stand-in for ``requests.Response``."""
+
+    def __init__(self, json_data=None, text="", status_code=200):
+        self.json_data = json_data
+        self.text = text
+        self.content = text.encode("utf-8") if text else b""
+        self.status_code = status_code
+        self.ok = status_code == 200
+
+    def json(self):
+        if self.json_data is None:
+            raise ValueError("No JSON data")
+        return self.json_data
+
+    def raise_for_status(self):
+        if self.status_code >= 400:
+            from requests.exceptions import HTTPError
+
+            raise HTTPError(f"HTTP {self.status_code}", response=self)
+
+
 def mock_requests_get(url, *args, **kwargs):
-    """Mock requests.get function"""
-    class MockResponse:
-        def __init__(self, json_data=None, text="", status_code=200):
-            self.json_data = json_data
-            self.text = text
-            self.content = text.encode('utf-8') if text else b""
-            self.status_code = status_code
-            self.ok = status_code == 200
-        
-        def json(self):
-            if self.json_data is None:
-                raise ValueError("No JSON data")
-            return self.json_data
-        
-        def raise_for_status(self):
-            if self.status_code >= 400:
-                raise Exception(f"HTTP {self.status_code}")
-    
-    # Mock Crossref API
+    """Drop-in replacement for ``requests.get`` used by the fixtures.
+
+    Only the URLs that our integration / template / output-format tests
+    actually trigger are routed here.  Everything else falls through to a
+    404 so that new code-paths fail loudly instead of silently passing.
+    """
+    # Crossref: single-work lookup by DOI
     if "api.crossref.org" in url and "10.1038/nature14539" in url:
         return MockResponse(json_data=MOCK_CROSSREF_RESPONSE)
-    
-    # Mock arXiv API
+
+    # Crossref: title search (fuzzy-search path)
+    if "api.crossref.org" in url and "query" in str(kwargs.get("params", "")):
+        return MockResponse(json_data=MOCK_CROSSREF_SEARCH_RESPONSE)
+
+    # arXiv
     if "export.arxiv.org" in url and "1706.03762" in url:
         return MockResponse(text=MOCK_ARXIV_RESPONSE)
-    
-    # Default: return empty response
+
+    # Semantic Scholar
+    if "api.semanticscholar.org" in url:
+        return MockResponse(json_data=MOCK_S2_RESPONSE)
+
+    # Anything we haven't explicitly mocked → 404
     return MockResponse(json_data={}, status_code=404)
 
 
 def get_mock_bibtex_output(input_text):
-    """Get mock BibTeX output based on input"""
-    input_lower = input_text.lower()
-    
-    if "10.1038/nature14539" in input_lower:
+    """Quick lookup for expected BibTeX output in snapshot-style tests."""
+    low = input_text.lower()
+    if "10.1038/nature14539" in low:
         return MOCK_BIBTEX_DOI
-    elif "1706.03762" in input_lower or "arxiv" in input_lower:
+    if "1706.03762" in low or "arxiv" in low:
         return MOCK_BIBTEX_ARXIV
-    elif "attention" in input_lower and "need" in input_lower:
+    if "attention" in low and "need" in low:
         return MOCK_BIBTEX_CONFERENCE
-    
-    # Default: return a generic BibTeX entry
-    return """@article{Unknown,
-  author = {Unknown Author},
-  title = {Unknown Title},
-  journal = {Unknown Journal},
-  year = {2020}
-}"""
-
+    return (
+        "@article{Unknown,\n"
+        "  author = {Unknown Author},\n"
+        "  title = {Unknown Title},\n"
+        "  journal = {Unknown Journal},\n"
+        "  year = {2020}\n"
+        "}"
+    )

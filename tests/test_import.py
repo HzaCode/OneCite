@@ -1,24 +1,18 @@
-﻿#!/usr/bin/env python3
-# Test import script
+"""Smoke-test that the public surface is importable.
 
-print(" Testing imports...")
+Kept deliberately minimal – the heavy API tests live in
+``test_python_api.py`` and ``test_onecite_basic.py``.
+"""
+import pytest
 
-try:
-    import streamlit as st
-    print(" streamlit imported successfully")
-except ImportError as e:
-    print(f" streamlit import failed: {e}")
 
-try:
-    import sys
-    import os
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+def test_process_references_importable():
+    """Guard against accidental circular-import breakage."""
     from onecite import process_references
-    print(" onecite imported successfully")
-except ImportError as e:
-    print(f" onecite import failed: {e}")
+    assert callable(process_references)
 
-print("\n If you see import failures, run:")
-print("pip install streamlit")
-print("pip install requests beautifulsoup4 lxml bibtexparser PyYAML thefuzz python-Levenshtein scholarly")
 
+def test_streamlit_optional():
+    """streamlit is an optional visualisation dep; we don't want CI to
+    fail when it's not installed."""
+    pytest.importorskip("streamlit")

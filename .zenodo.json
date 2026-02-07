@@ -1,6 +1,6 @@
 {
-  "title": "OneCite: Universal Citation Management and Academic Reference Toolkit",
-  "description": "OneCite is a powerful command-line tool and Python library designed to automate the tedious process of citation management. It supports multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and generates clean, accurate bibliographic entries in BibTeX, APA, or MLA format.",
+  "title": "OneCite: Citation Management and Academic Reference Toolkit",
+  "description": "OneCite is a command-line tool and Python library that automates citation management. It supports multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and generates clean, accurate bibliographic entries in BibTeX, APA, or MLA format.",
   "creators": [
     {
       "name": "He, Zhiang",

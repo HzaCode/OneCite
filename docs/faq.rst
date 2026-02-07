@@ -7,7 +7,7 @@ General Questions
 What is OneCite?
 ~~~~~~~~~~~~~~~~
 
-OneCite is a universal citation and academic reference toolkit that helps you manage bibliographic data. It automates the process of converting various reference formats (DOI, titles, arXiv IDs, etc.) into clean, properly formatted citations in BibTeX, APA, or MLA formats.
+OneCite is a citation and academic reference toolkit that helps you manage bibliographic data. It converts reference formats (DOI, titles, arXiv IDs, etc.) into properly formatted citations in BibTeX, APA, or MLA.
 
 How much does OneCite cost?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,7 +141,7 @@ Which data source is best for my field?
 - OneCite will prioritize CS-related sources
 
 **For General Academic Work:**
-- Use DOI (most comprehensive)
+- Use DOI (most reliable)
 - Fall back to title + author for identification
 
 Do I need API keys?

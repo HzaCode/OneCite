@@ -1,6 +1,6 @@
 # OneCite Documentation
 
-Welcome to the OneCite documentation source. This directory contains the reStructuredText (RST) source files for the complete OneCite documentation built with Sphinx.
+This directory contains the RST source files for OneCite's documentation, built with Sphinx.
 
 ## Building the Documentation
 
@@ -69,7 +69,6 @@ docs/
 ├── basic_usage.rst              # Basic usage guide
 ├── advanced_usage.rst           # Advanced usage guide
 ├── python_api.rst               # Python API guide
-├── mcp_integration.rst          # MCP integration guide
 ├── templates.rst                # Custom templates guide
 ├── output_formats.rst           # Output formats guide
 ├── faq.rst                      # Frequently asked questions
@@ -93,7 +92,6 @@ docs/
 ### User Guides
 - **advanced_usage.rst** - Advanced features and techniques
 - **python_api.rst** - Using OneCite as a Python library
-- **mcp_integration.rst** - AI assistant integration
 - **templates.rst** - Creating custom citation templates
 - **output_formats.rst** - Understanding output formats
 
@@ -183,8 +181,8 @@ Documentation builds automatically on:
 
 The documentation is hosted at:
 
-- **Development:** docs.example.com (built from main branch)
-- **Latest:** docs.example.com/stable (built from latest release)
+- **Development:** https://hzacode.github.io/OneCite/ (built from main branch)
+- **Latest:** https://hzacode.github.io/OneCite/ (built from latest release)
 
 ## Contributing to Documentation
 
@@ -275,4 +273,3 @@ The OneCite documentation is licensed under the MIT License. See LICENSE for det
 
 ---
 
-Happy documenting! 📚

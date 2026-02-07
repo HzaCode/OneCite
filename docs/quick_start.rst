@@ -1,7 +1,7 @@
 Quick Start Guide
 =================
 
-In this guide, we'll help you get started with OneCite in just a few minutes.
+This guide walks through a basic OneCite workflow.
 
 1. Installation
 ---------------
@@ -15,7 +15,7 @@ First, install OneCite using pip::
 
 Create a file named ``references.txt`` with your mixed-format references.
 
-**Important:** Add blank lines between entries to avoid misidentification.
+Add blank lines between entries to avoid misidentification.
 
 Example ``references.txt``::
 
@@ -45,7 +45,7 @@ The ``--quiet`` flag suppresses verbose output. Remove it if you want to see pro
 4. View Your Results
 --------------------
 
-Your ``results.bib`` file now contains 7 perfectly formatted entries in BibTeX format::
+Your ``results.bib`` file now contains entries in BibTeX format::
 
     @article{LeCun2015Deep,
       doi = "10.1038/nature14539",
@@ -75,10 +75,8 @@ Common Command-Line Options
 
 **Output Formats**::
 
-    # Generate APA formatted citations
     onecite process refs.txt --output-format apa
     
-    # Generate MLA formatted citations
     onecite process refs.txt --output-format mla
 
 **Interactive Mode**::

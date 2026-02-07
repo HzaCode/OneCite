@@ -2,9 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
-OneCite: Universal Citation Management and Academic Reference Toolkit
+OneCite: Citation Management and Academic Reference Toolkit
 
-A comprehensive Python package for managing bibliographic data and generating
+A Python package for managing bibliographic data and generating
 citations in multiple formats.
 """
 
@@ -57,5 +57,5 @@ __all__ = [
 
 # Package metadata
 __title__ = "onecite"
-__description__ = "Universal citation management and academic reference toolkit"
+__description__ = "Citation management and academic reference toolkit"
 __url__ = "https://github.com/HzaCode/OneCite"

@@ -30,7 +30,7 @@ Built-in templates are located in the ``onecite/templates/`` directory:
 What Templates Actually Do
 ---------------------------
 
-**Important:** OneCite templates define **metadata field requirements**, not output formatting.
+OneCite templates define **metadata field requirements**, not output formatting.
 
 Output formats (BibTeX, APA, MLA) are implemented in the Python code, not in the YAML templates.
 
@@ -274,7 +274,7 @@ You can load and inspect templates programmatically::
 Output Format Control
 ---------------------
 
-**Important Note:** Output formats (BibTeX, APA, MLA) are controlled by the ``--output-format`` option, not by templates.
+Output formats (BibTeX, APA, MLA) are controlled by the ``--output-format`` option, not by templates.
 
 To change output format::
 
@@ -292,7 +292,7 @@ The template only affects which fields are collected and from where, not how the
 Best Practices
 --------------
 
-1. **Start Simple** - Begin with a basic template and add fields as needed
+1. **Start Simple** - Begin with a basic template and add fields when necessary
 2. **Test with Real Data** - Verify your template works with actual references
 3. **Prioritize Reliable Sources** - List most reliable data sources first in source_priority
 4. **Mark Critical Fields as Required** - Only mark essential fields as required

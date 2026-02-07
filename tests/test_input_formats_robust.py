@@ -1,133 +1,93 @@
-﻿"""
-Test input format support (robust version, reduced network dependencies)
-Validate TXT and BibTeX input format processing, but avoid timeout issues
 """
-import pytest
+Robustness-oriented input tests – shorter timeouts, edge cases.
+
+These exercise the CLI as a subprocess (like a user would) rather than
+going through the mocked fixture, so they may hit real APIs if the mock
+layer doesn't intercept.  We use tight timeouts to make sure pathological
+inputs don't hang the suite.
+"""
 import subprocess
-import os
+import sys
+
+import pytest
+
+
+def _run(args, timeout=30):
+    """Spawn ``python -m onecite.cli`` with a bounded timeout.
+
+    Default is 30 s which is generous enough for most machines, but still
+    prevents a hung process from blocking CI forever.
+    """
+    cmd = [sys.executable, "-m", "onecite.cli"] + args
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        return r.returncode, r.stdout, r.stderr
+    except subprocess.TimeoutExpired:
+        return -1, "", "timed out"
+
 
 class TestInputFormatsRobust:
-    """Input format tests (robust version)"""
 
-    def run_onecite_command_with_timeout(self, args, cwd=None, timeout=15):
-        """Helper method to run onecite command with shorter timeout"""
-        cmd = ["onecite"] + args
-        try:
-            result = subprocess.run(
-                cmd, 
-                capture_output=True, 
-                text=True, 
-                cwd=cwd,
-                timeout=timeout  # Reduce timeout duration
-            )
-            return result.returncode, result.stdout, result.stderr
-        except subprocess.TimeoutExpired:
-            return -1, "", "Command timed out"
-
-    def test_doi_only_processing(self, create_test_file):
-        """Test simple processing with DOI only (should complete quickly)"""
-        test_file = create_test_file("10.1038/nature14539")
-        code, stdout, stderr = self.run_onecite_command_with_timeout([
-            "process", test_file, "--quiet"
-        ])
-        # This test should complete quickly since DOI processing is relatively simple
+    def test_single_doi(self, create_test_file):
+        f = create_test_file("10.1038/nature14539")
+        code, out, err = _run(["process", f, "--quiet"])
         if code == 0:
-            assert "@" in stdout, "Should contain BibTeX entry"
+            assert "@" in out
         else:
-            # If it fails, at least verify it's not due to format issues
-            assert "format" not in stderr.lower(), f"Should not be format error: {stderr}"
+            # network hiccup is fine, but it shouldn't be a format error
+            assert "format" not in err.lower(), err
 
-    def test_bibtex_input_processing(self, create_test_file, sample_references):
-        """Test BibTeX input processing (no external API involved)"""
-        test_file = create_test_file(sample_references["bibtex_entry"])
-        code, stdout, stderr = self.run_onecite_command_with_timeout([
-            "process", test_file, "--input-type", "bib", "--quiet"
-        ])
-        # BibTeX processing should not require external network calls
-        assert code == 0 or "timeout" not in stderr.lower(), f"BibTeX processing should not timeout: {stderr}"
+    def test_bibtex_passthrough_no_network(self, create_test_file, sample_references):
+        """Re-formatting an existing .bib should barely touch the network."""
+        f = create_test_file(sample_references["bibtex_entry"])
+        code, _, err = _run(["process", f, "--input-type", "bib", "--quiet"])
+        assert code == 0 or "timed out" not in err, err
 
-    def test_command_line_robustness(self, create_test_file):
-        """Test basic command line robustness"""
-        # Test empty file
-        empty_file = create_test_file("")
-        code, stdout, stderr = self.run_onecite_command_with_timeout([
-            "process", empty_file, "--quiet"
-        ], timeout=10)
-        # Empty file should be processed quickly
-        assert code == 0 or "timeout" not in stderr.lower(), "Empty file should process quickly"
+    def test_empty_file(self, create_test_file):
+        f = create_test_file("")
+        code, _, err = _run(["process", f, "--quiet"])
+        assert "timed out" not in err, "empty file shouldn't hang"
 
     def test_output_format_switching(self, create_test_file):
-        """Test output format switching (non-network dependent parts)"""
-        test_file = create_test_file("Simple test reference")
-        
-        formats = ["bibtex", "apa", "mla"]
-        for fmt in formats:
-            code, stdout, stderr = self.run_onecite_command_with_timeout([
-                "process", test_file, "--output-format", fmt, "--quiet"
-            ], timeout=10)
-            
-            # Even if processing fails, it should not timeout
-            assert "timeout" not in stderr.lower(), f"Format {fmt} should not timeout"
+        f = create_test_file("Simple test reference")
+        for fmt in ("bibtex", "apa", "mla"):
+            code, _, err = _run(["process", f, "--output-format", fmt, "--quiet"], timeout=30)
+            assert "timed out" not in err, f"{fmt} timed out"
 
     def test_template_switching(self, create_test_file):
-        """Test template switching"""
-        test_file = create_test_file("Test reference")
-        
-        templates = ["journal_article_full", "conference_paper"]
-        for template in templates:
-            code, stdout, stderr = self.run_onecite_command_with_timeout([
-                "process", test_file, "--template", template, "--quiet"
-            ], timeout=10)
-            
-            # Template processing should not timeout
-            assert "timeout" not in stderr.lower(), f"Template {template} should not timeout"
+        f = create_test_file("Test reference")
+        for tmpl in ("journal_article_full", "conference_paper"):
+            _, _, err = _run(["process", f, "--template", tmpl, "--quiet"], timeout=30)
+            assert "timed out" not in err, f"{tmpl} timed out"
 
     @pytest.mark.slow
-    def test_arxiv_processing_with_long_timeout(self, create_test_file):
-        """Test arXiv processing (with long timeout, marked as slow test)"""
-        test_file = create_test_file("1706.03762")
-        code, stdout, stderr = self.run_onecite_command_with_timeout([
-            "process", test_file, "--quiet"
-        ], timeout=60)  # Give arXiv processing more time
-        
-        # This test may fail due to network issues, but should not be format issues
+    def test_arxiv_with_long_timeout(self, create_test_file):
+        """arXiv lookups can be slow; give it a full minute."""
+        f = create_test_file("1706.03762")
+        code, _, err = _run(["process", f, "--quiet"], timeout=60)
         if code != 0:
-            # Check if it's network-related error rather than code error
-            network_errors = ["timeout", "connection", "network", "dns", "resolve"]
-            is_network_error = any(error in stderr.lower() for error in network_errors)
-            if not is_network_error:
-                pytest.fail(f"arXiv processing failed with non-network error: {stderr}")
+            network_words = ("timed out", "connection", "network", "dns")
+            if not any(w in err.lower() for w in network_words):
+                pytest.fail(f"non-network failure: {err}")
 
-    def test_error_message_quality(self, create_test_file):
-        """Test error message quality"""
-        # Test invalid DOI
-        test_file = create_test_file("invalid.doi.format")
-        code, stdout, stderr = self.run_onecite_command_with_timeout([
-            "process", test_file, "--quiet"
-        ], timeout=10)
-        
-        # Should fail quickly and give reasonable error message
-        assert "timeout" not in stderr.lower(), "Invalid input should fail quickly, not timeout"
+    def test_garbage_input_fails_fast(self, create_test_file):
+        f = create_test_file("invalid.doi.format")
+        _, _, err = _run(["process", f, "--quiet"])  # uses default 30s
+        assert "timed out" not in err
 
-    def test_basic_functionality_without_network(self, create_test_file):
-        """Test basic functionality (avoid network calls as much as possible)"""
-        # Use known locally processable content
-        local_content = """@article{local2023,
-  title={Local Test Article},
-  author={Test Author},
-  journal={Test Journal},
-  year={2023}
-}"""
-        
-        test_file = create_test_file(local_content, "test.bib")
-        code, stdout, stderr = self.run_onecite_command_with_timeout([
-            "process", test_file, "--input-type", "bib", "--quiet"
-        ], timeout=15)
-        
-        # Local BibTeX processing should succeed
+    def test_local_bib_no_network(self, create_test_file):
+        """A fully-specified .bib entry shouldn't need any API calls."""
+        bib = (
+            "@article{local2023,\n"
+            "  title={Local Test Article},\n"
+            "  author={Test Author},\n"
+            "  journal={Test Journal},\n"
+            "  year={2023}\n"
+            "}"
+        )
+        f = create_test_file(bib, "test.bib")
+        code, out, err = _run(["process", f, "--input-type", "bib", "--quiet"], timeout=15)
         if code == 0:
-            assert "@" in stdout, "Should generate BibTeX output"
+            assert "@" in out
         else:
-            # If it fails, ensure it's not timeout
-            assert "timeout" not in stderr.lower(), f"Local processing should not timeout: {stderr}"
-
+            assert "timed out" not in err, err

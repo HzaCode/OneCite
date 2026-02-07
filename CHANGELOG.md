@@ -7,41 +7,39 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ## [Unreleased]
 
 ### Added
-- Comprehensive RST documentation using Sphinx
+- RST documentation using Sphinx
 - Full API reference documentation
 - FAQ section with common questions
 - Contributing guidelines
-- MCP (Model Context Protocol) integration documentation
 - Pre-commit hooks configuration
 
 ### Changed
-- Improved error handling and exception hierarchy
-- Enhanced Python API with better type hints
-- Updated README with more examples
+- Refactored exception hierarchy
+- Added type hints to Python API
+- Updated README examples
 
 ### Fixed
-- Various bug fixes in data source integration
+- CrossRef and Semantic Scholar response parsing edge cases
 
 ## [0.0.11] - 2024-10-19
 
 ### Added
-- MCP server support for AI assistant integration
 - Custom YAML-based template system
 - Support for multiple output formats (BibTeX, APA, MLA)
 - Interactive mode for ambiguous reference selection
 - Support for DOI, arXiv, PMID, ISBN, and GitHub identifiers
 - Integration with 9 major academic data sources
-- Comprehensive test suite
+- Test suite
 
 ### Changed
 - Refactored core processing pipeline
-- Improved data source prioritization
-- Enhanced error messages
+- Reordered data source priority (CrossRef first for DOI queries)
+- Clearer error messages on failed lookups
 
 ### Fixed
-- Fixed encoding issues with special characters
-- Improved robustness of DOI parsing
-- Fixed compatibility with older Python versions
+- Encoding issues with non-ASCII characters in author names
+- DOI parsing for URLs with trailing query strings
+- Python 3.10 compatibility issues
 
 ## [0.0.10] - 2024-10-01
 
@@ -51,10 +49,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Support for journal articles and conference papers
 
 ### Changed
-- Improved search accuracy
+- Better title matching for fuzzy searches
 
 ### Fixed
-- Fixed several data source API issues
+- PubMed API response handling
+- Semantic Scholar rate limit handling
 
 ## [0.0.9] and Earlier
 

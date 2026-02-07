@@ -16,12 +16,7 @@ from . import __version__
 
 
 def main() -> int:
-    """
-    Main entry point for the OneCite CLI.
-    
-    Returns:
-        int: Exit code (0 for success, 1 for error)
-    """
+    """CLI entry point."""
     parser = create_parser()
     args = parser.parse_args()
     
@@ -44,15 +39,10 @@ def main() -> int:
 
 
 def create_parser() -> argparse.ArgumentParser:
-    """
-    Create and configure the argument parser.
-    
-    Returns:
-        argparse.ArgumentParser: Configured parser
-    """
+    """Create the argument parser."""
     parser = argparse.ArgumentParser(
         prog='onecite',
-        description='Universal citation management and academic reference toolkit',
+        description='Citation management and academic reference toolkit',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -117,17 +107,8 @@ Examples:
 
 
 def process_command(args) -> int:
-    """
-    Handle main processing command.
-    
-    Args:
-        args: Parsed command line arguments
-        
-    Returns:
-        int: Exit code
-    """
+    """Run the process subcommand."""
     try:
-        # Read input file
         if not os.path.exists(args.input_file):
             print(f"Error: Input file not found: {args.input_file}", file=sys.stderr)
             return 1
@@ -135,7 +116,6 @@ def process_command(args) -> int:
         with open(args.input_file, 'r', encoding='utf-8') as f:
             input_content = f.read()
         
-        # Define interactive callback function
         def interactive_callback(candidates: List[Dict]) -> int:
             if not args.interactive:
                 # Non-interactive mode, skip all candidates
@@ -157,21 +137,19 @@ def process_command(args) -> int:
                     if choice_num == 0:
                         return -1  # Skip
                     elif 1 <= choice_num <= len(candidates):
-                        return choice_num - 1  # Convert to 0-based index
+                        return choice_num - 1
                     else:
                         print("Invalid selection, please try again")
                 except (ValueError, KeyboardInterrupt):
                     print("Operation cancelled")
                     return -1
         
-        # Set logging level
         if args.quiet:
             import logging
             logging.basicConfig(level=logging.CRITICAL)
             for logger_name in ['onecite', 'scholarly', 'httpx', 'fake_useragent']:
                 logging.getLogger(logger_name).setLevel(logging.CRITICAL)
         
-        # Call core processing function
         result = process_references(
             input_content=input_content,
             input_type=args.input_type,
@@ -180,7 +158,6 @@ def process_command(args) -> int:
             interactive_callback=interactive_callback
         )
         
-        # Output results
         output_content = '\n\n'.join(result['results'])
         
         if args.output:
@@ -191,7 +168,6 @@ def process_command(args) -> int:
         else:
             print(output_content)
         
-        # Output report
         if not args.quiet:
             report = result['report']
             print(f"\nProcessing Report:")

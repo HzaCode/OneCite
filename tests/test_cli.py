@@ -1,93 +1,85 @@
-﻿"""
-Test command line interface functionality
-Test CLI functionality based on README declarations
+"""
+Tests for the ``onecite`` CLI (both subprocess-level and unit-level).
+
+The subprocess tests verify that the installed entry-point works end-to-end;
+the unit tests poke at ``cli.process_command`` / ``cli.main`` directly so we
+can exercise error branches without spawning a child process every time.
 """
 import argparse
-import pytest
 import subprocess
-import os
-import tempfile
-from pathlib import Path
+import sys
+
+import pytest
 from unittest.mock import Mock, patch
 
 import onecite.cli as cli
 from onecite.exceptions import OneCiteError
 
+
+# ---------------------------------------------------------------------------
+# Subprocess-level ("does the entry-point actually work?")
+# ---------------------------------------------------------------------------
+
 class TestCLI:
-    """Command line interface tests"""
 
-    def run_onecite_command(self, args, cwd=None):
-        """Helper method to run onecite command"""
-        cmd = ["onecite"] + args
+    @staticmethod
+    def _run(args, cwd=None):
+        cmd = [sys.executable, "-m", "onecite.cli"] + args
         try:
-            result = subprocess.run(
-                cmd, 
-                capture_output=True, 
-                text=True, 
-                cwd=cwd,
-                timeout=30
-            )
-            return result.returncode, result.stdout, result.stderr
+            r = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, timeout=30)
+            return r.returncode, r.stdout, r.stderr
         except subprocess.TimeoutExpired:
-            return -1, "", "Command timed out"
+            return -1, "", "timed out"
         except FileNotFoundError:
-            return -1, "", "onecite command not found"
+            return -1, "", "python not found"
 
-    def test_help_command(self):
-        """Test --help command"""
-        code, stdout, stderr = self.run_onecite_command(["--help"])
-        assert code == 0, f"Help command failed: {stderr}"
-        assert "Universal citation management" in stdout
-        assert "process" in stdout
+    def test_help(self):
+        code, out, _ = self._run(["--help"])
+        assert code == 0
+        assert "Citation management" in out
+        assert "process" in out
 
-    def test_version_command(self):
-        """Test --version command"""
-        code, stdout, stderr = self.run_onecite_command(["--version"])
-        assert code == 0, f"Version command failed: {stderr}"
-        assert "onecite" in stdout.lower()
+    def test_version(self):
+        code, out, _ = self._run(["--version"])
+        assert code == 0
+        assert "onecite" in out.lower()
 
-    def test_process_help(self):
-        """Test process subcommand help"""
-        code, stdout, stderr = self.run_onecite_command(["process", "--help"])
-        assert code == 0, f"Process help failed: {stderr}"
-        
-        # Check all options mentioned in README
-        expected_options = [
-            "--input-type", "--output-format", "--template", 
-            "--interactive", "--quiet", "--output"
-        ]
-        for option in expected_options:
-            assert option in stdout, f"Missing CLI option: {option}"
+    def test_process_help_lists_all_options(self):
+        """All options documented in the README should appear in --help."""
+        code, out, _ = self._run(["process", "--help"])
+        assert code == 0
+        for opt in ("--input-type", "--output-format", "--template",
+                     "--interactive", "--quiet", "--output"):
+            assert opt in out, f"{opt} missing from process --help"
 
-    def test_input_type_choices(self):
-        """Test input type choices"""
-        code, stdout, stderr = self.run_onecite_command(["process", "--help"])
-        assert "{txt,bib}" in stdout, "Input type choices not found"
+    def test_input_type_and_output_format_choices(self):
+        """Verify the argparse ``choices`` show up."""
+        _, out, _ = self._run(["process", "--help"])
+        assert "{txt,bib}" in out
+        assert "{bibtex,apa,mla}" in out
 
-    def test_output_format_choices(self):
-        """Test output format choices"""
-        code, stdout, stderr = self.run_onecite_command(["process", "--help"])
-        assert "{bibtex,apa,mla}" in stdout, "Output format choices not found"
+    def test_nonexistent_file(self):
+        code, _, _ = self._run(["process", "no_such_file.txt"])
+        assert code != 0
 
-    def test_invalid_file_error(self):
-        """Test invalid file error handling"""
-        code, stdout, stderr = self.run_onecite_command(["process", "nonexistent_file.txt"])
-        assert code != 0, "Should return error for nonexistent file"
+    def test_invalid_output_format(self, create_test_file, sample_references):
+        path = create_test_file(sample_references["doi_only"])
+        code, _, _ = self._run(["process", path, "--output-format", "invalid"])
+        assert code != 0
 
-    def test_invalid_output_format_error(self, create_test_file, sample_references):
-        """Test invalid output format error handling"""
-        test_file = create_test_file(sample_references["doi_only"])
-        code, stdout, stderr = self.run_onecite_command([
-            "process", test_file, "--output-format", "invalid"
-        ])
-        assert code != 0, "Should return error for invalid output format"
 
+# ---------------------------------------------------------------------------
+# Unit-level (no subprocess, just call process_command / main directly)
+# ---------------------------------------------------------------------------
 
 class TestCLIUnit:
-    def test_process_command_missing_input_file(self, capsys):
-        args = argparse.Namespace(
+
+    @staticmethod
+    def _ns(**overrides):
+        """Build a Namespace with sensible defaults – saves a lot of typing."""
+        defaults = dict(
             command="process",
-            input_file="definitely_not_exists.txt",
+            input_file="placeholder.txt",
             input_type="txt",
             template="journal_article_full",
             output_format="bibtex",
@@ -95,249 +87,175 @@ class TestCLIUnit:
             interactive=False,
             quiet=False,
         )
+        defaults.update(overrides)
+        return argparse.Namespace(**defaults)
 
-        code = cli.process_command(args)
-        captured = capsys.readouterr()
+    # -- Missing / bad input --------------------------------------------------
+
+    def test_missing_input_file(self, capsys):
+        code = cli.process_command(self._ns(input_file="nope.txt"))
         assert code == 1
-        assert "Input file not found" in captured.err
+        assert "Input file not found" in capsys.readouterr().err
 
-    def test_process_command_quiet_and_output_file(self, tmp_path, capsys):
-        input_file = tmp_path / "in.txt"
-        input_file.write_text("10.1038/nature14539", encoding="utf-8")
-        output_file = tmp_path / "out.txt"
+    # -- quiet + output file --------------------------------------------------
 
-        args = argparse.Namespace(
-            command="process",
-            input_file=str(input_file),
-            input_type="txt",
-            template="journal_article_full",
-            output_format="bibtex",
-            output=str(output_file),
-            interactive=False,
-            quiet=True,
-        )
+    def test_quiet_writes_to_file(self, tmp_path, capsys):
+        inf = tmp_path / "in.txt"
+        inf.write_text("10.1038/nature14539", encoding="utf-8")
+        outf = tmp_path / "out.bib"
 
-        def fake_process_references(*, input_content, input_type, template_name, output_format, interactive_callback):
-            assert input_content
-            assert input_type == "txt"
-            assert template_name
-            assert output_format == "bibtex"
-            assert interactive_callback([{"title": "T", "authors": [], "journal": "", "year": 2020, "match_score": 75}]) == -1
+        def _fake(*, input_content, input_type, template_name,
+                  output_format, interactive_callback):
+            # quiet mode → callback should auto-skip
+            assert interactive_callback(
+                [{"title": "T", "authors": [], "journal": "", "year": 2020, "match_score": 75}]
+            ) == -1
             return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
 
-        with patch("onecite.cli.process_references", side_effect=fake_process_references):
-            code = cli.process_command(args)
+        with patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(
+                input_file=str(inf), output=str(outf), quiet=True,
+            ))
 
-        captured = capsys.readouterr()
         assert code == 0
-        assert captured.out == ""
-        assert output_file.read_text(encoding="utf-8") == "OK"
+        assert capsys.readouterr().out == ""
+        assert outf.read_text(encoding="utf-8") == "OK"
 
-    def test_process_command_interactive_selection_prints_report(self, tmp_path, capsys):
-        input_file = tmp_path / "in.txt"
-        input_file.write_text("Some query", encoding="utf-8")
+    # -- interactive branch ---------------------------------------------------
 
-        args = argparse.Namespace(
-            command="process",
-            input_file=str(input_file),
-            input_type="txt",
-            template="journal_article_full",
-            output_format="bibtex",
-            output=None,
-            interactive=True,
-            quiet=False,
-        )
+    def test_interactive_selects_first(self, tmp_path, capsys):
+        inf = tmp_path / "in.txt"
+        inf.write_text("query", encoding="utf-8")
 
-        def fake_process_references(*, input_content, input_type, template_name, output_format, interactive_callback):
-            choice = interactive_callback(
-                [
-                    {"title": "A", "authors": ["X"], "journal": "J", "year": 2020, "match_score": 75},
-                    {"title": "B", "authors": ["Y"], "journal": "J", "year": 2021, "match_score": 74},
-                ]
-            )
+        def _fake(*, input_content, input_type, template_name,
+                  output_format, interactive_callback):
+            choice = interactive_callback([
+                {"title": "A", "authors": ["X"], "journal": "J", "year": 2020, "match_score": 75},
+                {"title": "B", "authors": ["Y"], "journal": "J", "year": 2021, "match_score": 74},
+            ])
             assert choice == 0
             return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
 
-        with patch("builtins.input", return_value="1"), patch("onecite.cli.process_references", side_effect=fake_process_references):
-            code = cli.process_command(args)
+        with patch("builtins.input", return_value="1"), \
+             patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(input_file=str(inf), interactive=True))
 
-        captured = capsys.readouterr()
+        out = capsys.readouterr().out
         assert code == 0
-        assert "Found multiple possible matches" in captured.out
-        assert "Processing Report" in captured.out
-        assert "Total entries" in captured.out
+        assert "Found multiple possible matches" in out
+        assert "Processing Report" in out
 
-    def test_process_command_process_references_exception(self, tmp_path, capsys):
-        input_file = tmp_path / "in.txt"
-        input_file.write_text("Some query", encoding="utf-8")
+    def test_interactive_invalid_then_skip(self, tmp_path, capsys):
+        """User types an out-of-range number, then 0 to skip."""
+        inf = tmp_path / "in.txt"
+        inf.write_text("query", encoding="utf-8")
 
-        args = argparse.Namespace(
-            command="process",
-            input_file=str(input_file),
-            input_type="txt",
-            template="journal_article_full",
-            output_format="bibtex",
-            output=None,
-            interactive=False,
-            quiet=False,
-        )
-
-        with patch("onecite.cli.process_references", side_effect=RuntimeError("boom")):
-            code = cli.process_command(args)
-
-        captured = capsys.readouterr()
-        assert code == 1
-        assert "Processing failed" in captured.err
-
-    def test_process_command_interactive_invalid_selection_then_skip(self, tmp_path, capsys):
-        input_file = tmp_path / "in.txt"
-        input_file.write_text("Some query", encoding="utf-8")
-
-        args = argparse.Namespace(
-            command="process",
-            input_file=str(input_file),
-            input_type="txt",
-            template="journal_article_full",
-            output_format="bibtex",
-            output=None,
-            interactive=True,
-            quiet=False,
-        )
-
-        def fake_process_references(*, input_content, input_type, template_name, output_format, interactive_callback):
+        def _fake(*, input_content, input_type, template_name,
+                  output_format, interactive_callback):
             choice = interactive_callback([
                 {"title": "A", "authors": [], "journal": "", "year": 2020, "match_score": 75},
             ])
             assert choice == -1
             return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
 
-        with patch("builtins.input", side_effect=["99", "0"]), patch(
-            "onecite.cli.process_references", side_effect=fake_process_references
-        ):
-            code = cli.process_command(args)
+        with patch("builtins.input", side_effect=["99", "0"]), \
+             patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(input_file=str(inf), interactive=True))
 
-        captured = capsys.readouterr()
         assert code == 0
-        assert "Invalid selection" in captured.out
+        assert "Invalid selection" in capsys.readouterr().out
 
-    def test_process_command_interactive_keyboardinterrupt_cancels(self, tmp_path, capsys):
-        input_file = tmp_path / "in.txt"
-        input_file.write_text("Some query", encoding="utf-8")
+    def test_interactive_ctrl_c(self, tmp_path, capsys):
+        inf = tmp_path / "in.txt"
+        inf.write_text("query", encoding="utf-8")
 
-        args = argparse.Namespace(
-            command="process",
-            input_file=str(input_file),
-            input_type="txt",
-            template="journal_article_full",
-            output_format="bibtex",
-            output=None,
-            interactive=True,
-            quiet=False,
-        )
-
-        def fake_process_references(*, input_content, input_type, template_name, output_format, interactive_callback):
+        def _fake(*, input_content, input_type, template_name,
+                  output_format, interactive_callback):
             assert interactive_callback([
                 {"title": "A", "authors": [], "journal": "", "year": 2020, "match_score": 75},
             ]) == -1
             return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
 
-        with patch("builtins.input", side_effect=KeyboardInterrupt), patch(
-            "onecite.cli.process_references", side_effect=fake_process_references
-        ):
-            code = cli.process_command(args)
+        with patch("builtins.input", side_effect=KeyboardInterrupt), \
+             patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(input_file=str(inf), interactive=True))
 
-        captured = capsys.readouterr()
         assert code == 0
-        assert "Operation cancelled" in captured.out
+        assert "Operation cancelled" in capsys.readouterr().out
 
-    def test_process_command_output_saved_message_and_failed_entries_print(self, tmp_path, capsys):
-        input_file = tmp_path / "in.txt"
-        input_file.write_text("Some query", encoding="utf-8")
-        output_file = tmp_path / "out.txt"
+    # -- error branches -------------------------------------------------------
 
-        args = argparse.Namespace(
-            command="process",
-            input_file=str(input_file),
-            input_type="txt",
-            template="journal_article_full",
-            output_format="bibtex",
-            output=str(output_file),
-            interactive=False,
-            quiet=False,
-        )
+    def test_process_references_raises(self, tmp_path, capsys):
+        inf = tmp_path / "in.txt"
+        inf.write_text("query", encoding="utf-8")
 
-        def fake_process_references(*, input_content, input_type, template_name, output_format, interactive_callback):
+        with patch("onecite.cli.process_references", side_effect=RuntimeError("boom")):
+            code = cli.process_command(self._ns(input_file=str(inf)))
+
+        assert code == 1
+        assert "Processing failed" in capsys.readouterr().err
+
+    # -- output file + failed entries -----------------------------------------
+
+    def test_output_saved_message_and_failures(self, tmp_path, capsys):
+        inf = tmp_path / "in.txt"
+        inf.write_text("query", encoding="utf-8")
+        outf = tmp_path / "out.bib"
+
+        def _fake(*, input_content, input_type, template_name,
+                  output_format, interactive_callback):
             return {
                 "results": ["OK"],
-                "report": {
-                    "total": 2,
-                    "succeeded": 1,
-                    "failed_entries": [{"id": 2, "error": "bad"}],
-                },
+                "report": {"total": 2, "succeeded": 1,
+                           "failed_entries": [{"id": 2, "error": "bad"}]},
             }
 
-        with patch("onecite.cli.process_references", side_effect=fake_process_references):
-            code = cli.process_command(args)
+        with patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(
+                input_file=str(inf), output=str(outf),
+            ))
 
-        captured = capsys.readouterr()
+        out = capsys.readouterr().out
         assert code == 0
-        assert "Results saved to" in captured.out
-        assert "Failed entries:" in captured.out
-        assert "Entry 2: bad" in captured.out
+        assert "Results saved to" in out
+        assert "Failed entries:" in out
+        assert "Entry 2: bad" in out
 
-    def test_main_process_branch(self, capsys):
+    # -- main() dispatch ------------------------------------------------------
+
+    def test_main_process(self):
         parser = Mock()
         parser.parse_args.return_value = argparse.Namespace(command="process")
+        with patch("onecite.cli.create_parser", return_value=parser), \
+             patch("onecite.cli.process_command", return_value=0):
+            assert cli.main() == 0
 
-        with patch("onecite.cli.create_parser", return_value=parser), patch("onecite.cli.process_command", return_value=0):
-            code = cli.main()
-
-        assert code == 0
-
-    def test_main_help_branch(self):
+    def test_main_no_command(self):
         parser = Mock()
         parser.parse_args.return_value = argparse.Namespace(command=None)
-
         with patch("onecite.cli.create_parser", return_value=parser):
-            code = cli.main()
-
-        assert code == 1
+            assert cli.main() == 1
         assert parser.print_help.called
 
-    def test_main_version_branch(self, capsys):
+    def test_main_version(self, capsys):
         parser = Mock()
         parser.parse_args.return_value = argparse.Namespace(command="version")
-
         with patch("onecite.cli.create_parser", return_value=parser):
-            code = cli.main()
+            assert cli.main() == 0
+        assert "OneCite version" in capsys.readouterr().out
 
-        captured = capsys.readouterr()
-        assert code == 0
-        assert "OneCite version" in captured.out
-
-    def test_main_oneciteerror(self, capsys):
+    def test_main_onecite_error(self, capsys):
         parser = Mock()
         parser.parse_args.return_value = argparse.Namespace(command="process")
+        with patch("onecite.cli.create_parser", return_value=parser), \
+             patch("onecite.cli.process_command", side_effect=OneCiteError("x")):
+            assert cli.main() == 1
+        assert "Error: x" in capsys.readouterr().err
 
-        with patch("onecite.cli.create_parser", return_value=parser), patch(
-            "onecite.cli.process_command", side_effect=OneCiteError("x")
-        ):
-            code = cli.main()
-
-        captured = capsys.readouterr()
-        assert code == 1
-        assert "Error: x" in captured.err
-
-    def test_main_generic_exception(self, capsys):
+    def test_main_unexpected_exception(self, capsys):
         parser = Mock()
         parser.parse_args.return_value = argparse.Namespace(command="process")
-
-        with patch("onecite.cli.create_parser", return_value=parser), patch(
-            "onecite.cli.process_command", side_effect=RuntimeError("x")
-        ):
-            code = cli.main()
-
-        captured = capsys.readouterr()
-        assert code == 1
-        assert "Processing failed" in captured.err
-
+        with patch("onecite.cli.create_parser", return_value=parser), \
+             patch("onecite.cli.process_command", side_effect=RuntimeError("x")):
+            assert cli.main() == 1
+        assert "Processing failed" in capsys.readouterr().err

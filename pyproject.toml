@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "onecite"
 version = "0.0.12"
-description = "Universal citation management and academic reference toolkit"
+description = "Citation management and academic reference toolkit"
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
@@ -28,14 +28,16 @@ classifiers = [
 dependencies = [
     "requests>=2.25.0",
     "beautifulsoup4>=4.9.0",
-    "bibtexparser>=1.2.0",
+    "bibtexparser>=1.2.0,<2.0.0",
     "thefuzz>=0.19.0",
-    "scholarly>=1.5.0",
     "pyyaml>=5.4.0",
     "feedparser>=6.0.0",
 ]
 
 [project.optional-dependencies]
+scholar = [
+    "scholarly>=1.5.0",
+]
 dev = [
     "pytest>=6.0",
     "pytest-cov>=2.10",
