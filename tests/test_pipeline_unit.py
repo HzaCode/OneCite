@@ -15,9 +15,10 @@ import types
 
 import pytest
 import requests
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 from onecite.pipeline import EnricherModule, FormatterModule, IdentifierModule
+import onecite.pipeline as _pipeline_mod
 
 
 # ---------------------------------------------------------------------------
@@ -452,9 +453,11 @@ class TestIdentifierGoogleScholar:
             "eprint": "arXiv:1706.03762",
         }]
 
-        with patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0), \
-             patch("onecite.pipeline.scholarly.search_pubs", return_value=pubs):
+        fake_scholarly = MagicMock()
+        fake_scholarly.search_pubs = MagicMock(return_value=pubs)
+        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+             patch("threading.Thread", ImmediateThread), \
+             patch("time.sleep"), patch("time.time", return_value=1000.0):
             results = ident._search_google_scholar("neurips paper", limit=1)
 
         assert results[0]["source"] == "google_scholar"
@@ -464,10 +467,11 @@ class TestIdentifierGoogleScholar:
 
     def test_captcha_returns_empty(self):
         ident = IdentifierModule(use_google_scholar=True)
-        with patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0), \
-             patch("onecite.pipeline.scholarly.search_pubs",
-                   side_effect=Exception("captcha blocked")):
+        fake_scholarly = MagicMock()
+        fake_scholarly.search_pubs = MagicMock(side_effect=Exception("captcha blocked"))
+        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+             patch("threading.Thread", ImmediateThread), \
+             patch("time.sleep"), patch("time.time", return_value=1000.0):
             assert ident._search_google_scholar("q", limit=1) == []
 
     def test_timeout_returns_empty(self):
@@ -748,9 +752,11 @@ class TestEnricher:
         def _pubs(_q):
             yield {"pages": "123--130"}
 
-        with patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0), \
-             patch("onecite.pipeline.scholarly.search_pubs", side_effect=_pubs):
+        fake_scholarly = MagicMock()
+        fake_scholarly.search_pubs = MagicMock(side_effect=_pubs)
+        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+             patch("threading.Thread", ImmediateThread), \
+             patch("time.sleep"), patch("time.time", return_value=1000.0):
             val = e._fetch_missing_field("pages", ["google_scholar_scraper"],
                                          {"title": "T", "author": "Doe, John", "year": "2020"})
 
@@ -764,10 +770,11 @@ class TestEnricher:
 
     def test_google_scholar_worker_error(self):
         e = EnricherModule(use_google_scholar=True)
-        with patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0), \
-             patch("onecite.pipeline.scholarly.search_pubs",
-                   side_effect=RuntimeError("boom")):
+        fake_scholarly = MagicMock()
+        fake_scholarly.search_pubs = MagicMock(side_effect=RuntimeError("boom"))
+        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+             patch("threading.Thread", ImmediateThread), \
+             patch("time.sleep"), patch("time.time", return_value=1000.0):
             assert e._fetch_from_google_scholar("pages", {"title": "T"}) is None
 
 
