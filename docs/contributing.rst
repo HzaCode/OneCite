@@ -265,10 +265,13 @@ Tests should be:
     def test_process_references_with_doi():
         result = process_references(
             input_content="10.1038/nature14539",
-            input_type="txt"
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda candidates: 0
         )
-        assert result['processed_count'] == 1
-        assert '10.1038/nature14539' in result['output_content']
+        assert result['report']['total'] == 1
+        assert any('10.1038/nature14539' in r for r in result['results'])
 
 Running Tests
 ~~~~~~~~~~~~~

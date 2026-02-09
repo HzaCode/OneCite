@@ -198,11 +198,12 @@ def auto_select_callback(candidates):
 result = process_references(
     input_content="Deep learning review\nLeCun, Bengio, Hinton\nNature 2015",
     input_type="txt",
+    template_name="journal_article_full",
     output_format="bibtex",
     interactive_callback=auto_select_callback
 )
 
-print(result['output_content'])
+print('\n\n'.join(result['results']))
 ```
 </details>
 

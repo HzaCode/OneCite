@@ -128,7 +128,10 @@ Subsubsection
     # Code block
     import onecite
     
-    result = onecite.process_references("10.1038/nature14539")
+    result = onecite.process_references(
+        "10.1038/nature14539", "txt", "journal_article_full",
+        "bibtex", lambda c: 0
+    )
 
 - Bullet list
 - Another item
@@ -156,8 +159,14 @@ Use `.. code-block::` for syntax-highlighted code:
 
     from onecite import process_references
     
-    result = process_references("10.1038/nature14539")
-    print(result['output_content'])
+    result = process_references(
+        "10.1038/nature14539",
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
+        interactive_callback=lambda c: 0
+    )
+    print('\n\n'.join(result['results']))
 ```
 
 ## Configuration

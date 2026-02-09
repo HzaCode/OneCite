@@ -19,7 +19,7 @@ What do I need to use OneCite?
 
 You need:
 
-- Python 3.7 or higher
+- Python 3.10 or higher
 - pip (Python package manager)
 - An internet connection (for data source access)
 
@@ -186,10 +186,13 @@ Yes, when using the Python API::
     
     result = process_references(
         input_content="10.1038/nature14539",
-        output_format="apa"
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="apa",
+        interactive_callback=lambda candidates: 0
     )
     
-    print(result['output_content'])
+    print('\n\n'.join(result['results']))
 
 Python API Questions
 --------------------
@@ -203,9 +206,12 @@ Yes! Import and use it like any Python library::
     
     result = process_references(
         input_content="10.1038/nature14539",
-        output_format="bibtex"
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
+        interactive_callback=lambda candidates: 0
     )
-    print(result['output_content'])
+    print('\n\n'.join(result['results']))
 
 See :doc:`python_api` for detailed examples.
 
