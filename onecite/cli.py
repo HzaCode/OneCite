@@ -106,8 +106,16 @@ Examples:
     return parser
 
 
-def process_command(args) -> int:
-    """Run the process subcommand."""
+def process_command(args: "argparse.Namespace") -> int:
+    """Run the ``onecite process`` subcommand.
+
+    Args:
+        args: Parsed command-line arguments from
+            :func:`create_parser`.
+
+    Returns:
+        Exit code — ``0`` on success, ``1`` on failure.
+    """
     try:
         if not os.path.exists(args.input_file):
             print(f"Error: Input file not found: {args.input_file}", file=sys.stderr)

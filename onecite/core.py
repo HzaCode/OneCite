@@ -55,9 +55,20 @@ class CompletedEntry(TypedDict, total=False):
 
 
 class TemplateLoader:
-    """Loads YAML template files."""
+    """Loads YAML template files that control citation field collection.
+
+    Templates define which bibliographic fields to collect and how
+    entries are typed (e.g. article, inproceedings).
+    """
     
     def __init__(self, templates_dir: Optional[str] = None):
+        """Initialize the template loader.
+
+        Args:
+            templates_dir: Path to a directory containing YAML template
+                files.  When ``None`` (the default), the built-in
+                ``onecite/templates/`` directory is used.
+        """
         self.logger = logging.getLogger(__name__)
         if templates_dir is None:
             self.templates_dir = os.path.join(os.path.dirname(__file__), 'templates')
@@ -65,7 +76,16 @@ class TemplateLoader:
             self.templates_dir = templates_dir
     
     def load_template(self, template_name: str) -> Dict[str, Any]:
-        """Load a YAML template by name, falling back to defaults."""
+        """Load a YAML template by name, falling back to defaults.
+
+        Args:
+            template_name: The stem name of the template file (without
+                the ``.yaml`` extension), e.g. ``"journal_article_full"``.
+
+        Returns:
+            A dictionary describing the template with keys ``name``,
+            ``entry_type``, and ``fields``.
+        """
         template_path = os.path.join(self.templates_dir, f"{template_name}.yaml")
         
         if not os.path.exists(template_path):
@@ -103,6 +123,14 @@ class PipelineController:
     """Runs the 4-stage pipeline: Parse -> Identify -> Enrich -> Format."""
     
     def __init__(self, use_google_scholar: bool = False):
+        """Initialize the pipeline controller.
+
+        Args:
+            use_google_scholar: If ``True``, enable Google Scholar as an
+                additional data source for identification and enrichment.
+                Requires the optional ``scholarly`` package.  Defaults to
+                ``False``.
+        """
         self.logger = logging.getLogger(__name__)
         from .pipeline import ParserModule, IdentifierModule, EnricherModule, FormatterModule
         
@@ -114,7 +142,28 @@ class PipelineController:
     
     def process(self, input_content: str, input_type: str, template_name: str,
                 output_format: str, interactive_callback: Callable[[List[Dict]], int]) -> Dict[str, Any]:
-        """Run all four stages and return results with a report."""
+        """Run all four pipeline stages and return results with a report.
+
+        Args:
+            input_content: The raw text or BibTeX content to process.
+            input_type: Format of *input_content* — ``"txt"`` for
+                plain-text references or ``"bib"`` for BibTeX.
+            template_name: Name of the YAML template that controls
+                which fields are collected (e.g.
+                ``"journal_article_full"``).
+            output_format: Desired citation style — ``"bibtex"``,
+                ``"apa"``, or ``"mla"``.
+            interactive_callback: A callable that receives a list of
+                candidate dictionaries and returns the index of the
+                selected candidate.
+
+        Returns:
+            A dictionary with two keys:
+
+            * ``results`` — a list of formatted citation strings.
+            * ``report`` — a dict containing ``total``, ``succeeded``,
+              and ``failed_entries``.
+        """
         self.logger.info("Starting OneCite processing pipeline")
         
         try:
@@ -139,6 +188,33 @@ def process_references(
     output_format: str,
     interactive_callback: Callable[[List[Dict]], int]
 ) -> Dict[str, Any]:
-    """Process references and return formatted citations with a report."""
+    """Process references and return formatted citations with a report.
+
+    This is the main public API entry point.  It creates a
+    :class:`PipelineController` and runs the full 4-stage pipeline.
+
+    Args:
+        input_content: The raw text or BibTeX content to process.
+        input_type: Format of *input_content* — ``"txt"`` or ``"bib"``.
+        template_name: Name of the YAML template (e.g.
+            ``"journal_article_full"``).
+        output_format: Desired citation style — ``"bibtex"``, ``"apa"``,
+            or ``"mla"``.
+        interactive_callback: A callable that receives a list of
+            candidate dictionaries and returns the index of the selected
+            candidate.
+
+    Returns:
+        A dictionary with two keys:
+
+        * ``results`` — a list of formatted citation strings.
+        * ``report`` — a dict with ``total``, ``succeeded``, and
+          ``failed_entries``.
+
+    Raises:
+        ValidationError: If the input content is empty or invalid.
+        ParseError: If the input cannot be parsed.
+        ResolverError: If no data source can resolve a reference.
+    """
     pipeline = PipelineController(use_google_scholar=False)
     return pipeline.process(input_content, input_type, template_name, output_format, interactive_callback)

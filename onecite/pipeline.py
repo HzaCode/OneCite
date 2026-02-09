@@ -39,10 +39,20 @@ class ParserModule:
     """Stage 1: Parse and Extract Module"""
     
     def __init__(self):
+        """Initialize the parser module."""
         self.logger = logging.getLogger(__name__)
     
     def parse(self, input_content: str, input_type: str) -> List[RawEntry]:
-        """Parse input content into raw entries."""
+        """Parse input content into a list of raw entries.
+
+        Args:
+            input_content: The raw text or BibTeX string to parse.
+            input_type: ``"txt"`` for plain-text references or
+                ``"bib"`` for BibTeX format.
+
+        Returns:
+            A list of :class:`RawEntry` dictionaries.
+        """
         self.logger.info(f"Starting to parse {input_type} format input content")
         
         if input_type.lower() == 'bib':
@@ -155,9 +165,15 @@ class ParserModule:
 
 
 class IdentifierModule:
-    """Stage 2: Identification and Standardization Module"""
+    """Stage 2: Identification and Standardization Module."""
     
     def __init__(self, use_google_scholar: bool = False):
+        """Initialize the identifier module.
+
+        Args:
+            use_google_scholar: Enable Google Scholar lookups when
+                ``True``.  Defaults to ``False``.
+        """
         self.logger = logging.getLogger(__name__)
         self.crossref_base_url = "https://api.crossref.org/works"
         self.use_google_scholar = use_google_scholar
@@ -185,7 +201,18 @@ class IdentifierModule:
     
     def identify(self, raw_entries: List[RawEntry], 
                 interactive_callback: Callable[[List[Dict]], int]) -> List[IdentifiedEntry]:
-        """Identify and standardize entries, finding DOI for each entry Args: raw_entries: List of raw entries interactive_callback: Interactive callback function Returns: List of identified entries"""
+        """Identify and standardize entries, finding a DOI for each.
+
+        Args:
+            raw_entries: List of raw entries produced by
+                :meth:`ParserModule.parse`.
+            interactive_callback: A callable that receives a list of
+                candidate dictionaries and returns the index of the
+                selected candidate.
+
+        Returns:
+            A list of :class:`IdentifiedEntry` dictionaries.
+        """
         self.logger.info(f"Starting to identify {len(raw_entries)} entries")
         identified_entries = []
         
@@ -2314,9 +2341,15 @@ class IdentifierModule:
 
 
 class EnricherModule:
-    """Stage 3: Enrichment and Validation Module"""
+    """Stage 3: Enrichment and Validation Module."""
     
     def __init__(self, use_google_scholar: bool = False):
+        """Initialize the enricher module.
+
+        Args:
+            use_google_scholar: Enable Google Scholar lookups when
+                ``True``.  Defaults to ``False``.
+        """
         self.logger = logging.getLogger(__name__)
         self.crossref_base_url = "https://api.crossref.org/works"
         self.use_google_scholar = use_google_scholar
@@ -2324,7 +2357,19 @@ class EnricherModule:
     
     def enrich(self, identified_entries: List[IdentifiedEntry], 
                template: Dict, raw_entries: List[RawEntry] = None) -> List[CompletedEntry]:
-        """Enrich entries to obtain complete bibliographic information. Args: identified_entries: List of identified entries template: Template configuration raw_entries: List of raw entries (to preserve original fields) Returns: List of completed records"""
+        """Enrich entries to obtain complete bibliographic information.
+
+        Args:
+            identified_entries: List of identified entries from
+                :meth:`IdentifierModule.identify`.
+            template: Template configuration dictionary that controls
+                which fields to collect.
+            raw_entries: Optional list of raw entries used to preserve
+                original BibTeX fields.
+
+        Returns:
+            A list of :class:`CompletedEntry` dictionaries.
+        """
         self.logger.info(f"Starting enrichment for {len(identified_entries)} entries")
         completed_entries = []
         
@@ -2896,9 +2941,10 @@ class EnricherModule:
 
 
 class FormatterModule:
-    """Stage 4: Formatting and Generation Module"""
+    """Stage 4: Formatting and Generation Module."""
     
     def __init__(self):
+        """Initialize the formatter module."""
         self.logger = logging.getLogger(__name__)
         
         # LaTeX character escape mapping for common Unicode characters
@@ -2967,7 +3013,21 @@ class FormatterModule:
     
     def format(self, completed_entries: List[CompletedEntry], 
                output_format: str) -> Dict[str, Any]:
-        """Format completed records to specified output format Args: completed_entries: List of completed records output_format: Output format Returns: Formatting results and report"""
+        """Format completed records to the specified output format.
+
+        Args:
+            completed_entries: List of completed entries from
+                :meth:`EnricherModule.enrich`.
+            output_format: Desired citation style — ``"bibtex"``,
+                ``"apa"``, or ``"mla"``.
+
+        Returns:
+            A dictionary with two keys:
+
+            * ``results`` — a list of formatted citation strings.
+            * ``report`` — a dict with ``total``, ``succeeded``, and
+              ``failed_entries``.
+        """
         self.logger.info(f"Starting to format {len(completed_entries)} entries to {output_format} format")
         
         formatted_strings = []

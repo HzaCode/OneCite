@@ -26,7 +26,7 @@ A clear and concise description of what actually happened.
 
 ## Environment
 
-- **OneCite Version**: [e.g., 0.0.11]
+- **OneCite Version**: [e.g., 0.1.0]
 - **Python Version**: [e.g., 3.9]
 - **Operating System**: [e.g., Windows 10, macOS 13, Ubuntu 22.04]
 - **Installation Method**: [e.g., pip, from source]

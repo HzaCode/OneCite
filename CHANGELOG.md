@@ -6,20 +6,36 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-02-09
+
 ### Added
 - RST documentation using Sphinx
 - Full API reference documentation
 - FAQ section with common questions
 - Contributing guidelines
 - Pre-commit hooks configuration
+- Google-style docstrings with Args/Returns for all public API functions
+- Auto-deploy documentation to GitHub Pages via CI
 
 ### Changed
 - Refactored exception hierarchy
 - Added type hints to Python API
 - Updated README examples
+- Bumped minimum Python version declaration in docs to 3.10
+- Updated CI actions to latest versions (checkout v4, setup-python v5)
+- Updated copyright year to 2024-2025
+- Fixed Documentation URL in pyproject.toml to point to GitHub Pages
+
+### Removed
+- MCP integration page and all related references
+- `.readthedocs.yml` (docs now hosted on GitHub Pages)
+- `docs/_build/` build artifacts from repository
 
 ### Fixed
 - CrossRef and Semantic Scholar response parsing edge cases
+- API documentation using incorrect return value fields (`output_content` -> `results`)
+- Version number inconsistencies across metadata files
+- Python version requirement inconsistencies in docs (3.7 -> 3.10)
 
 ## [0.0.11] - 2024-10-19
 

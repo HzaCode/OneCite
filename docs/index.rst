@@ -5,7 +5,7 @@ OneCite - Citation & Academic Reference Toolkit
    :target: https://pypi.org/project/onecite/
    :alt: PyPI Version
 
-.. image:: https://img.shields.io/badge/Python-3.7+-blue?logo=python&style=flat-square
+.. image:: https://img.shields.io/badge/Python-3.10+-blue?logo=python&style=flat-square
    :target: https://www.python.org
    :alt: Python Version
 

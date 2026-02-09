@@ -10,7 +10,7 @@ from onecite import __version__
 
 # Project information
 project = 'OneCite'
-copyright = '2024, OneCite Team'
+copyright = '2025, OneCite Team'
 author = 'OneCite Team'
 release = __version__
 
