@@ -83,7 +83,7 @@ Stage 2: Identification
 - Zenodo (open research)
 - Google Books (books)
 
-**Intelligent Routing:**
+**Routing:**
 
 OneCite automatically selects best sources:
 
@@ -304,7 +304,7 @@ Performance Optimization
 
 ::
 
-    # Use --quiet flag for better performance
+    # --quiet flag reduces output overhead
     onecite process refs.txt --quiet -o output.bib
 
 **Large Batches:**

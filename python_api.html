@@ -6,20 +6,20 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python API Reference &mdash; OneCite 0.0.11 documentation</title>
+  <title>Python API Reference &mdash; OneCite 0.0.12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/documentation_options.js?v=3bbcec59"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="automation Assistant Integration with MCP" href="mcp_integration.html" />
+    <link rel="next" title="Custom Templates" href="templates.html" />
     <link rel="prev" title="Advanced Usage" href="advanced_usage.html" /> 
 </head>
 
@@ -89,7 +89,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">automation Assistant Integration with MCP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
 </ul>
@@ -170,7 +169,7 @@
 <p>The <code class="docutils literal notranslate"><span class="pre">process_references</span></code> function returns a dictionary containing:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">results</span></code> (List[str]): List of formatted citation strings</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">report</span></code> (dict): Processing report with the following keys:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">report</span></code> (dict): Processing report with keys:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">total</span></code> (int): Total number of entries processed</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">succeeded</span></code> (int): Number of successfully processed entries</p></li>
@@ -282,16 +281,16 @@
 <p>For handling ambiguous references programmatically, use a callback function:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">auto_select_best</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Always select the first (best match) candidate&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="mi">0</span>  <span class="c1"># Return the index of the selected candidate (0-based)</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">pick_first</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select the first candidate.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">0</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;Deep learning Hinton&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">auto_select_best</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">pick_first</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -299,8 +298,8 @@
 </div>
 <section id="custom-callback-logic">
 <h3>Custom Callback Logic<a class="headerlink" href="#custom-callback-logic" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">smart_selector</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Select candidate with most complete metadata&quot;&quot;&quot;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pick_most_complete</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pick the candidate with the most filled-in fields.&quot;&quot;&quot;</span>
     <span class="n">best_idx</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">best_score</span> <span class="o">=</span> <span class="mi">0</span>
 
@@ -318,7 +317,7 @@
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">smart_selector</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">pick_most_complete</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -366,7 +365,7 @@
 <span class="c1"># id, doi, status, bib_key, bib_data</span>
 </pre></div>
 </div>
-<p><strong>Note:</strong> These are TypedDict classes without methods. They are primarily used internally by the pipeline. Most users should interact with OneCite through the <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> function.</p>
+<p>These are TypedDict classes used internally by the pipeline. For typical usage, call <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> directly.</p>
 </section>
 </section>
 <section id="working-with-templates">
@@ -408,7 +407,7 @@
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
 </pre></div>
 </div>
-<p><strong>Note:</strong> Most users should use <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> instead, which is simpler and provides the same functionality.</p>
+<p>For typical usage, <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> is simpler and covers the same functionality.</p>
 </section>
 <section id="error-handling">
 <h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
@@ -504,7 +503,6 @@
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Learn <a class="reference internal" href="mcp_integration.html"><span class="doc">automation Assistant Integration with MCP</span></a> for MCP client integration</p></li>
 <li><p>Explore <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for custom formatting</p></li>
 <li><p>Check <a class="reference internal" href="faq.html"><span class="doc">Frequently Asked Questions (FAQ)</span></a> for common questions</p></li>
 </ul>
@@ -516,7 +514,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="advanced_usage.html" class="btn btn-neutral float-left" title="Advanced Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="mcp_integration.html" class="btn btn-neutral float-right" title="automation Assistant Integration with MCP" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="templates.html" class="btn btn-neutral float-right" title="Custom Templates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

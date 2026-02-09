@@ -31,11 +31,15 @@ The ``-e`` flag installs the package in editable mode, which is useful for devel
 Optional Dependencies
 ---------------------
 
-For development and testing, install development dependencies::
+For Google Scholar support (disabled by default)::
+
+    pip install onecite[scholar]
+
+For development and testing::
 
     pip install onecite[dev]
 
-This will install the following additional packages:
+Dev extras:
 
 - pytest - Testing framework
 - pytest-cov - Coverage reporting
@@ -50,15 +54,6 @@ To verify that your installation was successful, run::
     onecite --version
 
 You should see the version number printed.
-
-MCP Server
-----------
-
-OneCite includes a Model Context Protocol (MCP) server. To test it::
-
-    onecite-mcp
-
-This will start the MCP server. You can now configure your MCP client to use it. For more details, see :doc:`mcp_integration`.
 
 Upgrading OneCite
 -----------------

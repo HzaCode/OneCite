@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Changelog &mdash; OneCite 0.0.11 documentation</title>
+  <title>Changelog &mdash; OneCite 0.0.12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/documentation_options.js?v=3bbcec59"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,7 +52,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">automation Assistant Integration with MCP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
 </ul>
@@ -144,25 +143,24 @@
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Comprehensive RST documentation using Sphinx</p></li>
+<li><p>RST documentation using Sphinx</p></li>
 <li><p>Full API reference documentation</p></li>
 <li><p>FAQ section with common questions</p></li>
 <li><p>Contributing guidelines</p></li>
-<li><p>MCP (Model Context Protocol) integration documentation</p></li>
 </ul>
 </section>
 <section id="changed">
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Improved error handling and exception hierarchy</p></li>
-<li><p>Enhanced Python API with better type hints</p></li>
-<li><p>Updated README with more examples</p></li>
+<li><p>Refactored exception hierarchy</p></li>
+<li><p>Added type hints to Python API</p></li>
+<li><p>Updated README examples</p></li>
 </ul>
 </section>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Various bug fixes in data source integration</p></li>
+<li><p>CrossRef and Semantic Scholar response parsing edge cases</p></li>
 </ul>
 </section>
 </section>
@@ -171,29 +169,28 @@
 <section id="id2">
 <h3>Added<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>MCP server support for MCP client integration</p></li>
 <li><p>Custom YAML-based template system</p></li>
 <li><p>Support for multiple output formats (BibTeX, APA, MLA)</p></li>
 <li><p>Interactive mode for ambiguous reference selection</p></li>
 <li><p>Support for DOI, arXiv, PMID, ISBN, and GitHub identifiers</p></li>
 <li><p>Integration with 9 major academic data sources</p></li>
-<li><p>Comprehensive test suite</p></li>
+<li><p>Test suite</p></li>
 </ul>
 </section>
 <section id="id3">
 <h3>Changed<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Refactored core processing pipeline</p></li>
-<li><p>Improved data source prioritization</p></li>
-<li><p>Enhanced error messages</p></li>
+<li><p>Reordered data source priority (CrossRef first for DOI queries)</p></li>
+<li><p>Clearer error messages on failed lookups</p></li>
 </ul>
 </section>
 <section id="id4">
 <h3>Fixed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Fixed encoding issues with special characters</p></li>
-<li><p>Improved robustness of DOI parsing</p></li>
-<li><p>Fixed compatibility with older Python versions</p></li>
+<li><p>Encoding issues with non-ASCII characters in author names</p></li>
+<li><p>DOI parsing for URLs with trailing query strings</p></li>
+<li><p>Python 3.10 compatibility issues</p></li>
 </ul>
 </section>
 </section>
@@ -210,13 +207,14 @@
 <section id="id7">
 <h3>Changed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Improved search accuracy</p></li>
+<li><p>Better title matching for fuzzy searches</p></li>
 </ul>
 </section>
 <section id="id8">
 <h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
-<li><p>Fixed several data source API issues</p></li>
+<li><p>PubMed API response handling</p></li>
+<li><p>Semantic Scholar rate limit handling</p></li>
 </ul>
 </section>
 </section>
@@ -232,7 +230,6 @@
 <p><strong>Breaking Changes:</strong> None</p>
 <p><strong>New Features:</strong></p>
 <ul class="simple">
-<li><p>MCP server for automation integration - set up using <code class="docutils literal notranslate"><span class="pre">onecite-mcp</span></code></p></li>
 <li><p>Custom template support - create YAML templates for custom formats</p></li>
 <li><p>APA and MLA formats - use <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">apa</span></code> or <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">mla</span></code></p></li>
 <li><p>Interactive mode - use <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> flag for ambiguous references</p></li>
@@ -271,9 +268,6 @@
 <p><strong>Latest Stable:</strong> 0.0.11</p>
 <p><strong>Python Support:</strong></p>
 <ul class="simple">
-<li><p>3.7+</p></li>
-<li><p>3.8+</p></li>
-<li><p>3.9+</p></li>
 <li><p>3.10+</p></li>
 <li><p>3.11+</p></li>
 </ul>
@@ -301,9 +295,9 @@
 </ul>
 <p><strong>Release Cadence:</strong></p>
 <ul class="simple">
-<li><p>Major releases: Annually or as needed for major features</p></li>
-<li><p>Minor releases: Quarterly or as needed</p></li>
-<li><p>Patch releases: As needed for critical bugs</p></li>
+<li><p>Major releases: Annually or for major features</p></li>
+<li><p>Minor releases: Quarterly</p></li>
+<li><p>Patch releases: For critical bugs</p></li>
 </ul>
 <p><strong>Support:</strong></p>
 <ul class="simple">
@@ -340,7 +334,7 @@
 <li><p>Data source providers (CrossRef, PubMed, arXiv, etc.)</p></li>
 <li><p>All contributors on GitHub</p></li>
 </ul>
-<p>See <a class="reference external" href="https://github.com/HzaCode/OneCite/blob/main/CONTRIBUTORS.md">CONTRIBUTORS.md</a> for a full list.</p>
+<p>See the <a class="reference external" href="https://github.com/HzaCode/OneCite/graphs/contributors">GitHub Contributors page</a> for a full list.</p>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">

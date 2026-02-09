@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Core API Reference &mdash; OneCite 0.0.11 documentation</title>
+  <title>Core API Reference &mdash; OneCite 0.0.12 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=0c446633"></script>
+      <script src="../_static/documentation_options.js?v=3bbcec59"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -53,7 +53,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../advanced_usage.html">Advanced Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../mcp_integration.html">automation Assistant Integration with MCP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../output_formats.html">Output Formats</a></li>
 </ul>
@@ -263,7 +262,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">bib_key</span></code> (str): BibTeX citation key (e.g., “LeCun2015Deep”)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bib_data</span></code> (dict): Complete bibliographic data with all fields</p></li>
 </ul>
-<p><strong>Note:</strong> CompletedEntry is a TypedDict without methods. Use the <code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code> from <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> to convert entries to different output formats.</p>
+<p>CompletedEntry is a TypedDict. Use <code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code> from <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> to convert entries to different output formats.</p>
 </section>
 </section>
 <section id="classes">
@@ -312,7 +311,7 @@
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">process(input_content:</span> <span class="pre">str,</span> <span class="pre">input_type:</span> <span class="pre">str,</span> <span class="pre">template_name:</span> <span class="pre">str,</span> <span class="pre">output_format:</span> <span class="pre">str,</span> <span class="pre">interactive_callback:</span> <span class="pre">Callable)</span> <span class="pre">-&gt;</span> <span class="pre">Dict[str,</span> <span class="pre">Any]</span></code>: Execute the complete 4-stage processing pipeline</p></li>
 </ul>
-<p><strong>Note:</strong> Most users should use the <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> function instead, which provides a simpler interface. PipelineController is a lower-level API for advanced use cases.</p>
+<p>For typical usage, <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> is simpler. PipelineController exposes a lower-level API for advanced use cases.</p>
 <p><strong>Example:</strong></p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">PipelineController</span>
 

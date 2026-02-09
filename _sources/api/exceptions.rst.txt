@@ -152,7 +152,7 @@ Raised when data source resolution fails.
         print("Could not find the reference in data sources")
         print("Check your internet connection or try again later")
 
-Comprehensive Error Handling
+Error Handling
 -----------------------------
 
 Handling All Exceptions
@@ -253,4 +253,4 @@ Next Steps
 
 - See :doc:`../api/core` for core API reference
 - Check :doc:`../python_api` for usage examples
-- Review :doc:`../error` for error handling patterns
+- Review :doc:`../faq` for error handling patterns

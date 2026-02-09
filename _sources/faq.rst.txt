@@ -7,7 +7,7 @@ General Questions
 What is OneCite?
 ~~~~~~~~~~~~~~~~
 
-OneCite is a universal citation and academic reference toolkit that helps you manage bibliographic data. It automates the process of converting various reference formats (DOI, titles, arXiv IDs, etc.) into clean, properly formatted citations in BibTeX, APA, or MLA formats.
+OneCite is a citation and academic reference toolkit that helps you manage bibliographic data. It converts reference formats (DOI, titles, arXiv IDs, etc.) into properly formatted citations in BibTeX, APA, or MLA.
 
 How much does OneCite cost?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,7 +141,7 @@ Which data source is best for my field?
 - OneCite will prioritize CS-related sources
 
 **For General Academic Work:**
-- Use DOI (most comprehensive)
+- Use DOI (most reliable)
 - Fall back to title + author for identification
 
 Do I need API keys?
@@ -238,28 +238,6 @@ Yes! Use the ``interactive_callback`` parameter::
         input_content="ambiguous reference",
         interactive_callback=my_selector
     )
-
-MCP Integration Questions
--------------------------
-
-What is MCP?
-~~~~~~~~~~~~
-
-MCP (Model Context Protocol) is an open standard for connecting MCP clients with tools. It lets MCP client and other MCP clients directly use OneCite.
-
-How do I set up MCP integration?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-See :doc:`mcp_integration` for detailed setup instructions for MCP desktop client and editor client.
-
-Can I use OneCite with other MCP clients?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-OneCite is compatible with any MCP client that supports MCP, including:
-
-- MCP client (MCP desktop client)
-- editor client Editor
-- Other future MCP-compatible assistants
 
 Troubleshooting Questions
 -------------------------
@@ -378,4 +356,3 @@ Next Steps
 - See :doc:`quick_start` to get started
 - Learn :doc:`python_api` for programmatic access
 - Explore :doc:`templates` for custom formats
-- Check :doc:`mcp_integration` for MCP client integration

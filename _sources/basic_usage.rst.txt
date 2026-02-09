@@ -100,7 +100,7 @@ Example interaction::
        DOI: 10.4249/scholarpedia.5947
     
     Please select (1-2, 0=skip): 1
-    ✅ Selected: Deep learning
+    Selected: Deep learning
 
 **Quiet Mode (--quiet)**
 

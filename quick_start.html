@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick Start Guide &mdash; OneCite 0.0.11 documentation</title>
+  <title>Quick Start Guide &mdash; OneCite 0.0.12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/documentation_options.js?v=3bbcec59"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -62,7 +62,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">automation Assistant Integration with MCP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
 </ul>
@@ -116,7 +115,7 @@
              
   <section id="quick-start-guide">
 <h1>Quick Start Guide<a class="headerlink" href="#quick-start-guide" title="Link to this heading"></a></h1>
-<p>In this guide, we’ll help you get started with OneCite in just a few minutes.</p>
+<p>This guide walks through a basic OneCite workflow.</p>
 <section id="installation">
 <h2>1. Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h2>
 <p>First, install OneCite using pip:</p>
@@ -127,7 +126,7 @@
 <section id="create-your-input-file">
 <h2>2. Create Your Input File<a class="headerlink" href="#create-your-input-file" title="Link to this heading"></a></h2>
 <p>Create a file named <code class="docutils literal notranslate"><span class="pre">references.txt</span></code> with your mixed-format references.</p>
-<p><strong>Important:</strong> Add blank lines between entries to avoid misidentification.</p>
+<p>Add blank lines between entries to avoid misidentification.</p>
 <p>Example <code class="docutils literal notranslate"><span class="pre">references.txt</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
 
@@ -155,7 +154,7 @@
 </section>
 <section id="view-your-results">
 <h2>4. View Your Results<a class="headerlink" href="#view-your-results" title="Link to this heading"></a></h2>
-<p>Your <code class="docutils literal notranslate"><span class="pre">results.bib</span></code> file now contains 7 perfectly formatted entries in BibTeX format:</p>
+<p>Your <code class="docutils literal notranslate"><span class="pre">results.bib</span></code> file now contains entries in BibTeX format:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nd">@article</span><span class="p">{</span><span class="n">LeCun2015Deep</span><span class="p">,</span>
   <span class="n">doi</span> <span class="o">=</span> <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
   <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Deep learning&quot;</span><span class="p">,</span>
@@ -184,10 +183,8 @@
 <section id="common-command-line-options">
 <h2>Common Command-Line Options<a class="headerlink" href="#common-command-line-options" title="Link to this heading"></a></h2>
 <p><strong>Output Formats</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate APA formatted citations</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
 
-<span class="c1"># Generate MLA formatted citations</span>
 <span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
 </pre></div>
 </div>
@@ -230,7 +227,6 @@
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Learn more about <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced Usage</span></a></p></li>
-<li><p>Explore <a class="reference internal" href="mcp_integration.html"><span class="doc">automation Assistant Integration with MCP</span></a> for MCP client integration</p></li>
 <li><p>Check <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> to customize output format</p></li>
 <li><p>See <a class="reference internal" href="api/core.html"><span class="doc">Core API Reference</span></a> for Python API reference</p></li>
 </ul>

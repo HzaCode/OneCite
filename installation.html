@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Installation Guide &mdash; OneCite 0.0.11 documentation</title>
+  <title>Installation Guide &mdash; OneCite 0.0.12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/documentation_options.js?v=3bbcec59"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Quick Start Guide" href="quick_start.html" />
-    <link rel="prev" title="OneCite - Universal Citation &amp; Academic Reference Toolkit" href="index.html" /> 
+    <link rel="prev" title="OneCite - Citation &amp; Academic Reference Toolkit" href="index.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,7 +51,6 @@
 <li class="toctree-l2"><a class="reference internal" href="#installing-from-source">Installing from Source</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#optional-dependencies">Optional Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#verifying-the-installation">Verifying the Installation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#mcp-server">MCP Server</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#upgrading-onecite">Upgrading OneCite</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#dependency-conflicts">Dependency Conflicts</a></li>
@@ -69,7 +68,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">automation Assistant Integration with MCP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
 </ul>
@@ -151,11 +149,15 @@
 </section>
 <section id="optional-dependencies">
 <h2>Optional Dependencies<a class="headerlink" href="#optional-dependencies" title="Link to this heading"></a></h2>
-<p>For development and testing, install development dependencies:</p>
+<p>For Google Scholar support (disabled by default):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span><span class="p">[</span><span class="n">scholar</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>For development and testing:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">onecite</span><span class="p">[</span><span class="n">dev</span><span class="p">]</span>
 </pre></div>
 </div>
-<p>This will install the following additional packages:</p>
+<p>Dev extras:</p>
 <ul class="simple">
 <li><p>pytest - Testing framework</p></li>
 <li><p>pytest-cov - Coverage reporting</p></li>
@@ -170,14 +172,6 @@
 </pre></div>
 </div>
 <p>You should see the version number printed.</p>
-</section>
-<section id="mcp-server">
-<h2>MCP Server<a class="headerlink" href="#mcp-server" title="Link to this heading"></a></h2>
-<p>OneCite includes a Model Context Protocol (MCP) server. To test it:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span><span class="o">-</span><span class="n">mcp</span>
-</pre></div>
-</div>
-<p>This will start the MCP server. You can now configure your MCP client to use it. For more details, see <a class="reference internal" href="mcp_integration.html"><span class="doc">automation Assistant Integration with MCP</span></a>.</p>
 </section>
 <section id="upgrading-onecite">
 <h2>Upgrading OneCite<a class="headerlink" href="#upgrading-onecite" title="Link to this heading"></a></h2>
@@ -235,7 +229,7 @@
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="index.html" class="btn btn-neutral float-left" title="OneCite - Universal Citation &amp; Academic Reference Toolkit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="index.html" class="btn btn-neutral float-left" title="OneCite - Citation &amp; Academic Reference Toolkit" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="quick_start.html" class="btn btn-neutral float-right" title="Quick Start Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

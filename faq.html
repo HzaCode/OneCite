@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Frequently Asked Questions (FAQ) &mdash; OneCite 0.0.11 documentation</title>
+  <title>Frequently Asked Questions (FAQ) &mdash; OneCite 0.0.12 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
-      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=0c446633"></script>
+      <script src="_static/documentation_options.js?v=3bbcec59"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -53,7 +53,6 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="mcp_integration.html">automation Assistant Integration with MCP</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
 </ul>
@@ -107,12 +106,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#can-i-use-onecite-in-my-python-project">Can I use OneCite in my Python project?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-do-i-handle-errors-in-the-api">How do I handle errors in the API?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#can-i-use-callbacks-for-custom-handling">Can I use callbacks for custom handling?</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#mcp-integration-questions">MCP Integration Questions</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#what-is-mcp">What is MCP?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-do-i-set-up-mcp-integration">How do I set up MCP integration?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#can-i-use-onecite-with-other-ai-assistants">Can I use OneCite with other MCP clients?</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting-questions">Troubleshooting Questions</a><ul>
@@ -178,7 +171,7 @@
 <h2>General Questions<a class="headerlink" href="#general-questions" title="Link to this heading"></a></h2>
 <section id="what-is-onecite">
 <h3>What is OneCite?<a class="headerlink" href="#what-is-onecite" title="Link to this heading"></a></h3>
-<p>OneCite is a universal citation and academic reference toolkit that helps you manage bibliographic data. It automates the process of converting various reference formats (DOI, titles, arXiv IDs, etc.) into clean, properly formatted citations in BibTeX, APA, or MLA formats.</p>
+<p>OneCite is a citation and academic reference toolkit that helps you manage bibliographic data. It converts reference formats (DOI, titles, arXiv IDs, etc.) into properly formatted citations in BibTeX, APA, or MLA.</p>
 </section>
 <section id="how-much-does-onecite-cost">
 <h3>How much does OneCite cost?<a class="headerlink" href="#how-much-does-onecite-cost" title="Link to this heading"></a></h3>
@@ -310,7 +303,7 @@ Get-ChildItem *.txt | ForEach-Object {
 - Use DOI from DBLP when available
 - OneCite will prioritize CS-related sources</p>
 <p><strong>For General Academic Work:</strong>
-- Use DOI (most comprehensive)
+- Use DOI (most reliable)
 - Fall back to title + author for identification</p>
 </section>
 <section id="do-i-need-api-keys">
@@ -403,26 +396,6 @@ Get-ChildItem *.txt | ForEach-Object {
 <span class="p">)</span>
 </pre></div>
 </div>
-</section>
-</section>
-<section id="mcp-integration-questions">
-<h2>MCP Integration Questions<a class="headerlink" href="#mcp-integration-questions" title="Link to this heading"></a></h2>
-<section id="what-is-mcp">
-<h3>What is MCP?<a class="headerlink" href="#what-is-mcp" title="Link to this heading"></a></h3>
-<p>MCP (Model Context Protocol) is an open standard for connecting MCP clients with tools. It lets MCP client and other MCP clients directly use OneCite.</p>
-</section>
-<section id="how-do-i-set-up-mcp-integration">
-<h3>How do I set up MCP integration?<a class="headerlink" href="#how-do-i-set-up-mcp-integration" title="Link to this heading"></a></h3>
-<p>See <a class="reference internal" href="mcp_integration.html"><span class="doc">automation Assistant Integration with MCP</span></a> for detailed setup instructions for MCP desktop client and editor client.</p>
-</section>
-<section id="can-i-use-onecite-with-other-ai-assistants">
-<h3>Can I use OneCite with other MCP clients?<a class="headerlink" href="#can-i-use-onecite-with-other-ai-assistants" title="Link to this heading"></a></h3>
-<p>OneCite is compatible with any MCP client that supports MCP, including:</p>
-<ul class="simple">
-<li><p>MCP client (MCP desktop client)</p></li>
-<li><p>editor client Editor</p></li>
-<li><p>Other future MCP-compatible assistants</p></li>
-</ul>
 </section>
 </section>
 <section id="troubleshooting-questions">
@@ -538,7 +511,6 @@ Get-ChildItem *.txt | ForEach-Object {
 <li><p>See <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a> to get started</p></li>
 <li><p>Learn <a class="reference internal" href="python_api.html"><span class="doc">Python API Reference</span></a> for programmatic access</p></li>
 <li><p>Explore <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for custom formats</p></li>
-<li><p>Check <a class="reference internal" href="mcp_integration.html"><span class="doc">automation Assistant Integration with MCP</span></a> for MCP client integration</p></li>
 </ul>
 </section>
 </section>
