@@ -283,12 +283,15 @@ Batch Processing
     ]
     
     result = controller.process(
-        entries=references,
-        output_format="bibtex"
+        input_content="\n\n".join(references),
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
+        interactive_callback=lambda candidates: 0
     )
     
-    print(f"Processed: {result['processed_count']}")
-    print(f"Failed: {result['failed_count']}")
+    print(f"Processed: {result['report']['succeeded']}")
+    print(f"Failed: {len(result['report']['failed_entries'])}")
 
 Performance Optimization
 ------------------------
@@ -298,7 +301,13 @@ Performance Optimization
 ::
 
     # Fast path for single reference
-    result = process_references("10.1038/nature14539")
+    result = process_references(
+        input_content="10.1038/nature14539",
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
+        interactive_callback=lambda c: 0
+    )
 
 **Batch References:**
 
@@ -329,7 +338,13 @@ Validation Errors
     from onecite import ValidationError
     
     try:
-        result = process_references("")
+        result = process_references(
+            input_content="",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda c: 0
+        )
     except ValidationError:
         print("Empty input")
 
@@ -341,7 +356,13 @@ Resolution Errors
     from onecite import ResolverError
     
     try:
-        result = process_references("invalid/doi")
+        result = process_references(
+            input_content="invalid/doi",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda c: 0
+        )
     except ResolverError:
         print("Could not find reference")
         print("Check identifier or try again later")
@@ -353,14 +374,20 @@ Partial Success
 
     from onecite import process_references
     
-    result = process_references(mixed_refs)
+    result = process_references(
+        input_content=mixed_refs,
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
+        interactive_callback=lambda c: 0
+    )
     
-    print(f"Success: {result['processed_count']}")
-    print(f"Failed: {result['failed_count']}")
+    print(f"Success: {result['report']['succeeded']}")
+    print(f"Failed: {len(result['report']['failed_entries'])}")
     
-    if result['warnings']:
-        for warning in result['warnings']:
-            print(f"Warning: {warning}")
+    if result['report']['failed_entries']:
+        for entry in result['report']['failed_entries']:
+            print(f"Failed entry {entry['id']}: {entry.get('error', 'Unknown')}")
 
 Pipeline Configuration
 ======================

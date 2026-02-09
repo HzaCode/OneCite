@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Contributing to OneCite &mdash; OneCite 0.0.12 documentation</title>
+  <title>Contributing to OneCite &mdash; OneCite 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=3bbcec59"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -407,10 +407,13 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">test_process_references_with_doi</span><span class="p">():</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
         <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
-        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
     <span class="p">)</span>
-    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;processed_count&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
-    <span class="k">assert</span> <span class="s1">&#39;10.1038/nature14539&#39;</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;output_content&#39;</span><span class="p">]</span>
+    <span class="k">assert</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span>
+    <span class="k">assert</span> <span class="nb">any</span><span class="p">(</span><span class="s1">&#39;10.1038/nature14539&#39;</span> <span class="ow">in</span> <span class="n">r</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>
@@ -563,7 +566,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2024, OneCite Team.</p>
+    <p>&#169; Copyright 2025, OneCite Team.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
