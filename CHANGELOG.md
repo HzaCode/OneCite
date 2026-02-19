@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Changed
+- Unify CrossRef request and parsing methods in pipeline (#26)
+
 ## [0.1.0] - 2025-02-09
 
 ### Added
