@@ -142,21 +142,25 @@ class ParserModule:
             
             # If no DOI or URL found, build a concise query string from title/author/year
             if not raw_entry['doi'] and not raw_entry['url']:
-                lines = [ln.strip() for ln in block.splitlines() if ln.strip()]
-                title_text = lines[0] if lines else block
-                authors_text = lines[1] if len(lines) > 1 else ''
-                year_match = re.search(r'(19|20)\d{2}', block)
-                year_text = year_match.group(0) if year_match else ''
+                # Check if block is a bare PMID (7-8 digits, optionally prefixed with "PMID:")
+                if re.match(r'^(PMID:?\s*)?\d{7,8}$', block.strip(), re.IGNORECASE):
+                    raw_entry['query_string'] = block.strip()
+                else:
+                    lines = [ln.strip() for ln in block.splitlines() if ln.strip()]
+                    title_text = lines[0] if lines else block
+                    authors_text = lines[1] if len(lines) > 1 else ''
+                    year_match = re.search(r'(19|20)\d{2}', block)
+                    year_text = year_match.group(0) if year_match else ''
 
-                query_parts: List[str] = []
-                if title_text:
-                    query_parts.append(title_text)
-                if authors_text:
-                    query_parts.append(authors_text)
-                if year_text:
-                    query_parts.append(year_text)
+                    query_parts: List[str] = []
+                    if title_text:
+                        query_parts.append(title_text)
+                    if authors_text:
+                        query_parts.append(authors_text)
+                    if year_text:
+                        query_parts.append(year_text)
 
-                raw_entry['query_string'] = ' '.join(query_parts) or block
+                    raw_entry['query_string'] = ' '.join(query_parts) or block
             
             entries.append(raw_entry)
         
@@ -2352,6 +2356,7 @@ class EnricherModule:
         """
         self.logger = logging.getLogger(__name__)
         self.crossref_base_url = "https://api.crossref.org/works"
+        self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.use_google_scholar = use_google_scholar
         self._used_keys: set = set()
     
@@ -2560,15 +2565,15 @@ class EnricherModule:
             }
     
     def _strip_html_tags(self, text: str) -> str:
-        """Strip HTML tags from text and convert to plain text."""
+        """Strip HTML/XML tags from text and convert to plain text."""
         if not text:
             return text
         
-        # Unescape HTML entities first (e.g., & -> &)
-        text = unescape(text)
+        # Remove all HTML/XML tags first (replace with space to avoid word concatenation)
+        clean_text = re.sub(r'<[^>]+>', ' ', text)
         
-        # Remove all HTML tags using regex
-        clean_text = re.sub(r'<[^>]+>', '', text)
+        # Unescape HTML entities (may need multiple passes for double-escaped entities)
+        clean_text = unescape(unescape(clean_text))
         
         # Clean up extra spaces that may result
         clean_text = re.sub(r'\s+', ' ', clean_text).strip()
@@ -2603,8 +2608,13 @@ class EnricherModule:
                 'pages': work.get('page'),
                 'publisher': work.get('publisher'),
                 'url': work.get('URL'),
-                'type': work.get('type', '')
+                'type': work.get('type', ''),
+                'abstract': work.get('abstract')  # Extract abstract if available
             }
+            
+            # Clean up abstract HTML tags if present
+            if metadata['abstract']:
+                metadata['abstract'] = self._strip_html_tags(metadata['abstract'])
             
             # Book specific fields
             if work.get('type') in ['book', 'monograph', 'edited-book', 'reference-book']:
@@ -2866,8 +2876,14 @@ class EnricherModule:
         """Try each source in priority order to fill a missing field."""
         for source in source_priority:
             if source == 'crossref_api':
-                # Already got fromCrossref, skip
+                # Already got from Crossref, skip
                 continue
+            elif source == 'pubmed_api':
+                # Try PubMed for abstract
+                if field_name == 'abstract':
+                    value = self._get_pubmed_abstract(base_record)
+                    if value:
+                        return value
             elif source == 'google_scholar_scraper':
                 # Only use Google Scholar if enabled
                 if self.use_google_scholar:
@@ -2879,6 +2895,91 @@ class EnricherModule:
             elif source == 'user_prompt':
                 # User input not handled here, left to frontend
                 continue
+        
+        return None
+    
+    def _get_pubmed_abstract(self, base_record: Dict) -> Optional[str]:
+        """Get abstract from PubMed using DOI or title/author search."""
+        try:
+            doi = base_record.get('doi')
+            pmid = None
+            
+            # Step 1: Try to find PMID by DOI
+            if doi:
+                url = f"{self.pubmed_base}/esearch.fcgi"
+                params = {
+                    'db': 'pubmed',
+                    'term': f'{doi}[DOI]',
+                    'retmode': 'json',
+                    'retmax': 1
+                }
+                response = requests.get(url, params=params, timeout=10)
+                response.raise_for_status()
+                data = response.json()
+                idlist = data.get('esearchresult', {}).get('idlist', [])
+                if idlist:
+                    pmid = idlist[0]
+                    self.logger.info(f"Found PMID {pmid} for DOI {doi}")
+            
+            # Step 2: If no PMID found by DOI, try searching by title
+            if not pmid:
+                title = base_record.get('title', '')
+                if title:
+                    # Clean title for search
+                    search_title = re.sub(r'[^\w\s]', ' ', title).strip()
+                    url = f"{self.pubmed_base}/esearch.fcgi"
+                    params = {
+                        'db': 'pubmed',
+                        'term': search_title,
+                        'retmode': 'json',
+                        'retmax': 3
+                    }
+                    response = requests.get(url, params=params, timeout=10)
+                    response.raise_for_status()
+                    data = response.json()
+                    idlist = data.get('esearchresult', {}).get('idlist', [])
+                    if idlist:
+                        pmid = idlist[0]
+                        self.logger.info(f"Found PMID {pmid} by title search")
+            
+            # Step 3: Fetch abstract by PMID
+            if pmid:
+                url = f"{self.pubmed_base}/efetch.fcgi"
+                params = {
+                    'db': 'pubmed',
+                    'id': pmid,
+                    'retmode': 'xml'
+                }
+                response = requests.get(url, params=params, timeout=10)
+                response.raise_for_status()
+                
+                # Parse XML to get abstract
+                import xml.etree.ElementTree as ET
+                root = ET.fromstring(response.content)
+                
+                # Handle structured abstracts (multiple AbstractText with Label)
+                abstract_elems = root.findall('.//Abstract/AbstractText')
+                if abstract_elems:
+                    parts = []
+                    for elem in abstract_elems:
+                        label = elem.get('Label', '')
+                        text = ''.join(elem.itertext()).strip()
+                        if text:
+                            if label:
+                                parts.append(f"{label}: {text}")
+                            else:
+                                parts.append(text)
+                    if parts:
+                        abstract = ' '.join(parts)
+                        self.logger.info(f"Successfully retrieved abstract from PubMed (PMID: {pmid})")
+                        return abstract
+                
+                self.logger.warning(f"No abstract found in PubMed record (PMID: {pmid})")
+            else:
+                self.logger.warning(f"Could not find PMID for DOI {doi} or title")
+            
+        except Exception as e:
+            self.logger.warning(f"Failed to get abstract from PubMed: {str(e)}")
         
         return None
     
