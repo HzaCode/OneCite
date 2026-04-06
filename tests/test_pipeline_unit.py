@@ -777,6 +777,129 @@ class TestEnricher:
              patch("time.sleep"), patch("time.time", return_value=1000.0):
             assert e._fetch_from_google_scholar("pages", {"title": "T"}) is None
 
+    def test_strip_html_jats_and_entities(self):
+        """JATS tags replaced with space (no word merging); double-escaped entities decoded."""
+        e = EnricherModule(use_google_scholar=False)
+        jats = "<jats:title>Background</jats:title><jats:p>The treatment.</jats:p>"
+        result = e._strip_html_tags(jats)
+        assert "Background" in result and "The treatment" in result
+        assert "BackgroundThe" not in result
+        text = "p &amp;gt; 0.05 and p &amp;lt; 0.01"
+        result2 = e._strip_html_tags(text)
+        assert "&gt;" not in result2 and ">" in result2
+        assert "&lt;" not in result2 and "<" in result2
+
+    def test_crossref_metadata_abstract(self):
+        """Abstract extracted and JATS-cleaned when present; absent when Crossref omits it."""
+        e = EnricherModule(use_google_scholar=False)
+        payload_with = {"message": {
+            "DOI": "10.1234/test", "title": ["Test Article"],
+            "author": [{"given": "Jane", "family": "Doe"}],
+            "container-title": ["Test Journal"],
+            "published-print": {"date-parts": [[2023]]},
+            "abstract": "<jats:p>This is the <jats:italic>abstract</jats:italic> text.</jats:p>",
+        }}
+        with patch("onecite.pipeline.requests.get",
+                   return_value=DummyResponse(json_data=payload_with)):
+            meta = e._get_crossref_metadata("10.1234/test")
+        assert "abstract" in meta and "abstract" in meta["abstract"]
+        assert "<jats:" not in meta["abstract"]
+
+        payload_without = {"message": {
+            "DOI": "10.1234/noabs", "title": ["No Abstract"],
+            "author": [{"given": "A", "family": "B"}],
+            "container-title": ["J"],
+            "published-print": {"date-parts": [[2020]]},
+        }}
+        with patch("onecite.pipeline.requests.get",
+                   return_value=DummyResponse(json_data=payload_without)):
+            assert "abstract" not in e._get_crossref_metadata("10.1234/noabs")
+
+    def test_get_pubmed_abstract_via_doi(self):
+        """_get_pubmed_abstract resolves DOI → PMID → fetches abstract."""
+        e = EnricherModule(use_google_scholar=False)
+        xml_content = b"""<?xml version="1.0"?>
+        <PubmedArticleSet><PubmedArticle><MedlineCitation>
+          <Article><Abstract>
+            <AbstractText>This is the PubMed abstract.</AbstractText>
+          </Abstract></Article>
+        </MedlineCitation></PubmedArticle></PubmedArticleSet>"""
+
+        def fake_get(url, *a, **kw):
+            params = kw.get("params", {})
+            if "esearch" in url:
+                return DummyResponse(json_data={
+                    "esearchresult": {"idlist": ["12345678"]}
+                })
+            if "efetch" in url:
+                return DummyResponse(content=xml_content)
+            return DummyResponse(status_code=404, json_data={})
+
+        with patch("onecite.pipeline.requests.get", side_effect=fake_get):
+            result = e._get_pubmed_abstract({"doi": "10.1234/test"})
+
+        assert result == "This is the PubMed abstract."
+
+    def test_get_pubmed_abstract_structured(self):
+        """Structured abstracts (multiple AbstractText with Label) are joined."""
+        e = EnricherModule(use_google_scholar=False)
+        xml_content = b"""<?xml version="1.0"?>
+        <PubmedArticleSet><PubmedArticle><MedlineCitation>
+          <Article><Abstract>
+            <AbstractText Label="BACKGROUND">Background text.</AbstractText>
+            <AbstractText Label="METHODS">Methods text.</AbstractText>
+            <AbstractText Label="RESULTS">Results text.</AbstractText>
+          </Abstract></Article>
+        </MedlineCitation></PubmedArticle></PubmedArticleSet>"""
+
+        def fake_get(url, *a, **kw):
+            if "esearch" in url:
+                return DummyResponse(json_data={"esearchresult": {"idlist": ["99999"]}})
+            if "efetch" in url:
+                return DummyResponse(content=xml_content)
+            return DummyResponse(status_code=404, json_data={})
+
+        with patch("onecite.pipeline.requests.get", side_effect=fake_get):
+            result = e._get_pubmed_abstract({"doi": "10.1234/struct"})
+
+        assert result is not None
+        assert "BACKGROUND: Background text." in result
+        assert "METHODS: Methods text." in result
+        assert "RESULTS: Results text." in result
+
+    def test_get_pubmed_abstract_returns_none(self):
+        """Returns None when PMID not found, or when PubMed record has no Abstract."""
+        e = EnricherModule(use_google_scholar=False)
+
+        with patch("onecite.pipeline.requests.get",
+                   return_value=DummyResponse(json_data={"esearchresult": {"idlist": []}})):
+            assert e._get_pubmed_abstract({"doi": "10.9999/notinpubmed"}) is None
+
+        xml_no_abstract = b"""<?xml version="1.0"?>
+        <PubmedArticleSet><PubmedArticle><MedlineCitation>
+          <Article><ArticleTitle>No abstract here</ArticleTitle></Article>
+        </MedlineCitation></PubmedArticle></PubmedArticleSet>"""
+
+        def fake_get(url, *a, **kw):
+            if "esearch" in url:
+                return DummyResponse(json_data={"esearchresult": {"idlist": ["77777"]}})
+            return DummyResponse(content=xml_no_abstract)
+
+        with patch("onecite.pipeline.requests.get", side_effect=fake_get):
+            assert e._get_pubmed_abstract({"doi": "10.1234/noabs"}) is None
+
+    def test_fetch_missing_field_abstract_sources(self):
+        """pubmed_api delegates to _get_pubmed_abstract; crossref_api is always skipped."""
+        e = EnricherModule(use_google_scholar=False)
+        with patch.object(e, "_get_pubmed_abstract", return_value="Mocked abstract") as m:
+            val = e._fetch_missing_field("abstract", ["pubmed_api"], {"doi": "10.1/x"})
+        assert val == "Mocked abstract"
+        m.assert_called_once_with({"doi": "10.1/x"})
+
+        with patch.object(e, "_get_pubmed_abstract", return_value=None) as m:
+            assert e._fetch_missing_field("abstract", ["crossref_api"], {"doi": "10.1/x"}) is None
+        m.assert_not_called()
+
 
 # ===================================================================
 # FormatterModule
