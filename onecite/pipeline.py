@@ -3124,33 +3124,24 @@ class FormatterModule:
         }
     
     def _format_bibtex(self, entry: CompletedEntry) -> str:
-        """Format to BibTeX format"""
+        """Format to BibTeX using bibtexparser.dumps() for standards-compliant output."""
         bib_data = entry['bib_data']
         entry_type = bib_data.get('ENTRYTYPE', 'article')
         entry_id = bib_data.get('ID', entry['bib_key'])
-        
-        lines = [f"@{entry_type}{{{entry_id},"]
-        
+
+        record = {'ENTRYTYPE': entry_type, 'ID': entry_id}
         for key, value in bib_data.items():
-            if key not in ['ENTRYTYPE', 'ID'] and value:
-                # Preserve LaTeX escape sequences
-                # Don't strip braces blindly, they may be part of LaTeX commands
+            if key not in ('ENTRYTYPE', 'ID') and value:
                 value_str = str(value)
-                
-                # Only for fields that should have LaTeX escaping (author, title, etc.)
-                if key in ['author', 'title', 'journal', 'publisher', 'note', 
-                          'booktitle', 'series', 'address', 'howpublished']:
-                    # Convert Unicode characters to LaTeX escape sequences
-                    clean_value = self._escape_latex_chars(value_str)
+                if key in ('author', 'title', 'journal', 'publisher', 'note',
+                           'booktitle', 'series', 'address', 'howpublished'):
+                    record[key] = self._escape_latex_chars(value_str)
                 else:
-                    # For other fields, just use as-is but remove outer braces if they exist
-                    clean_value = value_str.strip('{}')
-                
-                if key in ['volume', 'number', 'year']:
-                    lines.append(f"  {key} = {clean_value},")
-                else:
-                    lines.append(f'  {key} = "{clean_value}",')
-        
-        lines.append('}')
-        return '\n'.join(lines)
+                    record[key] = value_str.strip('{}')
+
+        db = bibtexparser.bibdatabase.BibDatabase()
+        db.entries = [record]
+        writer = bibtexparser.bwriter.BibTexWriter()
+        writer.indent = '  '
+        return bibtexparser.dumps(db, writer).strip()
     
