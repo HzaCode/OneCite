@@ -51,29 +51,9 @@ Process multiple files sequentially::
 Working with Different Data Sources
 ------------------------------------
 
-OneCite routes queries to data sources based on content type:
+OneCite queries multiple data sources (CrossRef, PubMed, arXiv, Semantic Scholar, Google Books, and others) and selects the best match. All sources are tried for every reference — you do not need to configure routing manually::
 
-**For Biomedical Literature**
-
-Add search terms related to medicine, biology, or health::
-
-    onecite process medical_refs.txt
-
-This will prioritize PubMed when available.
-
-**For Computer Science**
-
-Add search terms related to CS topics::
-
-    onecite process cs_refs.txt
-
-This will prioritize DBLP and arXiv.
-
-**For General Academic Work**
-
-Mixed references will use CrossRef and Semantic Scholar::
-
-    onecite process general_refs.txt
+    onecite process references.txt
 
 Custom Templates
 ----------------

@@ -13,11 +13,18 @@ Supported Input Formats
 
 **Plain Text (.txt)**
 
-A simple text file with one reference per line or separated by blank lines::
+A text file where each reference is separated by a **blank line**::
 
     10.1038/nature14539
+
     Vaswani et al., 2017, Attention is all you need
+
     Smith (2020) Neural Architecture Search
+
+.. note::
+
+   Each entry must be separated by at least one blank line. Adjacent lines
+   within the same block are treated as a single entry.
 
 **BibTeX (.bib)**
 
@@ -108,6 +115,25 @@ Suppress verbose output::
 
     onecite process input.txt --quiet
 
+**Google Scholar (--google-scholar)**
+
+Enable Google Scholar as an additional data source (requires the optional ``scholarly`` package)::
+
+    onecite process input.txt --google-scholar
+
+**Direct String Input**
+
+Pass a reference string directly instead of a file::
+
+    onecite process "10.1038/nature14539"
+    onecite process "Attention is all you need, Vaswani et al., NIPS 2017"
+
+**Stdin Input**
+
+Read from standard input using ``-``::
+
+    echo "10.1038/nature14539" | onecite process -
+
 **Help (--help)**
 
 Display help information::
@@ -126,6 +152,7 @@ Example 1: Process a BibTeX File
     onecite process my_references.bib -o clean_references.bib --quiet
 
 This will read ``my_references.bib``, enhance the entries, and save to ``clean_references.bib``.
+The ``--input-type`` flag is optional for ``.bib`` files — OneCite detects the format automatically.
 
 Example 2: Convert to APA Format
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

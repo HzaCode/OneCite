@@ -147,17 +147,19 @@
     <span class="n">input_type</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">template_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="n">output_format</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]],</span> <span class="nb">int</span><span class="p">]</span>
+    <span class="n">interactive_callback</span><span class="p">:</span> <span class="n">Callable</span><span class="p">[[</span><span class="n">List</span><span class="p">[</span><span class="n">Dict</span><span class="p">]],</span> <span class="nb">int</span><span class="p">],</span>
+    <span class="n">use_google_scholar</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span>
 </pre></div>
 </div>
 <p><strong>Parameters:</strong></p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">input_content</span></code> (str): The reference content to process</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">input_type</span></code> (str): Type of input - “txt” or “bib” (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">template_name</span></code> (str): Template name to use (e.g., “journal_article_full”) (required)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">output_format</span></code> (str): Output format - “bibtex”, “apa”, or “mla” (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">input_type</span></code> (str): Type of input - <code class="docutils literal notranslate"><span class="pre">&quot;txt&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;bib&quot;</span></code> (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">template_name</span></code> (str): Template name to use (e.g., <code class="docutils literal notranslate"><span class="pre">&quot;journal_article_full&quot;</span></code>) (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output_format</span></code> (str): Output format - <code class="docutils literal notranslate"><span class="pre">&quot;bibtex&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;apa&quot;</span></code>, or <code class="docutils literal notranslate"><span class="pre">&quot;mla&quot;</span></code> (required)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> (Callable): Function to handle ambiguous matches. Takes a list of candidate dicts and returns the selected index (0-based), or -1 to skip (required)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">use_google_scholar</span></code> (bool): Enable Google Scholar as an additional data source. Requires the optional <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package. Default is <code class="docutils literal notranslate"><span class="pre">False</span></code>.</p></li>
 </ul>
 <p><strong>Returns:</strong></p>
 <p>A dictionary with keys:</p>

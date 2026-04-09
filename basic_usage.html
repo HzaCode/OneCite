@@ -132,11 +132,18 @@
 <section id="supported-input-formats">
 <h3>Supported Input Formats<a class="headerlink" href="#supported-input-formats" title="Link to this heading"></a></h3>
 <p><strong>Plain Text (.txt)</strong></p>
-<p>A simple text file with one reference per line or separated by blank lines:</p>
+<p>A text file where each reference is separated by a <strong>blank line</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
+
 <span class="n">Vaswani</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2017</span><span class="p">,</span> <span class="n">Attention</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">you</span> <span class="n">need</span>
+
 <span class="n">Smith</span> <span class="p">(</span><span class="mi">2020</span><span class="p">)</span> <span class="n">Neural</span> <span class="n">Architecture</span> <span class="n">Search</span>
 </pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Each entry must be separated by at least one blank line. Adjacent lines
+within the same block are treated as a single entry.</p>
 </div>
 <p><strong>BibTeX (.bib)</strong></p>
 <p>Standard BibTeX format files:</p>
@@ -224,6 +231,22 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">quiet</span>
 </pre></div>
 </div>
+<p><strong>Google Scholar (–google-scholar)</strong></p>
+<p>Enable Google Scholar as an additional data source (requires the optional <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">google</span><span class="o">-</span><span class="n">scholar</span>
+</pre></div>
+</div>
+<p><strong>Direct String Input</strong></p>
+<p>Pass a reference string directly instead of a file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="s2">&quot;10.1038/nature14539&quot;</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="s2">&quot;Attention is all you need, Vaswani et al., NIPS 2017&quot;</span>
+</pre></div>
+</div>
+<p><strong>Stdin Input</strong></p>
+<p>Read from standard input using <code class="docutils literal notranslate"><span class="pre">-</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">echo</span> <span class="s2">&quot;10.1038/nature14539&quot;</span> <span class="o">|</span> <span class="n">onecite</span> <span class="n">process</span> <span class="o">-</span>
+</pre></div>
+</div>
 <p><strong>Help (–help)</strong></p>
 <p>Display help information:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="o">--</span><span class="n">help</span>
@@ -239,7 +262,8 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">my_references</span><span class="o">.</span><span class="n">bib</span> <span class="o">-</span><span class="n">o</span> <span class="n">clean_references</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="n">quiet</span>
 </pre></div>
 </div>
-<p>This will read <code class="docutils literal notranslate"><span class="pre">my_references.bib</span></code>, enhance the entries, and save to <code class="docutils literal notranslate"><span class="pre">clean_references.bib</span></code>.</p>
+<p>This will read <code class="docutils literal notranslate"><span class="pre">my_references.bib</span></code>, enhance the entries, and save to <code class="docutils literal notranslate"><span class="pre">clean_references.bib</span></code>.
+The <code class="docutils literal notranslate"><span class="pre">--input-type</span></code> flag is optional for <code class="docutils literal notranslate"><span class="pre">.bib</span></code> files — OneCite detects the format automatically.</p>
 </section>
 <section id="example-2-convert-to-apa-format">
 <h3>Example 2: Convert to APA Format<a class="headerlink" href="#example-2-convert-to-apa-format" title="Link to this heading"></a></h3>
