@@ -66,7 +66,8 @@ def sample_references():
             "  journal={Nature},\n"
             "  year={2020},\n"
             "  volume={580},\n"
-            "  pages={1-10}\n"
+            "  pages={1-10},\n"
+            "  doi={10.1038/nature14539}\n"
             "}"
         ),
     }
