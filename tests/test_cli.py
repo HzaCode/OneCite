@@ -94,6 +94,21 @@ class TestCLIUnit:
 
     # -- Missing / bad input --------------------------------------------------
 
+    def test_bib_file_auto_detected(self, tmp_path, capsys):
+        """fix #9: .bib extension should auto-set input_type to 'bib'."""
+        inf = tmp_path / "refs.bib"
+        inf.write_text("@article{A, title={T}}", encoding="utf-8")
+        captured = {}
+
+        def _fake(*, input_type, **kw):
+            captured['input_type'] = input_type
+            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
+
+        with patch("onecite.cli.process_references", side_effect=_fake):
+            cli.process_command(self._ns(input_file=str(inf), quiet=True))
+
+        assert captured['input_type'] == 'bib'
+
     def test_google_scholar_flag_passed_through(self, capsys):
         """fix #10: --google-scholar flag must be forwarded to process_references."""
         captured = {}

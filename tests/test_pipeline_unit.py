@@ -691,6 +691,14 @@ class TestEnricher:
         assert e._strip_html_tags("Human-level <i>control</i> &amp; learning") == \
                "Human-level control & learning"
 
+    def test_semantic_scholar_429_returns_empty(self):
+        """fix #25: 429 from Semantic Scholar must return [] without raising."""
+        ident = IdentifierModule()
+        resp = DummyResponse(status_code=429, json_data={})
+        with patch("onecite.pipeline.requests.get", return_value=resp):
+            result = ident._search_semantic_scholar("attention is all you need")
+        assert result == []
+
     def test_crossref_request_has_user_agent_and_mailto(self):
         """fix #21: _get_crossref_metadata must send User-Agent and mailto."""
         e = EnricherModule(use_google_scholar=False)

@@ -42,10 +42,6 @@ This project adheres to the Contributor Covenant [Code of Conduct](CODE_OF_CONDU
 ```bash
 # Install the package in editable mode with development dependencies
 pip install -e ".[dev]"
-
-# Or install from requirements files
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
 ```
 
 ### Verify Installation
@@ -150,14 +146,6 @@ We follow [PEP 8](https://pep8.org/) style guide. Key points:
 - Maximum line length: 100 characters
 - Use descriptive variable and function names
 - Add docstrings to all public functions and classes
-
-### Code Formatting
-
-We use `black` for code formatting:
-
-```bash
-black onecite tests
-```
 
 ### Type Hints
 

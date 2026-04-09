@@ -931,6 +931,10 @@ class IdentifierModule:
             
             response = requests.get(url, params=params, timeout=10)
             
+            if response.status_code == 429:
+                self.logger.debug("Semantic Scholar rate-limited (429); skipping for this query.")
+                return []
+            
             if response.status_code == 200:
                 data = response.json()
                 papers = data.get('data', [])

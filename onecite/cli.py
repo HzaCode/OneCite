@@ -131,6 +131,8 @@ def process_command(args: "argparse.Namespace") -> int:
         elif os.path.exists(args.input_file):
             with open(args.input_file, 'r', encoding='utf-8') as f:
                 input_content = f.read()
+            if args.input_type == 'txt' and args.input_file.lower().endswith('.bib'):
+                args.input_type = 'bib'
         else:
             input_content = args.input_file
         
