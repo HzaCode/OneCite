@@ -27,7 +27,7 @@ The primary function for processing citations.
 - ``input_content`` (str): The reference content to process
 - ``input_type`` (str): Type of input - ``"txt"`` or ``"bib"`` (required)
 - ``template_name`` (str): Template name to use (e.g., ``"journal_article_full"``) (required)
-- ``output_format`` (str): Output format - ``"bibtex"``, ``"apa"``, or ``"mla"`` (required)
+- ``output_format`` (str): Output format - currently only ``"bibtex"`` is supported (required)
 - ``interactive_callback`` (Callable): Function to handle ambiguous matches. Takes a list of candidate dicts and returns the selected index (0-based), or -1 to skip (required)
 - ``use_google_scholar`` (bool): Enable Google Scholar as an additional data source. Requires the optional ``scholarly`` package. Default is ``False``.
 

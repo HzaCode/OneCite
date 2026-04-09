@@ -57,11 +57,11 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#practical-examples">Practical Examples</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-1-process-a-bibtex-file">Example 1: Process a BibTeX File</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-2-convert-to-apa-format">Example 2: Convert to APA Format</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-3-interactive-processing">Example 3: Interactive Processing</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-4-quick-check-without-saving">Example 4: Quick Check Without Saving</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-2-interactive-processing">Example 2: Interactive Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-3-quick-check-without-saving">Example 3: Quick Check Without Saving</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="#example-files">Example Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
@@ -171,24 +171,8 @@ within the same block are treated as a single entry.</p>
 </section>
 <section id="output-formats">
 <h3>Output Formats<a class="headerlink" href="#output-formats" title="Link to this heading"></a></h3>
-<p><strong>BibTeX (.bib)</strong> - Default format:</p>
+<p><strong>BibTeX (.bib)</strong> - The output format:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
-</pre></div>
-</div>
-<p><strong>APA</strong> - American Psychological Association format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
-</pre></div>
-</div>
-<p>Example APA output:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LeCun</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Hinton</span><span class="p">,</span> <span class="n">G</span><span class="o">.</span> <span class="p">(</span><span class="mi">2015</span><span class="p">)</span><span class="o">.</span> <span class="n">Deep</span> <span class="n">learning</span><span class="o">.</span> <span class="n">Nature</span><span class="p">,</span> <span class="mi">521</span><span class="p">(</span><span class="mi">7553</span><span class="p">),</span> <span class="mi">436</span><span class="o">-</span><span class="mf">444.</span>
-</pre></div>
-</div>
-<p><strong>MLA</strong> - Modern Language Association format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
-</pre></div>
-</div>
-<p>Example MLA output:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">LeCun</span><span class="p">,</span> <span class="n">Yann</span><span class="p">,</span> <span class="n">Yoshua</span> <span class="n">Bengio</span><span class="p">,</span> <span class="ow">and</span> <span class="n">Geoffrey</span> <span class="n">Hinton</span><span class="o">.</span> <span class="s2">&quot;Deep Learning.&quot;</span> <span class="n">Nature</span> <span class="mf">521.7553</span> <span class="p">(</span><span class="mi">2015</span><span class="p">):</span> <span class="mi">436</span><span class="o">-</span><span class="mf">444.</span>
 </pre></div>
 </div>
 </section>
@@ -199,9 +183,7 @@ within the same block are treated as a single entry.</p>
 </pre></div>
 </div>
 <p><strong>Output Format (–output-format)</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>  <span class="c1"># default</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>  <span class="c1"># only supported format</span>
 </pre></div>
 </div>
 <p><strong>Interactive Mode (–interactive)</strong></p>
@@ -265,27 +247,33 @@ within the same block are treated as a single entry.</p>
 <p>This will read <code class="docutils literal notranslate"><span class="pre">my_references.bib</span></code>, enhance the entries, and save to <code class="docutils literal notranslate"><span class="pre">clean_references.bib</span></code>.
 The <code class="docutils literal notranslate"><span class="pre">--input-type</span></code> flag is optional for <code class="docutils literal notranslate"><span class="pre">.bib</span></code> files — OneCite detects the format automatically.</p>
 </section>
-<section id="example-2-convert-to-apa-format">
-<h3>Example 2: Convert to APA Format<a class="headerlink" href="#example-2-convert-to-apa-format" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<p>This will process references and output them in APA format.</p>
-</section>
-<section id="example-3-interactive-processing">
-<h3>Example 3: Interactive Processing<a class="headerlink" href="#example-3-interactive-processing" title="Link to this heading"></a></h3>
+<section id="example-2-interactive-processing">
+<h3>Example 2: Interactive Processing<a class="headerlink" href="#example-2-interactive-processing" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">ambiguous</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">interactive</span>
 </pre></div>
 </div>
 <p>This will allow you to manually verify and select the correct match for each reference.</p>
 </section>
-<section id="example-4-quick-check-without-saving">
-<h3>Example 4: Quick Check Without Saving<a class="headerlink" href="#example-4-quick-check-without-saving" title="Link to this heading"></a></h3>
+<section id="example-3-quick-check-without-saving">
+<h3>Example 3: Quick Check Without Saving<a class="headerlink" href="#example-3-quick-check-without-saving" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">quiet</span>
 </pre></div>
 </div>
 <p>This will show you the processed results without saving to a file.</p>
 </section>
+</section>
+<section id="example-files">
+<h2>Example Files<a class="headerlink" href="#example-files" title="Link to this heading"></a></h2>
+<p>Ready-to-use example input files are in <code class="docutils literal notranslate"><span class="pre">docs/examples/</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">references.txt</span></code> — mixed identifiers and text queries (one entry per blank-separated block)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">existing.bib</span></code> — a BibTeX file to be enriched</p></li>
+</ul>
+<p>To run them:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">docs</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">results</span><span class="o">.</span><span class="n">bib</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">docs</span><span class="o">/</span><span class="n">examples</span><span class="o">/</span><span class="n">existing</span><span class="o">.</span><span class="n">bib</span> <span class="o">-</span><span class="n">o</span> <span class="n">enriched</span><span class="o">.</span><span class="n">bib</span>
+</pre></div>
+</div>
 </section>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>

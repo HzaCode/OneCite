@@ -69,7 +69,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#combining-results">Combining Results</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#converting-between-formats">Converting Between Formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#using-with-git-for-version-control">Using with Git for Version Control</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#integration-with-latex-and-overleaf">Integration with LaTeX and Overleaf</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#python-api-advanced-usage">Python API Advanced Usage</a></li>
@@ -223,20 +222,6 @@
 </pre></div>
 </div>
 </section>
-</section>
-<section id="converting-between-formats">
-<h2>Converting Between Formats<a class="headerlink" href="#converting-between-formats" title="Link to this heading"></a></h2>
-<p>Convert BibTeX to APA:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">txt</span>
-</pre></div>
-</div>
-<p>Convert APA to BibTeX:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># First save APA format in a parseable way, then convert back</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span> <span class="o">-</span><span class="n">o</span> <span class="n">apa_refs</span><span class="o">.</span><span class="n">txt</span>
-<span class="c1"># Then process again to get BibTeX</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">original</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
-</pre></div>
-</div>
 </section>
 <section id="using-with-git-for-version-control">
 <h2>Using with Git for Version Control<a class="headerlink" href="#using-with-git-for-version-control" title="Link to this heading"></a></h2>
