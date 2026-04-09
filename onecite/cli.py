@@ -105,6 +105,12 @@ Examples:
         action='store_true',
         help='Suppress verbose logging output'
     )
+    process_parser.add_argument(
+        '--google-scholar',
+        action='store_true',
+        default=False,
+        help='Enable Google Scholar as an additional data source (requires scholarly package)'
+    )
     
     return parser
 
@@ -167,7 +173,8 @@ def process_command(args: "argparse.Namespace") -> int:
             input_type=args.input_type,
             template_name=args.template,
             output_format=args.output_format,
-            interactive_callback=interactive_callback
+            interactive_callback=interactive_callback,
+            use_google_scholar=args.google_scholar,
         )
         
         output_content = '\n\n'.join(result['results'])

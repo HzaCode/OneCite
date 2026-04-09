@@ -87,11 +87,25 @@ class TestCLIUnit:
             output=None,
             interactive=False,
             quiet=False,
+            google_scholar=False,
         )
         defaults.update(overrides)
         return argparse.Namespace(**defaults)
 
     # -- Missing / bad input --------------------------------------------------
+
+    def test_google_scholar_flag_passed_through(self, capsys):
+        """fix #10: --google-scholar flag must be forwarded to process_references."""
+        captured = {}
+
+        def _fake(*, use_google_scholar, **kw):
+            captured['gs'] = use_google_scholar
+            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
+
+        with patch("onecite.cli.process_references", side_effect=_fake):
+            cli.process_command(self._ns(input_file="10.1/x", quiet=True, google_scholar=True))
+
+        assert captured['gs'] is True
 
     def test_string_input_passed_directly(self, capsys):
         """fix #36: non-file argument is treated as inline reference content."""
@@ -131,7 +145,7 @@ class TestCLIUnit:
         outf = tmp_path / "out.bib"
 
         def _fake(*, input_content, input_type, template_name,
-                  output_format, interactive_callback):
+                  output_format, interactive_callback, **kw):
             # quiet mode → callback should auto-skip
             assert interactive_callback(
                 [{"title": "T", "authors": [], "journal": "", "year": 2020, "match_score": 75}]
@@ -154,7 +168,7 @@ class TestCLIUnit:
         inf.write_text("query", encoding="utf-8")
 
         def _fake(*, input_content, input_type, template_name,
-                  output_format, interactive_callback):
+                  output_format, interactive_callback, **kw):
             choice = interactive_callback([
                 {"title": "A", "authors": ["X"], "journal": "J", "year": 2020, "match_score": 75},
                 {"title": "B", "authors": ["Y"], "journal": "J", "year": 2021, "match_score": 74},
@@ -177,7 +191,7 @@ class TestCLIUnit:
         inf.write_text("query", encoding="utf-8")
 
         def _fake(*, input_content, input_type, template_name,
-                  output_format, interactive_callback):
+                  output_format, interactive_callback, **kw):
             choice = interactive_callback([
                 {"title": "A", "authors": [], "journal": "", "year": 2020, "match_score": 75},
             ])
@@ -196,7 +210,7 @@ class TestCLIUnit:
         inf.write_text("query", encoding="utf-8")
 
         def _fake(*, input_content, input_type, template_name,
-                  output_format, interactive_callback):
+                  output_format, interactive_callback, **kw):
             assert interactive_callback([
                 {"title": "A", "authors": [], "journal": "", "year": 2020, "match_score": 75},
             ]) == -1
@@ -229,7 +243,7 @@ class TestCLIUnit:
         outf = tmp_path / "out.bib"
 
         def _fake(*, input_content, input_type, template_name,
-                  output_format, interactive_callback):
+                  output_format, interactive_callback, **kw):
             return {
                 "results": ["OK"],
                 "report": {"total": 2, "succeeded": 1,

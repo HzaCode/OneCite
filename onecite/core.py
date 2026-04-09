@@ -186,7 +186,8 @@ def process_references(
     input_type: str,
     template_name: str,
     output_format: str,
-    interactive_callback: Callable[[List[Dict]], int]
+    interactive_callback: Callable[[List[Dict]], int],
+    use_google_scholar: bool = False,
 ) -> Dict[str, Any]:
     """Process references and return formatted citations with a report.
 
@@ -216,5 +217,7 @@ def process_references(
         ParseError: If the input cannot be parsed.
         ResolverError: If no data source can resolve a reference.
     """
-    pipeline = PipelineController(use_google_scholar=False)
+    if not input_content or not input_content.strip():
+        raise ValidationError("input_content must not be empty.")
+    pipeline = PipelineController(use_google_scholar=use_google_scholar)
     return pipeline.process(input_content, input_type, template_name, output_format, interactive_callback)

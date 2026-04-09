@@ -19,7 +19,7 @@ except ImportError:
 from html import unescape
 
 from .core import RawEntry, IdentifiedEntry, CompletedEntry
-from .exceptions import ParseError, ResolverError
+from .exceptions import ParseError, ResolverError, ValidationError, FormatError
 import urllib.parse
 
 
@@ -635,7 +635,7 @@ class IdentifierModule:
             
             # Pattern: Author (Year). Title. Type. University.
             author_match = re.match(r'^([^(]+?)\s*\(', text)
-            author = author_match.group(1).strip() if author_match else 'Unknown Author'
+            author = author_match.group(1).strip() if author_match else None
             
             year_match = re.search(r'\((\d{4})\)', text)
             year = int(year_match.group(1)) if year_match else None
@@ -677,7 +677,7 @@ class IdentifierModule:
                 if openaire_metadata:
                     openaire_metadata['thesis_type'] = thesis_type
                     openaire_metadata['is_thesis'] = True
-                    if author and author != 'Unknown Author':
+                    if author:
                         openaire_metadata['authors'] = [author]
                     if school:
                         openaire_metadata['school'] = school
@@ -688,23 +688,27 @@ class IdentifierModule:
                 if base_metadata:
                     base_metadata['thesis_type'] = thesis_type
                     base_metadata['is_thesis'] = True
-                    if author and author != 'Unknown Author':
+                    if author:
                         base_metadata['authors'] = [author]
                     if school:
                         base_metadata['school'] = school
                     return base_metadata
             
-            # Fallback: create basic metadata from extraction
-            return {
+            # Fallback: create basic metadata from extraction (only if we have a title)
+            if not title:
+                return None
+            result = {
                 'source': 'manual',
                 'type': thesis_type,
                 'is_thesis': True,
                 'thesis_type': thesis_type,
-                'title': title or 'Unknown Title',
+                'title': title,
                 'authors': [author] if author else [],
                 'year': year,
-                'school': school or 'Unknown University'
             }
+            if school:
+                result['school'] = school
+            return result
             
         except Exception as e:
             self.logger.warning(f"Failed to detect thesis: {str(e)}")
@@ -2687,7 +2691,7 @@ class EnricherModule:
                 result = {
                     'title': metadata.get('title', ''),
                     'author': formatted_authors,
-                    'school': metadata.get('school', 'Unknown University'),
+                    'school': metadata.get('school', ''),
                     'year': str(metadata.get('year', '')),
                 }
                 if metadata.get('url'):
@@ -3124,8 +3128,7 @@ class FormatterModule:
                     elif output_format.lower() == 'mla':
                         formatted_string = self._format_mla(entry)
                     else:
-                        # Default to BibTeX
-                        formatted_string = self._format_bibtex(entry)
+                        raise FormatError(f"Unsupported output format: {output_format!r}. Choose 'bibtex', 'apa', or 'mla'.")
                     
                     formatted_strings.append(formatted_string)
                     

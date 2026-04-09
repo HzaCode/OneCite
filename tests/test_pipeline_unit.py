@@ -1025,7 +1025,43 @@ class TestFormatter:
         }
         assert "Solo, Han." in fmt._format_mla(entry)
 
-    def test_unknown_format_defaults_to_bibtex(self):
+    def test_unsupported_format_raises_format_error(self):
+        """fix #13: unsupported output_format must raise FormatError, not silently use bibtex."""
+        from onecite.exceptions import FormatError
+        fmt = FormatterModule()
+        entry = {
+            "id": 1, "doi": "10.1/x", "status": "completed",
+            "bib_key": "K", "bib_data": {"ENTRYTYPE": "article", "ID": "K", "title": "T"},
+        }
+        r = fmt.format([entry], "ris")
+        assert len(r["report"]["failed_entries"]) == 1
+        assert "Unsupported output format" in r["report"]["failed_entries"][0]["error"]
+
+    def test_no_placeholder_in_thesis_fallback(self):
+        """fix #24: manual thesis fallback must not inject Unknown Title/University."""
+        ident = IdentifierModule()
+        with patch.object(ident, "_search_openaire_for_thesis", return_value=None), \
+             patch.object(ident, "_search_base_for_thesis", return_value=None):
+            result = ident._detect_thesis(
+                "Smith, J. (2020). Neural Architecture Search. PhD Thesis. Stanford University."
+            )
+        if result:
+            assert result.get("title") != "Unknown Title"
+            assert result.get("school") != "Unknown University"
+            assert "Unknown Author" not in str(result.get("authors", []))
+
+    def test_process_references_empty_input_raises(self):
+        """fix #13/#24: empty input_content raises ValidationError."""
+        from onecite.exceptions import ValidationError
+        from onecite.core import process_references
+        import pytest
+        with pytest.raises(ValidationError):
+            process_references("", "txt", "journal_article_full", "bibtex", lambda c: -1)
+        with pytest.raises(ValidationError):
+            process_references("   ", "txt", "journal_article_full", "bibtex", lambda c: -1)
+
+    def test_unknown_format_raises_in_failed_entries(self):
+        """fix #13: unknown format results in failed entry, not silent bibtex fallback."""
         fmt = FormatterModule()
         entry = {
             "id": 1, "doi": "10.1234/x", "status": "completed",
@@ -1034,7 +1070,8 @@ class TestFormatter:
                          "author": "Author, A", "year": "2020"},
         }
         r = fmt.format([entry], "unknown_format")
-        assert "@article{Test2020" in r["results"][0]
+        assert r["report"]["succeeded"] == 0
+        assert len(r["report"]["failed_entries"]) == 1
 
 
 # ===================================================================
