@@ -189,19 +189,6 @@ class IdentifierModule:
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.datacite_base = "https://api.datacite.org"
         
-        # Well-known papers that might not have DOIs
-        self.well_known_papers = {
-            'attention is all you need': {
-                'title': 'Attention Is All You Need',
-                'authors': ['Vaswani, Ashish', 'Shazeer, Noam', 'Parmar, Niki', 'Uszkoreit, Jakob', 
-                           'Jones, Llion', 'Gomez, Aidan N', 'Kaiser, Lukasz', 'Polosukhin, Illia'],
-                'year': '2017',
-                'journal': 'Advances in Neural Information Processing Systems',
-                'arxiv_id': '1706.03762',
-                'url': 'https://arxiv.org/abs/1706.03762',
-                'type': 'conference'
-            }
-        }
     
     def identify(self, raw_entries: List[RawEntry], 
                 interactive_callback: Callable[[List[Dict]], int]) -> List[IdentifiedEntry]:
@@ -1348,21 +1335,6 @@ class IdentifierModule:
                      interactive_callback: Callable[[List[Dict]], int]) -> IdentifiedEntry:
         """Perform fuzzy search"""
         query_string = raw_entry['query_string']
-        
-        # Check if it's a well-known paper first
-        query_lower = query_string.lower()
-        for key, paper_data in self.well_known_papers.items():
-            if key in query_lower or fuzz.ratio(key, query_lower) > 85:
-                self.logger.info(f"Entry {raw_entry['id']} matched well-known paper: {paper_data['title']}")
-                return {
-                    'id': raw_entry['id'],
-                    'raw_text': raw_entry['raw_text'],
-                    'doi': None,
-                    'arxiv_id': paper_data.get('arxiv_id'),
-                    'url': paper_data.get('url'),
-                    'metadata': paper_data,
-                    'status': 'identified'
-                }
         
         # Multi-source query with fallback
         candidates = []

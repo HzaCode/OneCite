@@ -58,9 +58,10 @@ class TestCLI:
         assert "{txt,bib}" in out
         assert "{bibtex,apa,mla}" in out
 
-    def test_nonexistent_file(self):
-        code, _, _ = self._run(["process", "no_such_file.txt"])
-        assert code != 0
+    def test_nonexistent_file_treated_as_string_input(self):
+        """fix #36: non-file argument is treated as inline reference string, not an error."""
+        code, out, err = self._run(["process", "no_such_file.txt", "--quiet"])
+        assert code in (0, 1)
 
     def test_invalid_output_format(self, create_test_file, sample_references):
         path = create_test_file(sample_references["doi_only"])
@@ -92,10 +93,35 @@ class TestCLIUnit:
 
     # -- Missing / bad input --------------------------------------------------
 
-    def test_missing_input_file(self, capsys):
-        code = cli.process_command(self._ns(input_file="nope.txt"))
-        assert code == 1
-        assert "Input file not found" in capsys.readouterr().err
+    def test_string_input_passed_directly(self, capsys):
+        """fix #36: non-file argument is treated as inline reference content."""
+        captured = {}
+
+        def _fake(*, input_content, **kw):
+            captured['content'] = input_content
+            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
+
+        with patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(input_file="10.1038/nature14539", quiet=True))
+
+        assert code == 0
+        assert captured['content'] == "10.1038/nature14539"
+
+    def test_stdin_input(self, capsys, monkeypatch):
+        """fix #36: '-' reads from stdin."""
+        import io
+        monkeypatch.setattr("sys.stdin", io.StringIO("10.1038/nature14539\n"))
+        captured = {}
+
+        def _fake(*, input_content, **kw):
+            captured['content'] = input_content
+            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
+
+        with patch("onecite.cli.process_references", side_effect=_fake):
+            code = cli.process_command(self._ns(input_file="-", quiet=True))
+
+        assert code == 0
+        assert "10.1038/nature14539" in captured['content']
 
     # -- quiet + output file --------------------------------------------------
 

@@ -47,8 +47,11 @@ def create_parser() -> argparse.ArgumentParser:
         epilog="""
 Examples:
   onecite process references.txt --output-format bibtex
-  onecite process references.bib --input-type bib --template conference_paper 
+  onecite process references.bib --input-type bib --template conference_paper
   onecite process references.txt --interactive --output results.bib
+  onecite process "10.1038/nature14539"
+  onecite process "attention is all you need, Vaswani et al., NIPS 2017"
+  echo "10.1038/nature14539" | onecite process -
         """
     )
     
@@ -67,7 +70,7 @@ Examples:
     )
     process_parser.add_argument(
         'input_file',
-        help='Input file containing references'
+        help='Input file, "-" for stdin, or a reference string (e.g. a DOI or title)'
     )
     process_parser.add_argument(
         '--input-type',
@@ -117,12 +120,13 @@ def process_command(args: "argparse.Namespace") -> int:
         Exit code — ``0`` on success, ``1`` on failure.
     """
     try:
-        if not os.path.exists(args.input_file):
-            print(f"Error: Input file not found: {args.input_file}", file=sys.stderr)
-            return 1
-            
-        with open(args.input_file, 'r', encoding='utf-8') as f:
-            input_content = f.read()
+        if args.input_file == '-':
+            input_content = sys.stdin.read()
+        elif os.path.exists(args.input_file):
+            with open(args.input_file, 'r', encoding='utf-8') as f:
+                input_content = f.read()
+        else:
+            input_content = args.input_file
         
         def interactive_callback(candidates: List[Dict]) -> int:
             if not args.interactive:

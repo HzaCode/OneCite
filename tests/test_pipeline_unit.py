@@ -487,14 +487,24 @@ class TestIdentifierGoogleScholar:
 
 class TestIdentifierFuzzySearch:
 
-    def test_well_known_paper_shortcut(self):
-        """Papers in the built-in lookup table should be resolved instantly."""
+    def test_no_hardcoded_well_known_papers(self):
+        """fix #19: IdentifierModule must not have a well_known_papers shortcut."""
+        ident = IdentifierModule()
+        assert not hasattr(ident, 'well_known_papers'), (
+            "well_known_papers shortcut should have been removed (#19)")
+
+    def test_attention_query_goes_through_normal_search(self):
+        """fix #19: 'attention is all you need' must go through normal multi-source search."""
         ident = IdentifierModule()
         entry = {"id": 1, "raw_text": "Attention is all you need",
                  "query_string": "Attention is all you need"}
-        r = ident._fuzzy_search(entry, lambda _: -1)
+        arxiv_result = {"source": "arxiv", "arxiv_id": "1706.03762",
+                        "doi": "10.48550/arXiv.1706.03762",
+                        "title": "Attention Is All You Need",
+                        "url": "https://arxiv.org/abs/1706.03762"}
+        with patch.object(ident, "_search_crossref", return_value=[arxiv_result]):
+            r = ident._fuzzy_search(entry, lambda _: -1)
         assert r["status"] == "identified"
-        assert r["arxiv_id"] == "1706.03762"
 
     def test_pmid_shortcut(self):
         ident = IdentifierModule()
