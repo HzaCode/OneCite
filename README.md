@@ -69,7 +69,7 @@ OneCite solves this by accepting **any mix of identifiers and text queries** and
 | **Multi-Source Lookup**     | Queries CrossRef, arXiv, PubMed, Semantic Scholar, Google Books, and others for every entry.         |
 | **Many Identifier Types**   | Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text queries.                    |
 | 🎛️ **Interactive Mode**    | Manually select the correct entry when multiple potential matches are found.                          |
-| **Custom Templates**        | YAML-based templates to control which fields are collected and how entries are typed.                 |
+| **Custom Templates**        | YAML-based presets that provide a fallback BibTeX entry type when auto-detection is inconclusive.    |
 
 
 ## 🌐 Data Sources

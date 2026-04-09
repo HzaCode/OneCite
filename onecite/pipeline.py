@@ -353,8 +353,26 @@ class IdentifierModule:
         doi_pattern = r'^10\.\d{4,}/.+'
         return bool(re.match(doi_pattern, doi))
     
+    def _is_datacite_doi(self, doi: str) -> bool:
+        """Check if DOI is registered with DataCite (not CrossRef)."""
+        datacite_prefixes = [
+            '10.5281/',   # Zenodo
+            '10.6084/',   # Figshare
+            '10.5061/',   # Dryad
+            '10.6078/',   # DataONE
+            '10.7910/',   # DVN/Dataverse
+            '10.13003/',  # RePEc
+            '10.14291/',  # UBC Dataverse
+            '10.5683/',   # Scholars Portal
+            '10.20382/',  # University of Manitoba Dataverse
+            '10.5680/',   # University of Sheffield
+            '10.25739/',  # Griffith University
+        ]
+        return any(doi.startswith(prefix) for prefix in datacite_prefixes)
+
     def _verify_doi_and_get_metadata(self, doi: str) -> Optional[Dict]:
-        """Verify DOI exists in Crossref and get real metadata for comparison"""
+        """Verify DOI exists in Crossref or DataCite and get real metadata for comparison."""
+        # Try CrossRef first (covers most academic journals/papers)
         try:
             url = f"{self.crossref_base_url}/{doi}"
             headers = {'Accept': 'application/json'}
@@ -387,6 +405,12 @@ class IdentifierModule:
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 self.logger.warning(f"DOI {doi} not found in CrossRef (404)")
+                # Try DataCite for dataset/software DOIs
+                if self._is_datacite_doi(doi):
+                    self.logger.info(f"DOI {doi} appears to be DataCite, trying DataCite API...")
+                    datacite_result = self._query_datacite(doi)
+                    if datacite_result:
+                        return datacite_result
                 return None
             else:
                 self.logger.error(f"HTTP error verifying DOI {doi}: {str(e)}")
@@ -1341,133 +1365,78 @@ class IdentifierModule:
     
     def _fuzzy_search(self, raw_entry: RawEntry, 
                      interactive_callback: Callable[[List[Dict]], int]) -> IdentifiedEntry:
-        """Perform fuzzy search"""
+        """Perform fuzzy search using simplified routing: always query core sources, conditionally append specialized sources."""
         query_string = raw_entry['query_string']
+        query_lower = query_string.lower()
         
-        # Multi-source query with fallback
         candidates = []
-        semantic_results = []  # Initialize to avoid UnboundLocalError
         
-        # Check if query might be a PMID (PubMed ID)
+        # === Core sources: always query ===
+        # CrossRef covers most academic papers; Semantic Scholar adds citations/automation metadata
+        self.logger.info("Querying core sources: CrossRef + Semantic Scholar")
+        crossref_results = self._search_crossref(query_string)
+        candidates.extend(crossref_results)
+        
+        semantic_results = self._search_semantic_scholar(query_string)
+        candidates.extend(semantic_results)
+        
+        # === Conditional specialized sources ===
+        
+        # 1. PMID pattern detected
         pmid_match = re.match(r'^(PMID:?\s*)?(\d{7,8})$', query_string.strip())
         if pmid_match:
             pmid = pmid_match.group(2)
-            self.logger.info(f"Detected PubMed ID: {pmid}")
+            self.logger.info(f"Detected PubMed ID pattern: {pmid}, querying PubMed")
             pubmed_result = self._search_pubmed_by_id(pmid)
             if pubmed_result:
-                return {
-                    'id': raw_entry['id'],
-                    'raw_text': raw_entry['raw_text'],
-                    'doi': pubmed_result.get('doi'),
-                    'arxiv_id': None,
-                    'url': pubmed_result.get('url'),
-                    'metadata': pubmed_result,
-                    'status': 'identified'
-                }
+                # For PMID-only queries (no other text), return directly
+                # This handles cases where the query is just "PMID:12345678"
+                text_without_pmid = query_string.replace(f"PMID:{pmid}", "").replace(pmid, "").strip()
+                if len(text_without_pmid) < 3:  # Essentially just the PMID
+                    return {
+                        'id': raw_entry['id'],
+                        'raw_text': raw_entry['raw_text'],
+                        'doi': pubmed_result.get('doi'),
+                        'arxiv_id': None,
+                        'url': pubmed_result.get('url'),
+                        'metadata': pubmed_result,
+                        'status': 'identified'
+                    }
+                # Otherwise, add to candidates for scoring alongside other sources
+                candidates.append(pubmed_result)
         
-        # Check if it might be a book
-        query_lower = query_string.lower()
-        
-        # === Strongest book indicators ===
-        has_isbn = bool(re.search(r'isbn[:\s]*[\d\-xX]{10,17}', query_lower, re.IGNORECASE))  # ISBN-10 or ISBN-13
-        has_editor = bool(re.search(r'\b(ed\.|eds\.|editor|editors|edited\s+by)\b', query_lower))  # Editor indicators
-        
-        # === Strong book indicators ===
-        has_edition_number = bool(re.search(r'\d+(?:st|nd|rd|th)?\s+ed\.', query_lower))  # "2nd ed.", "3rd edition"
-        has_press_publisher = bool(re.search(r'\b(mit|cambridge|oxford|springer|wiley|princeton)\s+press\b', query_lower))
-        has_book_publisher = any(pub in query_lower for pub in ['wiley & sons', "o'reilly media", "o'reilly", 'addison-wesley', 'addison wesley'])
-        has_publisher_location = bool(re.search(r'\b[A-Z][a-z]+,\s+(MA|NY|CA|UK):', query_string))  # "Cambridge, MA:" or "New York:"
-        has_chapter = bool(re.search(r'\bchapter\s+\d+\b', query_lower))  # "Chapter 5"
-        has_total_pages = bool(re.search(r'\b\d{2,4}\s+pp\.?\b', query_lower))  # "500 pp." (total pages)
-        has_series = bool(re.search(r'\b(series|lecture notes)\b', query_lower))  # Book series
-        
-        # === Medium indicators ===
-        mentions_edition = 'edition' in query_lower
-        mentions_revised = any(word in query_lower for word in ['revised', 'updated', 'expanded'])
-        
-        # === Negative indicators (article/paper features) ===
-        has_doi = bool(re.search(r'10\.\d{4,}/[^\s,}]+', query_string))
-        has_journal_keywords = any(j in query_lower for j in ['journal of', 'proceedings of', 'conference on', 'transactions on', 'bulletin of', 'annals of'])
-        has_volume_issue = bool(re.search(r'\b\d+\(\d+\)', query_string))  # Pattern like "83(8)" or "15(1)"
-        has_article_pages = bool(re.search(r'\b\d{1,4}[-–]\d{1,4}\b', query_string)) and not has_total_pages  # "123-456" but not "pp. 1-500"
-        has_article_number = bool(re.search(r'\barticle\s+(number|no\.?)\b', query_lower))
-        
-        # === Decision logic with priority ===
-        if has_isbn or has_editor:
-            is_likely_book = True  # ISBN or editor is definitive for books
-            self.logger.info(f"Book indicators: ISBN={has_isbn}, Editor={has_editor}")
-        elif has_doi or has_journal_keywords or (has_volume_issue and has_article_pages):
-            is_likely_book = False  # Definitely an article/paper
-        elif has_edition_number or has_press_publisher or has_book_publisher or has_publisher_location or has_chapter or has_series:
-            is_likely_book = True  # Strong book signals
-        elif mentions_edition and mentions_revised and not has_article_pages:
-            is_likely_book = True  # Revised edition mention
-        else:
-            is_likely_book = False  # Default to article (safer)
-        
-        # === Route to the best API based on content type ===
-        
-        is_medical = any(keyword in query_lower for keyword in 
-                        ['health', 'medical', 'clinical', 'patient', 'disease', 'treatment', 
-                         'therapy', 'diagnosis', 'biology', 'gene', 'protein', 'cell', 
-                         'epidemiology', 'public health'])
-        
-        if is_likely_book:
-            # === Book route ===
-            self.logger.info("Likely a book, trying Google Books API first")
-            books_results = self._search_google_books(query_string)
-            
-            if books_results and len(books_results) > 0:
-                books_results[0]['is_primary_google_books_match'] = True
-            
-            candidates.extend(books_results)
-            crossref_results = self._search_crossref(query_string)
-            candidates.extend(crossref_results)
-            
-        elif is_medical:
-            # === Medical route ===
-            self.logger.info("Detected medical content, prioritizing PubMed")
+        # 2. Strong biomedical cues → also query PubMed (as additive source)
+        strong_medical_cues = ['pubmed', 'pmid', 'clinical trial', 'randomized controlled']
+        if any(cue in query_lower for cue in strong_medical_cues):
+            self.logger.info("Strong medical cues detected, querying PubMed as additive source")
             pubmed_results = self._search_pubmed(query_string)
             candidates.extend(pubmed_results)
-            
-            # Also try Crossref (many medical journals indexed there too)
-            crossref_results = self._search_crossref(query_string)
-            candidates.extend(crossref_results)
-            
-            # Semantic Scholar is good for medical CS papers (e.g., medical imaging automation)
-            if any(cs_kw in query_lower for cs_kw in ['neural', 'deep learning', 'machine learning', 'ai']):
-                semantic_results = self._search_semantic_scholar(query_string)
-                candidates.extend(semantic_results)
-            
-        else:
-            # === General academic paper route ===
-            # Try Cross first (fastest and most reliable)
-            crossref_results = self._search_crossref(query_string)
-            candidates.extend(crossref_results)
-            
-            # If CrossRef results are good, also check Semantic Scholar for enrichment
-            # (Semantic Scholar provides better metadata: citations, influential citations, etc.)
-            if len(crossref_results) > 0:
-                semantic_results = self._search_semantic_scholar(query_string)
-                candidates.extend(semantic_results)
-                self.logger.info(f"CrossRef found {len(crossref_results)} results, also querying Semantic Scholar for enrichment")
-            
-            # If CrossRef found nothing or poor results, use fallbacks
-            if len(crossref_results) == 0 or (crossref_results and max(c.get('citations', 0) for c in crossref_results) < 10):
-                self.logger.info("CrossRef results insufficient, trying fallbacks")
-                
-                # Try Semantic Scholar as primary fallback
-                if not semantic_results:  # If not already tried
-                    semantic_results = self._search_semantic_scholar(query_string)
-                    candidates.extend(semantic_results)
-                
-                # Google Scholar as last resort (if enabled)
-                if self.use_google_scholar:
-                    self.logger.info("Google Scholar enabled, searching...")
-                    scholar_results = self._search_google_scholar(query_string)
-                    candidates.extend(scholar_results)
-                else:
-                    self.logger.info("Google Scholar disabled by user, skipping")
+        
+        # 3. Book indicators → query Google Books
+        # Simplified detection: only check strongest signals
+        has_isbn = bool(re.search(r'isbn[:\s]*[\d\-xX]{10,17}', query_lower, re.IGNORECASE))
+        has_edition = bool(re.search(r'\b\d+(?:st|nd|rd|th)?\s+ed\.?\b', query_lower))
+        has_book_publisher = any(pub in query_lower for pub in ['wiley', "o'reilly", 'springer', 'cambridge press', 'mit press'])
+        
+        if has_isbn or has_edition or has_book_publisher:
+            self.logger.info(f"Book indicators detected (ISBN={has_isbn}, edition={has_edition}, publisher={has_book_publisher}), querying Google Books")
+            books_results = self._search_google_books(query_string)
+            candidates.extend(books_results)
+        
+        # 4. Thesis indicators → query external providerRE/BASE
+        thesis_keywords = ['dissertation', 'phd thesis', 'master thesis', 'doctoral thesis', 'thesis']
+        if any(kw in query_lower for kw in thesis_keywords):
+            self.logger.info("Thesis indicators detected, querying external providerRE/BASE")
+            thesis_results = self._search_openaire_for_thesis(query_string) or self._search_base_for_thesis(query_string)
+            if thesis_results:
+                candidates.append(thesis_results)
+        
+        # 5. Google Scholar as optional fallback (if enabled and core sources returned little)
+        if self.use_google_scholar:
+            if len(crossref_results) == 0 and len(semantic_results) == 0:
+                self.logger.info("Core sources returned no results, trying Google Scholar")
+                scholar_results = self._search_google_scholar(query_string)
+                candidates.extend(scholar_results)
         
         if not candidates:
             self.logger.warning(f"Entry {raw_entry['id']}: no candidate results found")
@@ -1482,40 +1451,22 @@ class IdentifierModule:
             }
         
         scored_candidates = self._score_candidates(candidates, query_string)
-        scored_candidates.sort(key=lambda x: x['match_score'], reverse=True)
-
-        best_candidate = scored_candidates[0]
+        # _score_candidates now handles tie-breaking internally
+        best_candidate = scored_candidates[0] if scored_candidates else None
         
-        # For likely books, strongly prefer Google Books results if available
-        if not is_likely_book:
-            is_likely_book = any(pub in query_string.lower() for pub in 
-                                ['wiley', 'pearson', "o'reilly", 'springer', 'press', 'publisher', 'edition', 'ed.'])
-        if is_likely_book:
-            # Find primary Google Books match (the first one returned by API)
-            primary_google_books = next((c for c in scored_candidates if c.get('is_primary_google_books_match')), None)
-            if primary_google_books and primary_google_books['match_score'] >= 35:
-                # Use the primary (first) Google Books result - it's already sorted by relevance
-                best_candidate = primary_google_books
-                self.logger.info(f"Prioritizing PRIMARY Google Books result for book query (score: {best_candidate['match_score']})")
-                self.logger.info(f"Selected book: {best_candidate.get('title', 'Unknown')} by {', '.join(best_candidate.get('authors', [])[:2])} ({best_candidate.get('year', 'N/A')})")
-            else:
-                # Fallback: use highest scoring Google Books result
-                google_books_candidates = [c for c in scored_candidates if c.get('source') == 'google_books']
-                if google_books_candidates and google_books_candidates[0]['match_score'] >= 40:
-                    best_candidate = google_books_candidates[0]
-                    self.logger.info(f"Prioritizing Google Books result for book query (score: {best_candidate['match_score']})")
-                    self.logger.info(f"Selected book: {best_candidate.get('title', 'Unknown')} by {', '.join(best_candidate.get('authors', [])[:2])} ({best_candidate.get('year', 'N/A')})")
+        if not best_candidate:
+            self.logger.warning(f"Entry {raw_entry['id']}: no scored candidates")
+            return {
+                'id': raw_entry['id'],
+                'raw_text': raw_entry['raw_text'],
+                'doi': None,
+                'arxiv_id': None,
+                'url': None,
+                'metadata': {},
+                'status': 'identification_failed'
+            }
         
-        # Otherwise, prefer candidates with DOI when scores are close
-        if best_candidate.get('source') != 'google_books':
-            doi_candidates = [c for c in scored_candidates if c.get('doi')]
-            if doi_candidates:
-                best_doi_candidate = doi_candidates[0]
-                if (not best_candidate.get('doi') or
-                    best_doi_candidate['match_score'] >= best_candidate['match_score'] - 5):
-                    best_candidate = best_doi_candidate
-
-        # If best does not have DOI but looks strong, try title-only CrossRef lookup to resolve DOI
+        # Try to resolve DOI for strong matches without one
         if (not best_candidate.get('doi')) and best_candidate.get('title') and best_candidate.get('match_score', 0) >= 85:
             try:
                 resolved = self._resolve_doi_via_crossref_title(best_candidate['title'], query_string)
@@ -1589,26 +1540,11 @@ class IdentifierModule:
                         'status': 'identified'
                     }
         
-        # Low confidence but if score is decent and has title, mark as identified
-        # Lower threshold to avoid rejecting valid papers
-        # For books, use even lower threshold (books often have less complete metadata)
-        # Check if any keyword suggests this is a book
-        is_best_candidate_book = (
-            best_candidate.get('is_book') or 
-            best_candidate.get('type') in ['book', 'monograph', 'edited-book', 'reference-book'] or
-            any(publisher in best_candidate.get('publisher', '').lower() 
-                for publisher in ['wiley', 'pearson', "o'reilly", 'springer'])
-        )
-        # For Google Books results, use even lower threshold (they're very accurate)
-        if best_candidate.get('source') == 'google_books' and is_best_candidate_book:
-            threshold = 35  # Very low threshold for Google Books + book detection
-        elif is_best_candidate_book:
-            threshold = 42  # Lower threshold for books
-        else:
-            threshold = 48  # Normal threshold for articles
-        
-        if best_candidate['match_score'] >= threshold and best_candidate.get('title'):
-            self.logger.info(f"Entry {raw_entry['id']} adopting best candidate with score {best_candidate['match_score']} (type: {best_candidate.get('type', 'unknown')}, is_book: {is_best_candidate_book})")
+        # Low confidence fallback: unified threshold
+        # With two-layer scoring, match_score is purely about query relevance
+        LOW_CONFIDENCE_THRESHOLD = 50
+        if best_candidate['match_score'] >= LOW_CONFIDENCE_THRESHOLD and best_candidate.get('title'):
+            self.logger.info(f"Entry {raw_entry['id']} adopting best candidate with score {best_candidate['match_score']}")
             return {
                 'id': raw_entry['id'],
                 'raw_text': raw_entry['raw_text'],
@@ -2070,7 +2006,7 @@ class IdentifierModule:
             return []
     
     def _score_candidates(self, candidates: List[Dict], query_string: str) -> List[Dict]:
-        """Score candidates with domain-specific adjustments."""
+        """Score candidates using two-layer scoring: Query-Match Score + Tie-Break."""
         scored_candidates = []
 
         # Normalize query for title matching
@@ -2080,28 +2016,23 @@ class IdentifierModule:
         # Remove common "et al." noise
         title_part = re.sub(r'\bet\s*al\.?\b', '', title_part, flags=re.IGNORECASE).strip()
 
-        # Domain-specific venue synonyms
+        # Venue synonyms for query normalization only (not scoring)
         synonyms = {
             'nips': 'neural information processing systems',
             'neurips': 'neural information processing systems',
             'cvpr': 'computer vision and pattern recognition',
             'iclr': 'international conference on learning representations',
             'icml': 'international conference on machine learning',
-            # Health information systems domain
-            'dhis2': 'district health information system 2',
-            'dhis': 'district health information system',
-            'who': 'world health organization',
-            'bmj': 'british medical journal',
-            'plos': 'public library of science',
-            'bmc': 'biomed central'
         }
 
         normalized_query_lower = normalized_query.lower()
+        # Expand query with venue synonyms for better matching
         for k, v in synonyms.items():
             if k in normalized_query_lower and v not in normalized_query_lower:
                 normalized_query += f" {v}"
+                normalized_query_lower = normalized_query.lower()
 
-        # Also normalize candidate journal/venue names
+        # Normalize candidate venue names
         def normalize_venue(venue):
             if not venue:
                 return ""
@@ -2112,214 +2043,132 @@ class IdentifierModule:
             return venue
 
         query_year = None
+        has_query_year = False
         year_match = re.search(r'\b(19|20)\d{2}\b', normalized_query)
         if year_match:
             query_year = int(year_match.group(0))
+            has_query_year = True
+
+        # Check if query contains venue hints
+        has_venue_in_query = any(syn in normalized_query_lower for syn in synonyms.keys()) or \
+                            any(journal_word in normalized_query_lower for journal_word in ['journal', 'proceedings', 'conference', 'transactions'])
+
+        # Dynamic weight calculation based on available query signals
+        # If a signal is missing, redistribute its weight to other signals
+        available_signals = ['title', 'author']  # Always available
+        if has_query_year:
+            available_signals.append('year')
+        if has_venue_in_query:
+            available_signals.append('venue')
+
+        # Base weights (will be normalized)
+        base_weights = {'title': 0.55, 'author': 0.25, 'year': 0.15, 'venue': 0.10}
+
+        # Normalize weights for available signals
+        available_weight_sum = sum(base_weights[s] for s in available_signals)
+        weights = {s: base_weights[s] / available_weight_sum for s in available_signals}
 
         for candidate in candidates:
             scores = {}
 
-            # Title similarity
+            # Title similarity (core signal)
             candidate_title = candidate.get('title', '').lower()
             base_title = title_part.lower()
-
+            title_score = 0
             if candidate_title and base_title:
-                # Use multiple fuzzy measures and take the best
                 ratio = fuzz.ratio(base_title, candidate_title)
                 partial = fuzz.partial_ratio(base_title, candidate_title)
                 token_sort = fuzz.token_sort_ratio(base_title, candidate_title)
                 token_set = fuzz.token_set_ratio(base_title, candidate_title)
-
                 title_score = max(ratio, partial, token_sort, token_set)
-
-                # Bonus for exact phrase matches
+                # Bonus for exact phrase match
                 if base_title in candidate_title or candidate_title in base_title:
-                    title_score = min(title_score + 20, 100)
+                    title_score = min(title_score + 10, 100)
+            scores['title'] = title_score
 
-                scores['title'] = title_score
-            else:
-                scores['title'] = 0
-
-            # Author matching (improved)
+            # Author matching
             author_score = 0
             if candidate.get('authors'):
                 authors_text = ' '.join(candidate['authors']).lower()
                 query_lower = normalized_query.lower()
-
-                # Exact author name matching
-                exact_author_match = False
-                for author in candidate['authors']:
-                    author_clean = author.lower().strip()
-                    if author_clean in query_lower:
-                        exact_author_match = True
-                        break
-
-                if exact_author_match:
+                exact_match = any(author.lower().strip() in query_lower for author in candidate['authors'])
+                if exact_match:
                     author_score = 80
                 else:
-                    # Fuzzy author matching
                     author_score = fuzz.partial_ratio(query_lower, authors_text)
-
-                # Bonus for multiple authors
-                if len(candidate['authors']) > 1:
-                    author_score = min(author_score + 10, 100)
-
             scores['author'] = author_score
 
-            # Year matching (critical for academic papers)
+            # Year matching (only if query has year)
             year_score = 0
-            if candidate.get('year') and query_year:
+            if has_query_year and candidate.get('year'):
                 try:
                     candidate_year = int(candidate['year'])
-                except (ValueError, TypeError):
-                    candidate_year = None
-                if candidate_year:
                     year_diff = abs(candidate_year - query_year)
                     if year_diff == 0:
-                        year_score = 100  # Perfect year match
+                        year_score = 100
                     elif year_diff <= 2:
-                        year_score = 70  # Close year match
+                        year_score = 70
                     elif year_diff <= 5:
-                        year_score = 30  # Reasonable year match
-
+                        year_score = 30
+                except (ValueError, TypeError):
+                    pass
             scores['year'] = year_score
 
-            # Venue/Journal matching
+            # Venue matching (only if query has venue hint)
             venue_score = 0
-            venue_lower = ""  # Initialize venue_lower
+            venue_lower = ""
             if candidate.get('journal'):
                 normalized_venue = normalize_venue(candidate['journal'])
                 venue_lower = normalized_venue.lower()
-
-                # Check for venue mentions in query
-                if venue_lower and venue_lower in normalized_query_lower:
-                    venue_score = 60
-                else:
-                    # Fuzzy venue matching
-                    venue_ratio = fuzz.partial_ratio(normalized_query_lower, venue_lower)
-                    if venue_ratio > 60:
-                        venue_score = venue_ratio * 0.8
-
+                if has_venue_in_query:
+                    if venue_lower and venue_lower in normalized_query_lower:
+                        venue_score = 80  # Exact venue mention
+                    else:
+                        venue_score = fuzz.partial_ratio(normalized_query_lower, venue_lower)
             scores['venue'] = venue_score
 
-            # Source reliability score
-            source_score = 0
-            if candidate.get('source') == 'crossref':
-                source_score = 90  # CrossRef is highly reliable
-            elif candidate.get('source') == 'pubmed':
-                source_score = 98  # PubMed is most reliable for medical literature
-            elif candidate.get('source') == 'semantic_scholar':
-                source_score = 92  # Semantic Scholar is very good, automation-driven
-            elif candidate.get('source') == 'google_books':
-                source_score = 95  # Google Books is very reliable for books
-            elif candidate.get('source') == 'datacite':
-                source_score = 88  # DataCite is reliable for datasets
-            elif candidate.get('source') == 'google_scholar':
-                source_score = 70  # Google Scholar is good but less structured
-            elif candidate.get('source') == 'zenodo':
-                source_score = 85  # Zenodo is reliable
-
-            scores['source'] = source_score
-
-            # Citation score (adjusted for field and age)
-            citation_score = 0
-            if candidate.get('citations') is not None:
-                citations = candidate['citations']
-                if citations > 1000:
-                    citation_score = 100
-                elif citations > 100:
-                    citation_score = 80
-                elif citations > 10:
-                    citation_score = 50
-                elif citations > 0:
-                    citation_score = 20
-                # Books often have fewer citations, give them base score
-                elif candidate.get('is_book') or candidate.get('type') in ['book', 'monograph']:
-                    citation_score = 30
-
-            scores['citations'] = citation_score
-
-            # DOI presence score - CRITICAL
-            doi_score = 0
-            if candidate.get('doi'):
-                doi_score = 100
-            scores['doi'] = doi_score
-
-            # Domain-specific bonuses
-            domain_bonus = 0
-            authors_text = ' '.join(candidate['authors']).lower() if candidate.get('authors') else ''
-            candidate_text = f"{candidate_title} {authors_text} {venue_lower}".lower()
-            
-            # Book bonus
-            if candidate.get('is_book') or candidate.get('type') in ['book', 'monograph']:
-                domain_bonus += 20  # Books deserve bonus (increased from 15)
-                
-                # Google Books source bonus - they're very accurate for books
-                if candidate.get('source') == 'google_books':
-                    domain_bonus += 30  # Extra bonus for Google Books results (increased from 20)
-                
-                # Well-known publishers bonus
-                publisher = candidate.get('publisher', '').lower()
-                known_publishers = ['wiley', 'pearson', 'springer', 'elsevier', "o'reilly", 
-                                   'cambridge university press', 'oxford university press', 
-                                   'mit press', 'academic press', 'morgan kaufmann', 'addison wesley']
-                if any(pub in publisher for pub in known_publishers):
-                    domain_bonus += 20  # Increased from 15
-
-            # Health information systems keywords
-            health_keywords = ['health information', 'dhis', 'district health', 'routine health',
-                             'health system', 'health data', 'public health', 'epidemiology']
-
-            if any(keyword in candidate_text for keyword in health_keywords):
-                domain_bonus += 15
-
-            # WHO/International organization bonus
-            if 'world health organization' in candidate_text or 'who' in candidate_text:
-                domain_bonus += 20
-
-            # BMC/PLOS bonus (open access, high quality)
-            if any(pub in venue_lower for pub in ['bmc', 'plos', 'biomed central', 'public library of science']):
-                domain_bonus += 10
-
-            scores['domain'] = domain_bonus
-
-            # Weighted total score calculation (adjusted for version tolerance)
-            # For books, year is even less important (many editions/reprints)
-            is_candidate_book = candidate.get('is_book') or candidate.get('type') in ['book', 'monograph']
-            
-            if is_candidate_book:
-                # Book-specific weights: year matters less, title and publisher matter more
-                match_score = (
-                    scores['title'] * 0.40 +      # Title most important for books
-                    scores['author'] * 0.25 +     # Author very important
-                    scores['year'] * 0.02 +       # Year much less critical for books
-                    scores['venue'] * 0.05 +      # Venue less relevant for books
-                    scores['source'] * 0.08 +     # Source reliability more important
-                    scores['citations'] * 0.02 +  # Citations least important
-                    scores['domain'] * 0.08 +     # Domain/publisher bonus
-                    scores['doi'] * 0.10          # DOI bonus
-                )
-            else:
-                # Article weights - DOI is heavily weighted
-                match_score = (
-                    scores['title'] * 0.30 +      # Title important
-                    scores['author'] * 0.25 +     # Author important
-                    scores['year'] * 0.08 +       # Year less critical
-                    scores['venue'] * 0.07 +      # Venue helpful
-                    scores['source'] * 0.05 +     # Source reliability
-                    scores['citations'] * 0.03 +  # Citations least important
-                    scores['domain'] * 0.02 +     # Domain bonus
-                    scores['doi'] * 0.20          # DOI is extremely important (20% weight)
-                )
-
+            # Compute Query-Match Score (0-100)
+            match_score = sum(scores.get(k, 0) * weights.get(k, 0) for k in available_signals)
             match_score = min(max(match_score, 0), 100)
+
+            # Store for tie-break layer
             candidate_copy = candidate.copy()
             candidate_copy['match_score'] = round(match_score, 2)
             candidate_copy['score_breakdown'] = scores
+            candidate_copy['_weights'] = weights  # Internal use for debugging
             scored_candidates.append(candidate_copy)
 
         # Sort by match score descending
         scored_candidates.sort(key=lambda x: x['match_score'], reverse=True)
+
+        # Tie-Break Layer: when top-2 scores are close (within 5 points)
+        if len(scored_candidates) >= 2:
+            best = scored_candidates[0]
+            second = scored_candidates[1]
+            if best['match_score'] - second['match_score'] <= 5:
+                # Apply tie-break criteria
+                def tie_break_rank(c):
+                    sb = c.get('score_breakdown', {})
+                    rank = 0
+                    # 1. Exact title match (highest priority)
+                    if sb.get('title', 0) >= 90:
+                        rank += 1000
+                    # 2. Venue exact hit
+                    if sb.get('venue', 0) >= 70:
+                        rank += 100
+                    # 3. Has DOI
+                    if c.get('doi'):
+                        rank += 10
+                    # 4. Source tier (lower number = better)
+                    source_tier = {
+                        'crossref': 1, 'pubmed': 2, 'semantic_scholar': 3,
+                        'google_books': 4, 'datacite': 5, 'zenodo': 6, 'google_scholar': 7
+                    }.get(c.get('source'), 8)
+                    rank -= source_tier  # Better source = lower tier number = higher rank
+                    return rank
+
+                # Re-sort with tie-break
+                scored_candidates.sort(key=lambda x: (x['match_score'], tie_break_rank(x)), reverse=True)
 
         return scored_candidates
 

@@ -9,23 +9,11 @@ fields:
     required: true
   - name: version
     required: false
-    source_priority:
-      - github_api
-      - zenodo_api
   - name: url
     required: false
-    source_priority:
-      - github_api
-      - zenodo_api
   - name: doi
     required: false
-    source_priority:
-      - zenodo_api
-      - crossref_api
   - name: publisher
     required: false
-    source_priority:
-      - github_api
-      - zenodo_api
   - name: note
     required: false

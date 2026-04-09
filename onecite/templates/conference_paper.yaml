@@ -11,20 +11,9 @@ fields:
     required: true
   - name: pages
     required: false
-    source_priority:
-      - crossref_api
-      - google_scholar_scraper
   - name: organization
     required: false
-    source_priority:
-      - crossref_api
-      - user_prompt
   - name: publisher
     required: false
-    source_priority:
-      - crossref_api
-      - user_prompt
   - name: doi
     required: false
-    source_priority:
-      - crossref_api

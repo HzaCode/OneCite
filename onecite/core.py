@@ -55,10 +55,11 @@ class CompletedEntry(TypedDict, total=False):
 
 
 class TemplateLoader:
-    """Loads YAML template files that control citation field collection.
+    """Loads YAML template files that provide fallback BibTeX entry types.
 
-    Templates define which bibliographic fields to collect and how
-    entries are typed (e.g. article, inproceedings).
+    Templates are used when auto-detection cannot determine the entry type
+    from metadata. They specify which entry_type (e.g. @article, @book)
+    to use as a fallback and which fields are expected.
     """
     
     def __init__(self, templates_dir: Optional[str] = None):
@@ -84,7 +85,8 @@ class TemplateLoader:
 
         Returns:
             A dictionary describing the template with keys ``name``,
-            ``entry_type``, and ``fields``.
+            ``entry_type``, and ``fields``. The template provides a
+            fallback entry type when auto-detection is inconclusive.
         """
         template_path = os.path.join(self.templates_dir, f"{template_name}.yaml")
         
@@ -110,11 +112,11 @@ class TemplateLoader:
                 {'name': 'title', 'required': True},
                 {'name': 'journal', 'required': True},
                 {'name': 'year', 'required': True},
-                {'name': 'volume', 'required': False, 'source_priority': ['crossref_api', 'user_prompt']},
-                {'name': 'number', 'required': False, 'source_priority': ['crossref_api', 'user_prompt']},
-                {'name': 'pages', 'required': False, 'source_priority': ['crossref_api', 'google_scholar_scraper']},
-                {'name': 'publisher', 'required': False, 'source_priority': ['crossref_api', 'user_prompt']},
-                {'name': 'doi', 'required': False, 'source_priority': ['crossref_api']},
+                {'name': 'volume', 'required': False},
+                {'name': 'number', 'required': False},
+                {'name': 'pages', 'required': False},
+                {'name': 'publisher', 'required': False},
+                {'name': 'doi', 'required': False},
             ]
         }
 

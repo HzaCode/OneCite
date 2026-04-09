@@ -19,6 +19,3 @@ fields:
     required: false
   - name: url
     required: false
-    source_priority:
-      - base_api
-      - openaire_api

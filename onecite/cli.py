@@ -81,7 +81,7 @@ Examples:
     process_parser.add_argument(
         '--template',
         default='journal_article_full',
-        help='Template to use (default: journal_article_full)'
+        help='Fallback BibTeX entry-type preset when auto-detection is inconclusive (default: journal_article_full)'
     )
     process_parser.add_argument(
         '--output-format',
