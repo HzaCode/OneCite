@@ -2658,7 +2658,6 @@ class EnricherModule:
                 'title': entry.get('title', '').replace('\n', ' ').strip(),
                 'author': ' and '.join(authors),
                 'year': year,
-                'journal': 'arXiv preprint',
                 'url': f'https://arxiv.org/abs/{arxiv_id}',
                 'abstract': entry.get('summary', '').replace('\n', ' ').strip()
             }
@@ -2687,8 +2686,12 @@ class EnricherModule:
             is_software = metadata.get('is_software') or metadata.get('type') == 'software'
             is_dataset = metadata.get('is_dataset') or metadata.get('type') == 'dataset'
             is_book = metadata.get('is_book') or metadata.get('type') in ['book', 'monograph', 'edited-book', 'reference-book']
-            is_conference = metadata.get('type') == 'conference' or any(conf in journal.lower() 
-                for conf in ['conference', 'proceedings', 'symposium', 'workshop', 'nips', 'neurips'])
+            is_conference = (
+                metadata.get('type') in ('conference', 'proceedings-article')
+                or metadata.get('booktitle')
+                or any(conf in journal.lower()
+                       for conf in ['conference', 'proceedings', 'symposium', 'workshop', 'nips', 'neurips'])
+            )
             
             if is_thesis:
                 # For thesis/dissertations
@@ -2844,47 +2847,8 @@ class EnricherModule:
         return key
     
     def _complete_fields(self, base_record: Dict, template: Dict) -> Dict:
-        """Fill in missing fields per template definition."""
-        completed_data = base_record.copy()
-        
-        # Check required fields in template
-        for field_config in template.get('fields', []):
-            field_name = field_config['name']
-            
-            # If field is missing and has completion strategy
-            if field_name not in completed_data or not completed_data[field_name]:
-                if 'source_priority' in field_config:
-                    value = self._fetch_missing_field(field_name, field_config['source_priority'], base_record)
-                    if value:
-                        completed_data[field_name] = value
-        
-        return completed_data
-    
-    def _fetch_missing_field(self, field_name: str, source_priority: List[str], base_record: Dict) -> Optional[str]:
-        """Try each source in priority order to fill a missing field."""
-        for source in source_priority:
-            if source == 'crossref_api':
-                # Already got from Crossref, skip
-                continue
-            elif source == 'pubmed_api':
-                # Try PubMed for abstract
-                if field_name == 'abstract':
-                    value = self._get_pubmed_abstract(base_record)
-                    if value:
-                        return value
-            elif source == 'google_scholar_scraper':
-                # Only use Google Scholar if enabled
-                if self.use_google_scholar:
-                    value = self._fetch_from_google_scholar(field_name, base_record)
-                    if value:
-                        return value
-                else:
-                    self.logger.info(f"Google Scholar disabled, skipping field {field_name} completion")
-            elif source == 'user_prompt':
-                # User input not handled here, left to frontend
-                continue
-        
-        return None
+        """Return base_record unchanged; field completion via external sources removed."""
+        return base_record.copy()
     
     def _get_pubmed_abstract(self, base_record: Dict) -> Optional[str]:
         """Get abstract from PubMed using DOI or title/author search."""
@@ -3127,12 +3091,8 @@ class FormatterModule:
                 try:
                     if output_format.lower() == 'bibtex':
                         formatted_string = self._format_bibtex(entry)
-                    elif output_format.lower() == 'apa':
-                        formatted_string = self._format_apa(entry)
-                    elif output_format.lower() == 'mla':
-                        formatted_string = self._format_mla(entry)
                     else:
-                        raise FormatError(f"Unsupported output format: {output_format!r}. Choose 'bibtex', 'apa', or 'mla'.")
+                        raise FormatError(f"Unsupported output format: {output_format!r}. Only 'bibtex' is supported.")
                     
                     formatted_strings.append(formatted_string)
                     
@@ -3194,117 +3154,3 @@ class FormatterModule:
         lines.append('}')
         return '\n'.join(lines)
     
-    def _format_apa(self, entry: CompletedEntry) -> str:
-        """Format to APA format"""
-        bib_data = entry['bib_data']
-        parts = []
-        
-        # Authors
-        if bib_data.get('author'):
-            authors = bib_data['author'].replace(' and ', ', ')
-            parts.append(authors)
-        
-        # Year
-        if bib_data.get('year'):
-            parts.append(f"({bib_data['year']})")
-        
-        # Title
-        if bib_data.get('title'):
-            parts.append(f"{bib_data['title']}.")
-        
-        # Journal information
-        if bib_data.get('journal'):
-            journal_part = f"*{bib_data['journal']}*"
-            if bib_data.get('volume'):
-                journal_part += f", {bib_data['volume']}"
-            if bib_data.get('number'):
-                journal_part += f"({bib_data['number']})"
-            if bib_data.get('pages'):
-                journal_part += f", {bib_data['pages']}"
-            parts.append(journal_part + ".")
-        
-        return ' '.join(parts)
-    
-    def _format_mla(self, entry: CompletedEntry) -> str:
-        """Format to MLA 8th/9th edition format General format: Author(s). "Title." Container, vol."""
-        bib_data = entry['bib_data']
-        parts = []
-        
-        # Authors
-        if bib_data.get('author'):
-            authors = bib_data['author']
-            # MLA uses "and" for multiple authors, last name first for first author
-            if ' and ' in authors:
-                author_list = authors.split(' and ')
-                # First author: Last, First
-                # Other authors: First Last
-                formatted_authors = []
-                for i, author in enumerate(author_list):
-                    author = author.strip()
-                    if i == 0:
-                        # Keep first author as-is (already in Last, First format usually)
-                        formatted_authors.append(author)
-                    else:
-                        formatted_authors.append(author)
-                authors_str = ', and '.join(formatted_authors) if len(formatted_authors) == 2 else ', '.join(formatted_authors[:-1]) + ', and ' + formatted_authors[-1]
-                parts.append(authors_str + '.')
-            else:
-                parts.append(authors + '.')
-        
-        # Title (in quotes for articles, italicized for books)
-        if bib_data.get('title'):
-            title = bib_data['title']
-            # Remove trailing period if present
-            title = title.rstrip('.')
-            entry_type = bib_data.get('ENTRYTYPE', 'article')
-            
-            if entry_type in ['book', 'phdthesis', 'mastersthesis']:
-                parts.append(f'*{title}*.')
-            else:
-                parts.append(f'"{title}."')
-        
-        # Container (journal, book title, website)
-        if bib_data.get('journal'):
-            journal = bib_data['journal']
-            container_parts = [journal]
-            
-            # Volume
-            if bib_data.get('volume'):
-                container_parts.append(f"vol. {bib_data['volume']}")
-            
-            # Number/Issue
-            if bib_data.get('number'):
-                container_parts.append(f"no. {bib_data['number']}")
-            
-            # Year
-            if bib_data.get('year'):
-                container_parts.append(str(bib_data['year']))
-            
-            # Pages
-            if bib_data.get('pages'):
-                pages = bib_data['pages']
-                # Convert -- to - for page ranges
-                pages = pages.replace('--', '-')
-                container_parts.append(f"pp. {pages}")
-            
-            parts.append(', '.join(container_parts) + '.')
-        elif bib_data.get('publisher'):
-            # For books
-            pub_parts = []
-            if bib_data.get('publisher'):
-                pub_parts.append(bib_data['publisher'])
-            if bib_data.get('year'):
-                pub_parts.append(str(bib_data['year']))
-            if pub_parts:
-                parts.append(', '.join(pub_parts) + '.')
-        elif bib_data.get('year'):
-            # Just year if no journal or publisher
-            parts.append(str(bib_data['year']) + '.')
-        
-        # DOI or URL (MLA 8th ed. includes DOI/URL)
-        if bib_data.get('doi'):
-            parts.append(f"doi:{bib_data['doi']}.")
-        elif bib_data.get('url'):
-            parts.append(bib_data['url'] + '.')
-        
-        return ' '.join(parts)

@@ -1,5 +1,5 @@
 """
-Verify the three output formats (BibTeX / APA / MLA).
+Verify the BibTeX output format.
 
 Runs as a subprocess so we also exercise the ``--output`` flag and file I/O.
 """
@@ -37,30 +37,12 @@ class TestOutputFormats:
         assert code == 0, err
         assert "@" in out
 
-    # -- APA ------------------------------------------------------------------
-
-    def test_apa(self, create_test_file, sample_references):
+    def test_invalid_format_rejected(self, create_test_file, sample_references):
+        """fix #31/#32: apa/mla are no longer supported; CLI should reject them."""
         f = create_test_file(sample_references["doi_only"])
-        code, out, err = _run(["process", f, "--output-format", "apa", "--quiet"])
-        assert code == 0, err
-        assert out.strip(), "APA output was empty"
-
-    # -- MLA ------------------------------------------------------------------
-
-    def test_mla(self, create_test_file, sample_references):
-        f = create_test_file(sample_references["doi_only"])
-        code, out, err = _run(["process", f, "--output-format", "mla", "--quiet"])
-        assert code == 0, err
-        assert out.strip(), "MLA output was empty"
-
-    # -- cross-format consistency ---------------------------------------------
-
-    def test_all_formats_produce_output(self, create_test_file, sample_references):
-        f = create_test_file(sample_references["doi_only"])
-        for fmt in ("bibtex", "apa", "mla"):
-            code, out, err = _run(["process", f, "--output-format", fmt, "--quiet"])
-            assert code == 0, f"{fmt}: {err}"
-            assert out.strip(), f"{fmt} produced no output"
+        for fmt in ("apa", "mla"):
+            code, _, err = _run(["process", f, "--output-format", fmt, "--quiet"])
+            assert code != 0, f"{fmt} should have been rejected by argparse"
 
     # -- file output ----------------------------------------------------------
 

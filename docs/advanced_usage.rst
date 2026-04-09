@@ -102,19 +102,6 @@ To merge multiple `.bib` files::
 
     cat file1.bib file2.bib file3.bib > combined.bib
 
-Converting Between Formats
----------------------------
-
-Convert BibTeX to APA::
-
-    onecite process input.bib --output-format apa -o output.txt
-
-Convert APA to BibTeX::
-
-    # First save APA format in a parseable way, then convert back
-    onecite process references.txt --output-format apa -o apa_refs.txt
-    # Then process again to get BibTeX
-    onecite process original.txt -o output.bib
 
 Using with Git for Version Control
 -----------------------------------

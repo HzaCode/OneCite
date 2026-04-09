@@ -50,9 +50,8 @@ class TestInputFormatsRobust:
 
     def test_output_format_switching(self, create_test_file):
         f = create_test_file("Simple test reference")
-        for fmt in ("bibtex", "apa", "mla"):
-            code, _, err = _run(["process", f, "--output-format", fmt, "--quiet"], timeout=30)
-            assert "timed out" not in err, f"{fmt} timed out"
+        code, _, err = _run(["process", f, "--output-format", "bibtex", "--quiet"], timeout=30)
+        assert "timed out" not in err, "bibtex timed out"
 
     def test_template_switching(self, create_test_file):
         f = create_test_file("Test reference")

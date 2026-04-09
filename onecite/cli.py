@@ -85,7 +85,7 @@ Examples:
     )
     process_parser.add_argument(
         '--output-format',
-        choices=['bibtex', 'apa', 'mla'],
+        choices=['bibtex'],
         default='bibtex',
         help='Output format (default: bibtex)'
     )

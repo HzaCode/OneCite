@@ -53,25 +53,9 @@ OneCite can process various academic identifiers:
 Output Formats
 ~~~~~~~~~~~~~~
 
-**BibTeX (.bib)** - Default format::
+**BibTeX (.bib)** - The output format::
 
     onecite process refs.txt -o output.bib
-
-**APA** - American Psychological Association format::
-
-    onecite process refs.txt --output-format apa
-
-Example APA output::
-
-    LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
-
-**MLA** - Modern Language Association format::
-
-    onecite process refs.txt --output-format mla
-
-Example MLA output::
-
-    LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
 
 Command-Line Options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -82,9 +66,7 @@ Command-Line Options
 
 **Output Format (--output-format)**::
 
-    onecite process input.txt --output-format apa
-    onecite process input.txt --output-format mla
-    onecite process input.txt --output-format bibtex  # default
+    onecite process input.txt --output-format bibtex  # only supported format
 
 **Interactive Mode (--interactive)**
 
@@ -154,16 +136,7 @@ Example 1: Process a BibTeX File
 This will read ``my_references.bib``, enhance the entries, and save to ``clean_references.bib``.
 The ``--input-type`` flag is optional for ``.bib`` files — OneCite detects the format automatically.
 
-Example 2: Convert to APA Format
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    onecite process references.txt --output-format apa -o output.txt
-
-This will process references and output them in APA format.
-
-Example 3: Interactive Processing
+Example 2: Interactive Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
@@ -172,7 +145,7 @@ Example 3: Interactive Processing
 
 This will allow you to manually verify and select the correct match for each reference.
 
-Example 4: Quick Check Without Saving
+Example 3: Quick Check Without Saving
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
@@ -180,6 +153,19 @@ Example 4: Quick Check Without Saving
     onecite process references.txt --quiet
 
 This will show you the processed results without saving to a file.
+
+Example Files
+-------------
+
+Ready-to-use example input files are in ``docs/examples/``:
+
+- ``references.txt`` — mixed identifiers and text queries (one entry per blank-separated block)
+- ``existing.bib`` — a BibTeX file to be enriched
+
+To run them::
+
+    onecite process docs/examples/references.txt -o results.bib
+    onecite process docs/examples/existing.bib -o enriched.bib
 
 Next Steps
 ----------

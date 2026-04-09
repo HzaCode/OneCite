@@ -24,14 +24,3 @@ def test_readme_example():
     assert result.get("results"), "Expected at least one formatted entry"
     assert "report" in result
 
-
-def test_apa_output():
-    """APA is the second-most requested format after BibTeX."""
-    result = process_references(
-        input_content="10.1038/nature14539",
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="apa",
-        interactive_callback=_auto_pick,
-    )
-    assert result.get("results")

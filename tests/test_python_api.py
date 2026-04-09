@@ -32,7 +32,7 @@ class TestPythonAPI:
 
     def test_all_output_formats(self, sample_references, run_onecite_process):
         """Each supported format should produce non-empty output."""
-        for fmt in ("bibtex", "apa", "mla"):
+        for fmt in ("bibtex",):
             code, stdout, _, result = run_onecite_process(
                 sample_references["doi_only"], output_format=fmt
             )
@@ -79,12 +79,11 @@ class TestPythonAPI:
                 interactive_callback=_pick_first,
             )
 
-    def test_empty_input_returns_zero_total(self, run_onecite_process):
-        """Blank input → report shows 0 entries, no crash."""
-        code, _, _, result = run_onecite_process("")
-        assert code == 0
-        assert result["report"]["total"] == 0
-        assert result["results"] == []
+    def test_empty_input_raises_validation_error(self, run_onecite_process):
+        """Blank input raises ValidationError (fix #13), returns code 1."""
+        code, _, err, result = run_onecite_process("")
+        assert code == 1
+        assert result is None
 
     def test_multiple_entries(self, sample_references, run_onecite_process):
         """Two refs separated by a blank line should yield ≥ 2 entries."""

@@ -40,16 +40,33 @@
 
 ---
 
+## Statement of Need
+
+Researchers frequently accumulate reference lists in ad-hoc formats — DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into a consistent, complete `.bib` file is tedious and error-prone.
+
+OneCite solves this by accepting **any mix of identifiers and text queries** and automatically resolving them to structured BibTeX through a pipeline of academic APIs (CrossRef, arXiv, PubMed, Semantic Scholar, and others). It is designed for researchers who work primarily in the terminal, use LaTeX, and want a lightweight, scriptable tool — not a full reference manager.
+
+**When to use OneCite vs. alternatives:**
+
+| Tool | Best for |
+|---|---|
+| **OneCite** | One-shot conversion of messy reference lists to BibTeX in a terminal/script |
+| **Zotero** | Long-term reference management, GUI-based, browser integration |
+| **CrossRef API directly** | When you have clean DOIs and want canonical metadata |
+| **doi2bib** | Single DOI → BibTeX conversion, no fuzzy matching |
+
+---
+
 ## Features
 
 | Feature                 | Description                                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
 | **Fuzzy Matching**          | Match references against multiple academic databases even from incomplete or inaccurate info.         |
-| **Multiple Formats**        | Input `.txt`/`.bib` → Output **BibTeX**, **APA**, or **MLA**.                                         |
+| **Multiple Formats**        | Input `.txt`/`.bib` → Output **BibTeX**.                                                             |
 | **4-stage Pipeline**        | A 4-stage process (clean → query → validate → format) to produce consistent output.                  |
 | **Field Completion**        | Enrich entries by filling in missing fields like journal, volume, pages, and authors.                |
 | 🎓 **7+ Citation Types**    | Handles journal articles, conference papers, books, software, datasets, theses, and preprints.        |
-| **Domain-Aware Routing**    | Auto-detects content type and domain (Medical/CS/General) to pick the best data source.              |
+| **Multi-Source Lookup**     | Queries CrossRef, arXiv, PubMed, Semantic Scholar, Google Books, and others for every entry.         |
 | **Many Identifier Types**   | Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text queries.                    |
 | 🎛️ **Interactive Mode**    | Manually select the correct entry when multiple potential matches are found.                          |
 | **Custom Templates**        | YAML-based templates to control which fields are collected and how entries are typed.                 |
@@ -144,14 +161,12 @@ Your `results.bib` file now contains entries of different types.
 ## 📖 Advanced Usage
 
 <details>
-<summary><strong>🎨 Multiple Output Formats (APA, MLA)</strong></summary>
+<summary><strong>Direct String and Stdin Input</strong></summary>
 
 ```bash
-onecite process refs.txt --output-format apa
-# → LeCun, Y., Bengio, Y., & Hinton, G. (2015). Deep learning. Nature, 521(7553), 436-444.
-
-onecite process refs.txt --output-format mla
-# → LeCun, Yann, Yoshua Bengio, and Geoffrey Hinton. "Deep Learning." Nature 521.7553 (2015): 436-444.
+onecite process "10.1038/nature14539"
+onecite process "Attention is all you need, Vaswani et al., NIPS 2017"
+echo "10.1038/nature14539" | onecite process -
 ```
 </details>
 

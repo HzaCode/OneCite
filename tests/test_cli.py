@@ -56,7 +56,7 @@ class TestCLI:
         """Verify the argparse ``choices`` show up."""
         _, out, _ = self._run(["process", "--help"])
         assert "{txt,bib}" in out
-        assert "{bibtex,apa,mla}" in out
+        assert "bibtex" in out
 
     def test_nonexistent_file_treated_as_string_input(self):
         """fix #36: non-file argument is treated as inline reference string, not an error."""

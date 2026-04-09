@@ -30,8 +30,8 @@ class TestIntegration:
         assert code == 0, err
         self._check(result)
 
-    def test_bib_to_apa(self, run_onecite_process):
-        """Round-trip: feed an existing .bib entry, get APA back."""
+    def test_bib_to_bibtex(self, run_onecite_process):
+        """Round-trip: feed an existing .bib entry, get enriched BibTeX back."""
         bib = (
             "@article{test2015,\n"
             "  title={Deep learning},\n"
@@ -43,7 +43,7 @@ class TestIntegration:
             "  doi={10.1038/nature14539}\n"
             "}"
         )
-        code, _, err, result = run_onecite_process(bib, input_type="bib", output_format="apa")
+        code, _, err, result = run_onecite_process(bib, input_type="bib", output_format="bibtex")
         assert code == 0, err
         self._check(result)
 
@@ -77,10 +77,10 @@ class TestIntegration:
         assert result["report"]["total"] >= 2
 
     def test_cross_format(self, run_onecite_process):
-        """BibTeX output should be valid input for a second pass → APA."""
+        """BibTeX output should be valid input for a second pass."""
         code1, bibtex_out, _, _ = run_onecite_process("10.1038/nature14539", output_format="bibtex")
         if code1 != 0 or not bibtex_out:
             pytest.skip("first pass failed; nothing to round-trip")
-        code2, _, err2, result2 = run_onecite_process(bibtex_out, input_type="bib", output_format="apa")
+        code2, _, err2, result2 = run_onecite_process(bibtex_out, input_type="bib", output_format="bibtex")
         assert code2 == 0, err2
         self._check(result2)

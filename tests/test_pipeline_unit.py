@@ -734,9 +734,11 @@ class TestEnricher:
         assert "Smith" in result
         assert "Alice" in result
 
-    def test_google_scholar_disabled_returns_none(self):
+    def test_complete_fields_passthrough_no_google_scholar(self):
         e = EnricherModule(use_google_scholar=False)
-        assert e._fetch_missing_field("pages", ["google_scholar_scraper"], {"title": "T"}) is None
+        base = {"title": "T", "year": "2020"}
+        result = e._complete_fields(base, {"fields": [{"name": "pages", "source_priority": ["google_scholar_scraper"]}]})
+        assert result == base
 
     def test_convert_book(self):
         e = EnricherModule()
@@ -799,21 +801,11 @@ class TestEnricher:
         assert k1 == "Smith2020Deep"
         assert k2 == "Smith2020Deepa"
 
-    def test_google_scholar_fetch_success(self):
+    def test_complete_fields_is_passthrough_with_google_scholar(self):
         e = EnricherModule(use_google_scholar=True)
-
-        def _pubs(_q):
-            yield {"pages": "123--130"}
-
-        fake_scholarly = MagicMock()
-        fake_scholarly.search_pubs = MagicMock(side_effect=_pubs)
-        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
-             patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0):
-            val = e._fetch_missing_field("pages", ["google_scholar_scraper"],
-                                         {"title": "T", "author": "Doe, John", "year": "2020"})
-
-        assert val == "123--130"
+        base = {"title": "T", "author": "Doe, John", "year": "2020"}
+        result = e._complete_fields(base, {"fields": [{"name": "pages", "source_priority": ["google_scholar_scraper"]}]})
+        assert result == base
 
     def test_google_scholar_timeout(self):
         e = EnricherModule(use_google_scholar=True)
@@ -941,17 +933,14 @@ class TestEnricher:
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             assert e._get_pubmed_abstract({"doi": "10.1234/noabs"}) is None
 
-    def test_fetch_missing_field_abstract_sources(self):
-        """pubmed_api delegates to _get_pubmed_abstract; crossref_api is always skipped."""
+    def test_complete_fields_abstract_is_passthrough(self):
+        """After fix #29, _complete_fields does not call any external source."""
         e = EnricherModule(use_google_scholar=False)
-        with patch.object(e, "_get_pubmed_abstract", return_value="Mocked abstract") as m:
-            val = e._fetch_missing_field("abstract", ["pubmed_api"], {"doi": "10.1/x"})
-        assert val == "Mocked abstract"
-        m.assert_called_once_with({"doi": "10.1/x"})
-
-        with patch.object(e, "_get_pubmed_abstract", return_value=None) as m:
-            assert e._fetch_missing_field("abstract", ["crossref_api"], {"doi": "10.1/x"}) is None
+        base = {"title": "T", "doi": "10.1/x"}
+        with patch.object(e, "_get_pubmed_abstract") as m:
+            result = e._complete_fields(base, {"fields": [{"name": "abstract", "source_priority": ["pubmed_api"]}]})
         m.assert_not_called()
+        assert result == base
 
 
 # ===================================================================
@@ -981,9 +970,8 @@ class TestFormatter:
                 "pages": "3--4", "doi": "10.1234/xyz",
             },
         }
-        for of in ("bibtex", "apa", "mla"):
-            r = fmt.format([entry], of)
-            assert r["report"]["succeeded"] == 1, f"{of} failed"
+        r = fmt.format([entry], "bibtex")
+        assert r["report"]["succeeded"] == 1
 
     def test_failed_entry_counted(self):
         fmt = FormatterModule()
@@ -993,45 +981,30 @@ class TestFormatter:
         assert r["report"]["succeeded"] == 0
         assert len(r["report"]["failed_entries"]) == 1
 
-    def test_mla_book_italics(self):
-        fmt = FormatterModule()
-        entry = {
-            "id": 1, "doi": "", "status": "completed",
-            "bib_key": "Goodfellow2016",
-            "bib_data": {"ENTRYTYPE": "book", "title": "Deep Learning",
-                         "author": "Goodfellow, Ian and Bengio, Yoshua",
-                         "publisher": "MIT Press", "year": "2016"},
+    def test_conference_proceedings_type(self):
+        """fix #28: proceedings-article type must yield @inproceedings with booktitle."""
+        enr = EnricherModule(use_google_scholar=False)
+        metadata = {
+            'type': 'proceedings-article',
+            'title': 'Attention Is All You Need',
+            'authors': ['Ashish Vaswani', 'Noam Shazeer'],
+            'year': 2017,
+            'journal': 'Advances in Neural Information Processing Systems',
+            'doi': '10.5555/3295222.3295349',
         }
-        out = fmt._format_mla(entry)
-        assert "*Deep Learning*" in out
-        assert "MIT Press" in out
+        result = enr._convert_search_metadata(metadata)
+        assert result is not None
+        assert result.get('booktitle'), "conference paper must have booktitle"
+        assert 'journal' not in result, "conference paper must not have journal field"
 
-    def test_mla_article_quotes(self):
-        fmt = FormatterModule()
-        entry = {
-            "id": 1, "doi": "10.1234/test", "status": "completed",
-            "bib_key": "Test2020",
-            "bib_data": {"ENTRYTYPE": "article", "title": "A Test Paper",
-                         "author": "Smith, John and Doe, Jane",
-                         "journal": "Nature", "year": "2020",
-                         "volume": "580", "pages": "1-10",
-                         "doi": "10.1234/test"},
-        }
-        out = fmt._format_mla(entry)
-        assert '"A Test Paper."' in out
-        assert "Nature" in out
-        assert "doi:10.1234/test" in out
-
-    def test_mla_single_author(self):
-        fmt = FormatterModule()
-        entry = {
-            "id": 1, "doi": "", "status": "completed",
-            "bib_key": "Solo2021",
-            "bib_data": {"ENTRYTYPE": "article", "title": "Solo Work",
-                         "author": "Solo, Han", "journal": "J. Test",
-                         "year": "2021"},
-        }
-        assert "Solo, Han." in fmt._format_mla(entry)
+    def test_complete_fields_is_passthrough(self):
+        """fix #29: _complete_fields must be a no-op passthrough."""
+        enr = EnricherModule(use_google_scholar=False)
+        base = {'title': 'T', 'author': 'A', 'year': '2020'}
+        template = {'fields': [{'name': 'abstract', 'source_priority': ['google_scholar_scraper']}]}
+        result = enr._complete_fields(base, template)
+        assert result == base
+        assert 'abstract' not in result
 
     def test_unsupported_format_raises_format_error(self):
         """fix #13: unsupported output_format must raise FormatError, not silently use bibtex."""
