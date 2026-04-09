@@ -2359,6 +2359,11 @@ class EnricherModule:
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.use_google_scholar = use_google_scholar
         self._used_keys: set = set()
+        self._crossref_headers = {
+            'Accept': 'application/json',
+            'User-Agent': f'OneCite/0.1.0 (https://github.com/HzaCode/OneCite; mailto:onecite@users.noreply.github.com)',
+        }
+        self._crossref_mailto = 'onecite@users.noreply.github.com'
     
     def enrich(self, identified_entries: List[IdentifiedEntry], 
                template: Dict, raw_entries: List[RawEntry] = None) -> List[CompletedEntry]:
@@ -2584,9 +2589,8 @@ class EnricherModule:
         """Get metadata from the Crossref API"""
         try:
             url = f"{self.crossref_base_url}/{doi}"
-            headers = {'Accept': 'application/json'}
-            
-            response = requests.get(url, headers=headers, timeout=10)
+            params = {'mailto': self._crossref_mailto}
+            response = requests.get(url, headers=self._crossref_headers, params=params, timeout=10)
             response.raise_for_status()
             
             data = response.json()
@@ -2800,13 +2804,17 @@ class EnricherModule:
         """Format the author list"""
         formatted_authors = []
         for author in authors:
-            given = author.get('given', '')
-            family = author.get('family', '')
-            if family:
-                if given:
+            if author.get('name'):
+                formatted_authors.append(author['name'])
+            else:
+                given = author.get('given', '')
+                family = author.get('family', '')
+                if family and given:
                     formatted_authors.append(f"{family}, {given}")
-                else:
+                elif family:
                     formatted_authors.append(family)
+                elif given:
+                    formatted_authors.append(given)
         
         return ' and '.join(formatted_authors)
     

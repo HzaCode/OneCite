@@ -681,6 +681,41 @@ class TestEnricher:
         assert e._strip_html_tags("Human-level <i>control</i> &amp; learning") == \
                "Human-level control & learning"
 
+    def test_crossref_request_has_user_agent_and_mailto(self):
+        """fix #21: _get_crossref_metadata must send User-Agent and mailto."""
+        e = EnricherModule(use_google_scholar=False)
+        captured = {}
+
+        def fake_get(url, *a, **kw):
+            captured['headers'] = kw.get('headers', {})
+            captured['params'] = kw.get('params', {})
+            return DummyResponse(json_data={"message": {
+                "DOI": "10.1234/x", "title": ["T"],
+                "published-print": {"date-parts": [[2020]]},
+            }})
+
+        with patch("onecite.pipeline.requests.get", side_effect=fake_get):
+            e._get_crossref_metadata("10.1234/x")
+
+        assert "User-Agent" in captured["headers"], "User-Agent header missing"
+        assert "OneCite" in captured["headers"]["User-Agent"]
+        assert captured["params"].get("mailto"), "mailto param missing"
+
+    def test_format_authors_name_field(self):
+        """fix #22: org authors with 'name' field must not be dropped."""
+        e = EnricherModule(use_google_scholar=False)
+        authors = [
+            {"given": "John", "family": "Doe"},
+            {"name": "World Health Organization"},
+            {"family": "Smith"},
+            {"given": "Alice"},
+        ]
+        result = e._format_authors(authors)
+        assert "Doe, John" in result
+        assert "World Health Organization" in result
+        assert "Smith" in result
+        assert "Alice" in result
+
     def test_google_scholar_disabled_returns_none(self):
         e = EnricherModule(use_google_scholar=False)
         assert e._fetch_missing_field("pages", ["google_scholar_scraper"], {"title": "T"}) is None
