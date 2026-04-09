@@ -24,11 +24,13 @@ class TestIntegration:
         assert result["report"]["total"] >= 1
 
     def test_doi_to_bibtex(self, run_onecite_process):
-        code, _, err, result = run_onecite_process(
+        code, out, err, result = run_onecite_process(
             "10.1038/nature14539\n\n1706.03762", output_format="bibtex"
         )
         assert code == 0, err
         self._check(result)
+        assert "10.1038/nature14539" in out, "first DOI must appear in output"
+        assert result["report"]["succeeded"] >= 1
 
     def test_bib_to_bibtex(self, run_onecite_process):
         """Round-trip: feed an existing .bib entry, get enriched BibTeX back."""
@@ -48,12 +50,14 @@ class TestIntegration:
         self._check(result)
 
     def test_conference_paper(self, run_onecite_process):
-        code, _, err, result = run_onecite_process(
+        code, out, err, result = run_onecite_process(
             "Attention is all you need\nVaswani et al.\nNIPS 2017",
             template="conference_paper",
         )
         assert code == 0, err
         self._check(result)
+        assert "Attention" in out or "attention" in out, "title must appear in output"
+        assert "Vaswani" in out or "vaswani" in out.lower(), "author must appear in output"
 
     def test_arxiv(self, run_onecite_process):
         code, _, err, result = run_onecite_process("1706.03762\n\narxiv:1512.03385")

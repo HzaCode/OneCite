@@ -55,6 +55,25 @@ MOCK_ARXIV_RESPONSE = """\
 </feed>
 """
 
+# -- Crossref proceedings paper (10.5555/3295222.3295349, "Attention Is All You Need") --
+MOCK_CROSSREF_PROCEEDINGS_RESPONSE = {
+    "status": "ok",
+    "message-type": "work",
+    "message": {
+        "DOI": "10.5555/3295222.3295349",
+        "type": "proceedings-article",
+        "title": ["Attention Is All You Need"],
+        "author": [
+            {"given": "Ashish", "family": "Vaswani", "sequence": "first"},
+            {"given": "Noam", "family": "Shazeer", "sequence": "additional"},
+            {"given": "Niki", "family": "Parmar", "sequence": "additional"},
+        ],
+        "container-title": ["Advances in Neural Information Processing Systems"],
+        "published-print": {"date-parts": [[2017]]},
+        "publisher": "Curran Associates Inc.",
+    },
+}
+
 # -- Crossref title search (used by _resolve_doi_via_crossref_title) ----------
 MOCK_CROSSREF_SEARCH_RESPONSE = {
     "status": "ok",
@@ -163,6 +182,10 @@ def mock_requests_get(url, *args, **kwargs):
     # Crossref: single-work lookup by DOI
     if "api.crossref.org" in url and "10.1038/nature14539" in url:
         return MockResponse(json_data=MOCK_CROSSREF_RESPONSE)
+
+    # Crossref: proceedings DOI from Attention-Is-All-You-Need fuzzy search result
+    if "api.crossref.org" in url and "10.5555/3295222.3295349" in url:
+        return MockResponse(json_data=MOCK_CROSSREF_PROCEEDINGS_RESPONSE)
 
     # Crossref: title search (fuzzy-search path)
     if "api.crossref.org" in url and "query" in str(kwargs.get("params", "")):
