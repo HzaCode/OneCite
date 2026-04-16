@@ -119,26 +119,27 @@ What data sources does OneCite use?
 OneCite integrates with:
 
 - CrossRef (DOI metadata)
-- Semantic Scholar (automation-powered search)
-- OpenAlex (academic graph)
+- Semantic Scholar (keyword search)
 - PubMed (biomedical literature)
-- DBLP (computer science)
 - arXiv (preprints)
 - DataCite (datasets)
 - Zenodo (open research)
 - Google Books (book metadata)
+- external providerRE / BASE (theses & grey literature)
+- GitHub (software repositories)
+- Google Scholar (optional, off by default)
 
 Which data source is best for my field?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **For Biomedical Research:**
 - Use PMID when available
-- OneCite will prioritize PubMed for medical terms
+- OneCite additionally queries PubMed when it detects strong medical cues in the query
 
 **For Computer Science:**
 - Use arXiv ID for preprints
-- Use DOI from DBLP when available
-- OneCite will prioritize CS-related sources
+- Use DOI when available
+- CrossRef and Semantic Scholar cover most CS venues
 
 **For General Academic Work:**
 - Use DOI (most reliable)
@@ -155,27 +156,27 @@ Output Format Questions
 What output formats are supported?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite supports:
+OneCite currently writes **BibTeX** only.  Earlier versions also offered
+APA and MLA, but those renderers were removed (see issues #31 and #32)
+because they produced inconsistent output.
 
-- **BibTeX** - For LaTeX/Overleaf documents
-- **APA** - American Psychological Association style
-- **MLA** - Modern Language Association style
+For APA or MLA, post-process the BibTeX with a dedicated tool such as
+`pandoc <https://pandoc.org/>`_ or
+`citeproc-py <https://github.com/brechtm/citeproc-py>`_.
 
-Can I customize the output format?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Can I customize which fields end up in the BibTeX output?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! OneCite uses YAML-based templates. See :doc:`templates` for details on creating custom formats.
+Yes — templates control which fields OneCite tries to collect and which
+entry type it falls back to when classification is ambiguous.  See
+:doc:`templates` for details.
 
-How do I convert between formats?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How do I re-run OneCite on an existing BibTeX file?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Simply re-process your references with a different format::
+::
 
-    # Convert to APA
-    onecite process input.bib --output-format apa -o output_apa.txt
-    
-    # Convert back to BibTeX
-    onecite process input.bib --output-format bibtex -o output_new.bib
+    onecite process input.bib --input-type bib -o output_new.bib
 
 Can I get the output as plain text instead of a file?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -188,7 +189,7 @@ Yes, when using the Python API::
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="apa",
+        output_format="bibtex",
         interactive_callback=lambda candidates: 0
     )
     

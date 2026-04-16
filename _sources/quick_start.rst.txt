@@ -66,18 +66,17 @@ Your ``results.bib`` file now contains entries in BibTeX format::
       title = "Attention Is All You Need",
       author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
       year = 2017,
-      journal = "arXiv preprint",
+      booktitle = "Advances in Neural Information Processing Systems (NeurIPS)",
       url = "https://arxiv.org/abs/1706.03762",
     }
 
 Common Command-Line Options
 ----------------------------
 
-**Output Formats**::
+**Output Format**::
 
-    onecite process refs.txt --output-format apa
-    
-    onecite process refs.txt --output-format mla
+    # BibTeX is the only supported output format
+    onecite process refs.txt --output-format bibtex
 
 **Interactive Mode**::
 

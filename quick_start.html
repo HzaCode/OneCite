@@ -72,9 +72,8 @@
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
 <ul>
@@ -174,7 +173,7 @@
   <span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Attention Is All You Need&quot;</span><span class="p">,</span>
   <span class="n">author</span> <span class="o">=</span> <span class="s2">&quot;Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia&quot;</span><span class="p">,</span>
   <span class="n">year</span> <span class="o">=</span> <span class="mi">2017</span><span class="p">,</span>
-  <span class="n">journal</span> <span class="o">=</span> <span class="s2">&quot;arXiv preprint&quot;</span><span class="p">,</span>
+  <span class="n">booktitle</span> <span class="o">=</span> <span class="s2">&quot;Advances in Neural Information Processing Systems (NeurIPS)&quot;</span><span class="p">,</span>
   <span class="n">url</span> <span class="o">=</span> <span class="s2">&quot;https://arxiv.org/abs/1706.03762&quot;</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
@@ -182,10 +181,9 @@
 </section>
 <section id="common-command-line-options">
 <h2>Common Command-Line Options<a class="headerlink" href="#common-command-line-options" title="Link to this heading"></a></h2>
-<p><strong>Output Formats</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
-
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
+<p><strong>Output Format</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX is the only supported output format</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
 </pre></div>
 </div>
 <p><strong>Interactive Mode</strong>:</p>

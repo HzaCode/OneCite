@@ -62,9 +62,8 @@
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
 <ul>
@@ -193,14 +192,8 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#supported-formats">Supported Formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="output_formats.html#bibtex-format">BibTeX Format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#apa-format">APA Format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#mla-format">MLA Format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#format-comparison">Format Comparison</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#choosing-a-format">Choosing a Format</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#converting-between-formats">Converting Between Formats</a></li>
-<li class="toctree-l2"><a class="reference internal" href="output_formats.html#tips-for-different-formats">Tips for Different Formats</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#tips">Tips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="output_formats.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
@@ -231,32 +224,22 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#overview">Overview</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#package-layout">Package Layout</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-1-validation">Stage 1: Validation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-2-identification">Stage 2: Identification</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-3-completion">Stage 3: Completion</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-4-formatting">Stage 4: Formatting</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-1-parse-parsermodule">Stage 1: Parse (<code class="docutils literal notranslate"><span class="pre">ParserModule</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-2-identify-identifiermodule">Stage 2: Identify (<code class="docutils literal notranslate"><span class="pre">IdentifierModule</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-3-enrich-enrichermodule">Stage 3: Enrich (<code class="docutils literal notranslate"><span class="pre">EnricherModule</span></code>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#stage-4-format-formattermodule">Stage 4: Format (<code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code>)</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#custom-data-processing">Custom Data Processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#batch-processing">Batch Processing</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#performance-optimization">Performance Optimization</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#running-stages-manually">Running Stages Manually</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#validation-errors">Validation Errors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#resolution-errors">Resolution Errors</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#partial-success">Partial Success</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#custom-templates">Custom Templates</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#data-source-priority">Data Source Priority</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#timeout-configuration">Timeout Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/pipeline.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
@@ -323,7 +306,7 @@
 <h1>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h1>
 <ul class="simple">
 <li><p><strong>Fuzzy Matching</strong> - Match references against multiple academic databases</p></li>
-<li><p><strong>Multiple Formats</strong> - BibTeX, APA, and MLA output</p></li>
+<li><p><strong>BibTeX Output</strong> - Standards-compliant <code class="docutils literal notranslate"><span class="pre">.bib</span></code> files rendered with <code class="docutils literal notranslate"><span class="pre">bibtexparser</span></code></p></li>
 <li><p><strong>4-stage Pipeline</strong> - 4-stage process for consistent output</p></li>
 <li><p><strong>Field Completion</strong> - Enrich entries with missing metadata</p></li>
 <li><p>🎓 <strong>7+ Citation Types</strong> - Handles journal articles, conference papers, books, software, datasets, theses, and preprints</p></li>
@@ -335,14 +318,15 @@
 <p>OneCite integrates with multiple authoritative academic data sources:</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://www.crossref.org/">CrossRef</a> - Academic publication metadata</p></li>
-<li><p><a class="reference external" href="https://www.semanticscholar.org/">Semantic Scholar</a> - automation-powered literature search</p></li>
-<li><p><a class="reference external" href="https://openalex.org/">OpenAlex</a> - Open academic graph</p></li>
+<li><p><a class="reference external" href="https://www.semanticscholar.org/">Semantic Scholar</a> - Literature search</p></li>
 <li><p><a class="reference external" href="https://pubmed.ncbi.nlm.nih.gov/">PubMed</a> - Biomedical literature</p></li>
-<li><p><a class="reference external" href="https://dblp.org/">DBLP</a> - Computer science bibliography</p></li>
 <li><p><a class="reference external" href="https://arxiv.org/">arXiv</a> - Preprint repository</p></li>
 <li><p><a class="reference external" href="https://datacite.org/">DataCite</a> - Scientific datasets</p></li>
 <li><p><a class="reference external" href="https://zenodo.org/">Zenodo</a> - Open research data</p></li>
 <li><p><a class="reference external" href="https://books.google.com/">Google Books</a> - Book metadata</p></li>
+<li><p><a class="reference external" href="https://www.openaire.eu/">external providerRE</a> / <a class="reference external" href="https://www.base-search.net/">BASE</a> - Theses &amp; grey literature</p></li>
+<li><p><a class="reference external" href="https://github.com/">GitHub</a> - Software repositories</p></li>
+<li><p>Google Scholar (optional, via the <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package)</p></li>
 </ul>
 </section>
 <section id="quick-start">

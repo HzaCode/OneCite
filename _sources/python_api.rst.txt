@@ -110,9 +110,9 @@ BibTeX Input
 Output Formats
 --------------
 
-::
+OneCite currently supports BibTeX output only::
 
-    # BibTeX format
+    # BibTeX format — the only supported output format
     result = process_references(
         input_content="10.1038/nature14539",
         input_type="txt",
@@ -120,24 +120,10 @@ Output Formats
         output_format="bibtex",
         interactive_callback=lambda candidates: 0
     )
-    
-    # APA format
-    result = process_references(
-        input_content="10.1038/nature14539",
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="apa",
-        interactive_callback=lambda candidates: 0
-    )
-    
-    # MLA format
-    result = process_references(
-        input_content="10.1038/nature14539",
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="mla",
-        interactive_callback=lambda candidates: 0
-    )
+
+Passing any other value (such as ``"apa"`` or ``"mla"``) raises
+``FormatError``; that support was removed in favour of dedicated
+BibTeX-to-APA/MLA tools like pandoc or citeproc-py.
 
 Interactive Selection with Callbacks
 -------------------------------------
@@ -349,12 +335,12 @@ Complete Example
     with open("my_references.txt", "r", encoding="utf-8") as f:
         references = f.read()
     
-    # Process with APA format
+    # Process with BibTeX format
     result = process_references(
         input_content=references,
         input_type="txt",
         template_name="journal_article_full",
-        output_format="apa",
+        output_format="bibtex",
         interactive_callback=lambda candidates: 0  # Auto-select first match
     )
     

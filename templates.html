@@ -99,9 +99,8 @@
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
 <ul>
@@ -170,7 +169,7 @@
 <section id="what-templates-actually-do">
 <h2>What Templates Actually Do<a class="headerlink" href="#what-templates-actually-do" title="Link to this heading"></a></h2>
 <p>OneCite templates define <strong>metadata field requirements</strong>, not output formatting.</p>
-<p>Output formats (BibTeX, APA, MLA) are implemented in the Python code, not in the YAML templates.</p>
+<p>Output formatting (BibTeX) is implemented in the Python code, not in the YAML templates.</p>
 <p>Templates control:</p>
 <ol class="arabic simple">
 <li><p><strong>Which fields</strong> are required or optional for a citation type</p></li>
@@ -179,7 +178,7 @@
 </ol>
 <p>Templates DO NOT control:</p>
 <ul class="simple">
-<li><p>Output format style (BibTeX/APA/MLA formatting)</p></li>
+<li><p>Output format style (BibTeX formatting)</p></li>
 <li><p>Field ordering in the output</p></li>
 <li><p>Punctuation or capitalization rules</p></li>
 </ul>
@@ -411,19 +410,13 @@
 </section>
 <section id="output-format-control">
 <h2>Output Format Control<a class="headerlink" href="#output-format-control" title="Link to this heading"></a></h2>
-<p>Output formats (BibTeX, APA, MLA) are controlled by the <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option, not by templates.</p>
-<p>To change output format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Generate BibTeX format</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
-
-<span class="c1"># Generate APA format</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span>
-
-<span class="c1"># Generate MLA format</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">mla</span>
+<p>OneCite currently writes BibTeX only.  The <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option exists
+for forward compatibility but accepts <code class="docutils literal notranslate"><span class="pre">bibtex</span></code> as the sole value:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
 </pre></div>
 </div>
-<p>The template only affects which fields are collected and from where, not how they are formatted in the final output.</p>
+<p>The template only affects which fields are collected and from where, not how
+they are formatted in the final output.</p>
 </section>
 <section id="best-practices">
 <h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>

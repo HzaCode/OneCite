@@ -99,9 +99,8 @@
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
 <ul>
@@ -247,7 +246,8 @@
 </section>
 <section id="output-formats">
 <h2>Output Formats<a class="headerlink" href="#output-formats" title="Link to this heading"></a></h2>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX format</span>
+<p>OneCite currently supports BibTeX output only:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX format — the only supported output format</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
@@ -255,26 +255,11 @@
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
     <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
 <span class="p">)</span>
-
-<span class="c1"># APA format</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
-    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
-    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
-<span class="p">)</span>
-
-<span class="c1"># MLA format</span>
-<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
-    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
-    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;mla&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
-<span class="p">)</span>
 </pre></div>
 </div>
+<p>Passing any other value (such as <code class="docutils literal notranslate"><span class="pre">&quot;apa&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;mla&quot;</span></code>) raises
+<code class="docutils literal notranslate"><span class="pre">FormatError</span></code>; that support was removed in favour of dedicated
+BibTeX-to-APA/MLA tools like pandoc or citeproc-py.</p>
 </section>
 <section id="interactive-selection-with-callbacks">
 <h2>Interactive Selection with Callbacks<a class="headerlink" href="#interactive-selection-with-callbacks" title="Link to this heading"></a></h2>
@@ -467,12 +452,12 @@
 <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;my_references.txt&quot;</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
     <span class="n">references</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
 
-<span class="c1"># Process with APA format</span>
+<span class="c1"># Process with BibTeX format</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
     <span class="n">input_content</span><span class="o">=</span><span class="n">references</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
     <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Auto-select first match</span>
 <span class="p">)</span>
 

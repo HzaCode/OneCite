@@ -52,7 +52,7 @@ Key Features
 ============
 
 - **Fuzzy Matching** - Match references against multiple academic databases
-- **Multiple Formats** - BibTeX, APA, and MLA output
+- **BibTeX Output** - Standards-compliant ``.bib`` files rendered with ``bibtexparser``
 - **4-stage Pipeline** - 4-stage process for consistent output
 - **Field Completion** - Enrich entries with missing metadata
 - 🎓 **7+ Citation Types** - Handles journal articles, conference papers, books, software, datasets, theses, and preprints
@@ -64,14 +64,15 @@ Data Sources
 OneCite integrates with multiple authoritative academic data sources:
 
 - `CrossRef <https://www.crossref.org/>`_ - Academic publication metadata
-- `Semantic Scholar <https://www.semanticscholar.org/>`_ - automation-powered literature search
-- `OpenAlex <https://openalex.org/>`_ - Open academic graph
+- `Semantic Scholar <https://www.semanticscholar.org/>`_ - Literature search
 - `PubMed <https://pubmed.ncbi.nlm.nih.gov/>`_ - Biomedical literature
-- `DBLP <https://dblp.org/>`_ - Computer science bibliography
 - `arXiv <https://arxiv.org/>`_ - Preprint repository
 - `DataCite <https://datacite.org/>`_ - Scientific datasets
 - `Zenodo <https://zenodo.org/>`_ - Open research data
 - `Google Books <https://books.google.com/>`_ - Book metadata
+- `external providerRE <https://www.openaire.eu/>`_ / `BASE <https://www.base-search.net/>`_ - Theses & grey literature
+- `GitHub <https://github.com/>`_ - Software repositories
+- Google Scholar (optional, via the ``scholarly`` package)
 
 Quick Start
 ===========

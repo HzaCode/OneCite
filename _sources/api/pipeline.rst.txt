@@ -4,437 +4,297 @@ Pipeline Processing Reference
 Overview
 --------
 
-The OneCite pipeline is a 4-stage process that transforms raw references into formatted citations:
+The OneCite pipeline is a 4-stage process that transforms raw references
+into formatted BibTeX:
 
-1. **Validation** - Check reference validity
-2. **Identification** - Query data sources
-3. **Completion** - Enrich with metadata
-4. **Formatting** - Convert to output format
+1. **Parse** — read the raw input and produce ``RawEntry`` objects
+2. **Identify** — look up each entry in external APIs and fill in a DOI / basic metadata
+3. **Enrich** — fetch full metadata for the identified entries
+4. **Format** — render the completed entries as BibTeX
+
+Since pyOpenSci review issue #17, the implementation lives in the
+``onecite/pipeline/`` package with one module per stage.  For
+backwards-compatibility all public symbols remain importable from
+``onecite.pipeline``:
+
+.. code-block:: python
+
+    from onecite.pipeline import (
+        ParserModule,
+        IdentifierModule,
+        EnricherModule,
+        FormatterModule,
+    )
+
+Package Layout
+--------------
+
+.. code-block:: text
+
+    onecite/pipeline/
+        __init__.py     - re-exports + ``requests`` at package level
+        _utils.py       - _safe_year helper
+        parser.py       - ParserModule
+        identifier.py   - IdentifierModule
+        enricher.py     - EnricherModule
+        formatter.py    - FormatterModule
 
 Pipeline Stages
 ===============
 
-Stage 1: Validation
--------------------
+Stage 1: Parse (``ParserModule``)
+---------------------------------
 
-**Purpose:** Ensure input is valid and can be processed
+**Purpose:** split the input into one ``RawEntry`` per reference.
 
-**Input:** Raw reference text
+**Input:** the raw ``input_content`` string and an ``input_type``
+(``"txt"`` or ``"bib"``).
 
-**Output:** Validated RawEntry object
+**Output:** ``List[RawEntry]``.
 
-**Process:**
+``ParserModule.parse(input_content, input_type)`` dispatches to
+``_parse_bibtex`` or ``_parse_text``.  The text parser splits on blank
+lines (one reference per block), extracts any DOI or URL found in the
+block, and builds a ``query_string`` for later identification when no
+identifier is present.
 
-1. Check for empty/null input
-2. Validate format (txt or bib)
-3. Detect reference type
-4. Extract metadata hints
+.. code-block:: python
 
-**Error Handling:**
+    from onecite.pipeline import ParserModule
 
-Raises ``ValidationError`` if:
+    parser = ParserModule()
+    entries = parser.parse("10.1038/nature14539\n\n1706.03762", "txt")
+    # [{'id': 0, 'raw_text': '10.1038/nature14539', 'doi': '10.1038/nature14539', ...},
+    #  {'id': 1, 'raw_text': '1706.03762', ...}]
 
-- Input is empty
-- Format is unrecognized
-- Data is malformed
-- Required fields missing
+``ParseError`` is raised when the input type is unsupported or BibTeX
+parsing fails.
 
-**Example:**
+Stage 2: Identify (``IdentifierModule``)
+----------------------------------------
 
-::
+**Purpose:** resolve each ``RawEntry`` against academic data sources and
+produce an ``IdentifiedEntry`` with a DOI (when possible) plus basic
+metadata.
 
-    from onecite import RawEntry
-    from onecite.pipeline import Validator
-    
-    raw = RawEntry(content="10.1038/nature14539")
-    validator = Validator()
-    
-    if validator.validate(raw):
-        print("Valid reference")
-    else:
-        print("Invalid reference")
+**Input:** ``List[RawEntry]`` and an ``interactive_callback`` that picks
+from candidate lists when confidence is medium.
 
-Stage 2: Identification
------------------------
+**Output:** ``List[IdentifiedEntry]``.
 
-**Purpose:** Find matching citations in data sources
+**Data sources actually queried by the code:**
 
-**Input:** Validated RawEntry
-
-**Output:** List of IdentifiedEntry objects
-
-**Process:**
-
-1. Detect identifier type (DOI, arXiv, etc.)
-2. Query appropriate data source
-3. Parse results
-4. Rank by relevance
-5. Return candidates
-
-**Data Sources:**
-
-- CrossRef (DOI-based)
+- CrossRef (DOI-based and fuzzy search)
 - Semantic Scholar (keyword search)
-- OpenAlex (academic graph)
-- PubMed (biomedical)
-- DBLP (computer science)
-- arXiv (preprints)
-- DataCite (datasets)
-- Zenodo (open research)
-- Google Books (books)
+- arXiv (via feedparser)
+- PubMed (biomedical, queried when strong cues are present)
+- DataCite / Zenodo (datasets)
+- Google Books (books — triggered by ISBN or publisher cues)
+- external providerRE / BASE (theses)
+- GitHub (software repositories)
+- Google Scholar (optional, disabled by default; opt-in via
+  ``--google-scholar`` or ``use_google_scholar=True`` and requires the
+  ``scholarly`` package)
 
-**Routing:**
+There is **no runtime routing based on filename** and no fixed priority
+for "medical", "CS" or "general" queries.  Signal-based heuristics
+inside ``_fuzzy_search`` decide when to *additionally* query PubMed,
+Google Books, external providerRE/BASE, etc., but CrossRef and Semantic Scholar are
+always consulted for text queries.
 
-OneCite automatically selects best sources:
+**Confidence model:**
 
-- **Medical terms** → PubMed priority
-- **CS terms** → DBLP/arXiv priority
-- **DOI** → CrossRef priority
-- **Mixed** → Semantic Scholar
+After all sources have returned candidates, ``_score_candidates`` assigns
+each candidate a ``match_score`` (0–100) based on title / author /
+year / venue similarity to the query.  The decision logic in
+``_fuzzy_search`` then chooses one of three paths:
 
-**Example:**
+- ``match_score >= 80`` and a clear best candidate → auto-adopt
+- ``70 <= match_score < 80`` → call the ``interactive_callback`` with up
+  to 5 candidates; fall back to the top candidate if the user skips and
+  the score is still ≥ 75
+- ``match_score >= 50`` and a title is present → adopt cautiously
+- otherwise → mark the entry as ``identification_failed``
 
-::
+This matches what the pyOpenSci review flagged in issues #3, #23 and
+#27.  Fallbacks never fabricate data (see #24).
 
-    from onecite.pipeline import Identifier
-    from onecite import RawEntry
-    
-    identifier = Identifier()
-    raw = RawEntry(content="10.1038/nature14539")
-    
-    matches = identifier.identify(raw)
-    for match in matches:
-        print(f"{match.title} ({match.year})")
+.. code-block:: python
 
-Stage 3: Completion
--------------------
+    from onecite.pipeline import IdentifierModule
 
-**Purpose:** Enrich entries with complete metadata
+    identifier = IdentifierModule(use_google_scholar=False)
+    identified = identifier.identify(entries, interactive_callback=lambda c: 0)
 
-**Input:** IdentifiedEntry (often incomplete)
+Stage 3: Enrich (``EnricherModule``)
+------------------------------------
 
-**Output:** CompletedEntry (fully enriched)
+**Purpose:** take each ``IdentifiedEntry`` and produce a
+``CompletedEntry`` with the BibTeX fields the selected template
+requires.
 
-**Process:**
+**Input:** ``List[IdentifiedEntry]`` and the loaded template.
 
-1. Query additional data sources
-2. Fill missing fields
-3. Normalize author names
-4. Verify publication details
-5. Calculate completeness score
+**Output:** ``List[CompletedEntry]``.
 
-**Fields Enriched:**
+**Fields typically filled in:**
 
-- Authors
-- Title
-- Journal/Publisher
-- Year
-- Volume/Issue
-- Pages
-- DOI/URL
-- Keywords
-- Abstract
+- ``author``, ``title``, ``journal`` / ``booktitle``, ``year``
+- ``volume``, ``number``, ``pages``, ``publisher``
+- ``doi``, ``url``, ``arxiv`` / ``arxiv_id``
+- ``abstract`` (from CrossRef when available, otherwise from PubMed's
+  ``EFetch`` endpoint when the entry has a resolvable PMID)
 
-**Completeness Scoring:**
+The ``_get_crossref_metadata`` method requests each DOI with a proper
+``User-Agent`` header and a ``mailto`` query-string parameter, per
+CrossRef's etiquette (fixes #21).
 
-A score from 0-1 indicating data completeness:
+``_complete_fields`` is intentionally a no-op pass-through:
+template-driven field completion from external scrapers was removed
+(see #16, #29).  The template now only affects which ``entry_type`` the
+formatter falls back to when classification is ambiguous.
 
-- 0.9-1.0: Excellent (all fields present)
-- 0.7-0.9: Good (most fields present)
-- 0.5-0.7: Fair (core fields present)
-- < 0.5: Poor (incomplete)
+Stage 4: Format (``FormatterModule``)
+-------------------------------------
 
-**Example:**
+**Purpose:** render each ``CompletedEntry`` as a BibTeX string.
 
-::
+**Input:** ``List[CompletedEntry]`` and an ``output_format``.
 
-    from onecite.pipeline import Completer
-    from onecite import IdentifiedEntry
-    
-    completer = Completer()
-    identified = IdentifiedEntry(...)
-    
-    completed = completer.complete(identified)
-    print(f"Completeness: {completed.completeness_score}")
+**Output:** a dict with ``results`` (list of formatted strings) and
+``report`` (``total`` / ``succeeded`` / ``failed_entries``).
 
-Stage 4: Formatting
--------------------
+Only ``"bibtex"`` is accepted; passing any other value raises
+``FormatError``.  The previous APA and MLA renderers were removed in
+response to issues #31 and #32; for APA / MLA output, post-process the
+BibTeX file with pandoc or citeproc-py.
 
-**Purpose:** Convert to output format
-
-**Input:** CompletedEntry
-
-**Output:** Formatted string
-
-**Supported Formats:**
-
-- BibTeX
-- APA
-- MLA
-- Custom (via templates)
-
-**Process:**
-
-1. Load template for format
-2. Map fields to template variables
-3. Apply formatting rules
-4. Handle special characters
-5. Return formatted string
-
-**Example:**
-
-::
-
-    from onecite.pipeline import Formatter
-    from onecite import CompletedEntry
-    
-    formatter = Formatter()
-    completed = CompletedEntry(...)
-    
-    # BibTeX output
-    bibtex = formatter.format(completed, "bibtex")
-    
-    # APA output
-    apa = formatter.format(completed, "apa")
+Rendering uses :mod:`bibtexparser` (``bibtexparser.dumps``) so the
+output complies with the BibTeX grammar; LaTeX-special characters in
+``author``, ``title``, ``journal``, ``publisher``, etc. are escaped
+unless the field already contains explicit LaTeX commands
+(e.g. ``K{\\"u}nsch``).
 
 Complete Pipeline
 =================
 
-The PipelineController orchestrates all stages:
+Most callers never touch the individual modules and instead use the
+high-level ``process_references`` function:
 
-::
+.. code-block:: python
 
-    from onecite import PipelineController
-    
-    controller = PipelineController()
-    
-    result = controller.process(
-        entries=["10.1038/nature14539"],
-        output_format="bibtex"
-    )
+    from onecite import process_references
 
-Internal Process
-~~~~~~~~~~~~~~~~
-
-1. Validate input
-2. For each entry:
-   - Identify sources
-   - Select best match
-   - Complete entry
-   - Format output
-3. Aggregate results
-4. Return summary
-
-Advanced Pipeline Usage
-=======================
-
-Custom Data Processing
-----------------------
-
-::
-
-    from onecite.pipeline import (
-        Validator,
-        Identifier,
-        Completer,
-        Formatter
-    )
-    from onecite import RawEntry
-    
-    # Create components
-    validator = Validator()
-    identifier = Identifier()
-    completer = Completer()
-    formatter = Formatter()
-    
-    # Manual pipeline
-    raw = RawEntry(content="10.1038/nature14539")
-    
-    # Stage 1
-    if not validator.validate(raw):
-        raise ValidationError("Invalid reference")
-    
-    # Stage 2
-    matches = identifier.identify(raw)
-    if not matches:
-        raise ResolverError("No matches found")
-    
-    # Stage 3
-    identified = matches[0]
-    completed = completer.complete(identified)
-    
-    # Stage 4
-    formatted = formatter.format(completed, "bibtex")
-    print(formatted)
-
-Batch Processing
-----------------
-
-::
-
-    from onecite import PipelineController
-    
-    controller = PipelineController()
-    
-    references = [
-        "10.1038/nature14539",
-        "1706.03762",
-        "Smith (2020) Machine Learning"
-    ]
-    
-    result = controller.process(
-        input_content="\n\n".join(references),
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
-    )
-    
-    print(f"Processed: {result['report']['succeeded']}")
-    print(f"Failed: {len(result['report']['failed_entries'])}")
-
-Performance Optimization
-------------------------
-
-**Single Reference:**
-
-::
-
-    # Fast path for single reference
     result = process_references(
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda c: 0
+        interactive_callback=lambda candidates: 0,  # auto-pick first
     )
 
-**Batch References:**
+    print('\n\n'.join(result['results']))
+    print(result['report'])
 
-::
+Under the hood this creates a :class:`PipelineController` and calls its
+``process`` method, which runs all four stages in order.
 
-    # --quiet flag reduces output overhead
-    onecite process refs.txt --quiet -o output.bib
+Running Stages Manually
+-----------------------
 
-**Large Batches:**
+For advanced uses (e.g. unit-testing a single stage) you can drive the
+modules directly:
 
-::
+.. code-block:: python
 
-    # Split into chunks
-    split -l 100 large_file.txt chunk_
-    
-    for chunk in chunk_*; do
-        onecite process "$chunk" -o "${chunk}.bib" --quiet
-    done
+    from onecite import TemplateLoader
+    from onecite.pipeline import (
+        ParserModule,
+        IdentifierModule,
+        EnricherModule,
+        FormatterModule,
+    )
 
-Error Handling in Pipeline
-==========================
+    template = TemplateLoader().load_template("journal_article_full")
 
-Validation Errors
------------------
+    parser = ParserModule()
+    identifier = IdentifierModule(use_google_scholar=False)
+    enricher = EnricherModule(use_google_scholar=False)
+    formatter = FormatterModule()
 
-::
+    raw = parser.parse("10.1038/nature14539", "txt")
+    identified = identifier.identify(raw, interactive_callback=lambda c: 0)
+    completed = enricher.enrich(identified, template, raw)
+    result = formatter.format(completed, "bibtex")
 
-    from onecite import ValidationError
-    
+    print(result['results'])
+
+Error Handling
+==============
+
+All pipeline errors inherit from ``OneCiteError``:
+
+- ``ValidationError`` — empty / malformed input
+- ``ParseError`` — ``ParserModule`` could not split the input
+- ``ResolverError`` — raised by helpers when a data source cannot
+  resolve an identifier; generally caught internally and recorded as
+  ``identification_failed`` on the entry instead of propagating
+- ``FormatError`` — the requested ``output_format`` is not ``"bibtex"``
+
+.. code-block:: python
+
+    from onecite import process_references, ValidationError, FormatError
+
     try:
         result = process_references(
             input_content="",
             input_type="txt",
             template_name="journal_article_full",
             output_format="bibtex",
-            interactive_callback=lambda c: 0
+            interactive_callback=lambda c: 0,
         )
     except ValidationError:
         print("Empty input")
 
-Resolution Errors
------------------
-
-::
-
-    from onecite import ResolverError
-    
     try:
-        result = process_references(
-            input_content="invalid/doi",
+        process_references(
+            input_content="10.1038/nature14539",
             input_type="txt",
             template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda c: 0
+            output_format="apa",   # no longer supported
+            interactive_callback=lambda c: 0,
         )
-    except ResolverError:
-        print("Could not find reference")
-        print("Check identifier or try again later")
+    except FormatError as exc:
+        print(exc)
 
-Partial Success
----------------
+Testing Hooks
+=============
 
-::
+Because ``onecite/pipeline/__init__.py`` imports ``requests`` at the
+package level, tests that mock the network can continue to use the
+original patch target:
 
-    from onecite import process_references
-    
-    result = process_references(
-        input_content=mixed_refs,
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda c: 0
-    )
-    
-    print(f"Success: {result['report']['succeeded']}")
-    print(f"Failed: {len(result['report']['failed_entries'])}")
-    
-    if result['report']['failed_entries']:
-        for entry in result['report']['failed_entries']:
-            print(f"Failed entry {entry['id']}: {entry.get('error', 'Unknown')}")
+.. code-block:: python
 
-Pipeline Configuration
-======================
+    from unittest.mock import patch
 
-Custom Templates
-----------------
+    with patch("onecite.pipeline.requests.get", side_effect=fake_get):
+        ...
 
-::
+For mocking the optional ``scholarly`` dependency, patch the concrete
+submodule attribute instead — ``scholarly`` is imported inside
+``identifier.py`` and ``enricher.py``:
 
-    from onecite import PipelineController
-    
-    controller = PipelineController()
-    controller.add_template_path("./my_templates")
-    
-    result = controller.process(
-        entries=["10.1038/nature14539"],
-        output_format="my_format"
-    )
+.. code-block:: python
 
-Data Source Priority
---------------------
-
-::
-
-    from onecite.pipeline import Identifier
-    
-    identifier = Identifier()
-    
-    # Set priority for specific query types
-    identifier.set_source_priority(
-        query_type="biomedical",
-        sources=["pubmed", "crossref", "openalex"]
-    )
-
-Timeout Configuration
----------------------
-
-::
-
-    from onecite import PipelineController
-    
-    controller = PipelineController()
-    controller.set_timeout(10)  # 10 seconds per query
+    import onecite.pipeline.identifier as identifier_mod
+    with patch.object(identifier_mod, "scholarly", fake_scholarly):
+        ...
 
 Next Steps
 ----------
 
 - See :doc:`../python_api` for usage examples
-- Check :doc:`../api/core` for class reference
-- Review :doc:`../advanced_usage` for complex scenarios
+- Check :doc:`../api/core` for the data-class and public-function
+  reference
+- Review :doc:`../advanced_usage` for real-world workflows

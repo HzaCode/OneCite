@@ -63,9 +63,8 @@
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#advanced-pipeline-usage">Advanced Pipeline Usage</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling-in-pipeline">Error Handling in Pipeline</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-configuration">Pipeline Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
 <ul class="current">
@@ -97,8 +96,8 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#output-format-questions">Output Format Questions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#what-output-formats-are-supported">What output formats are supported?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#can-i-customize-the-output-format">Can I customize the output format?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-do-i-convert-between-formats">How do I convert between formats?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#can-i-customize-which-fields-end-up-in-the-bibtex-output">Can I customize which fields end up in the BibTeX output?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-do-i-re-run-onecite-on-an-existing-bibtex-file">How do I re-run OneCite on an existing BibTeX file?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#can-i-get-the-output-as-plain-text-instead-of-a-file">Can I get the output as plain text instead of a file?</a></li>
 </ul>
 </li>
@@ -283,25 +282,26 @@ Get-ChildItem *.txt | ForEach-Object {
 <p>OneCite integrates with:</p>
 <ul class="simple">
 <li><p>CrossRef (DOI metadata)</p></li>
-<li><p>Semantic Scholar (automation-powered search)</p></li>
-<li><p>OpenAlex (academic graph)</p></li>
+<li><p>Semantic Scholar (keyword search)</p></li>
 <li><p>PubMed (biomedical literature)</p></li>
-<li><p>DBLP (computer science)</p></li>
 <li><p>arXiv (preprints)</p></li>
 <li><p>DataCite (datasets)</p></li>
 <li><p>Zenodo (open research)</p></li>
 <li><p>Google Books (book metadata)</p></li>
+<li><p>external providerRE / BASE (theses &amp; grey literature)</p></li>
+<li><p>GitHub (software repositories)</p></li>
+<li><p>Google Scholar (optional, off by default)</p></li>
 </ul>
 </section>
 <section id="which-data-source-is-best-for-my-field">
 <h3>Which data source is best for my field?<a class="headerlink" href="#which-data-source-is-best-for-my-field" title="Link to this heading"></a></h3>
 <p><strong>For Biomedical Research:</strong>
 - Use PMID when available
-- OneCite will prioritize PubMed for medical terms</p>
+- OneCite additionally queries PubMed when it detects strong medical cues in the query</p>
 <p><strong>For Computer Science:</strong>
 - Use arXiv ID for preprints
-- Use DOI from DBLP when available
-- OneCite will prioritize CS-related sources</p>
+- Use DOI when available
+- CrossRef and Semantic Scholar cover most CS venues</p>
 <p><strong>For General Academic Work:</strong>
 - Use DOI (most reliable)
 - Fall back to title + author for identification</p>
@@ -315,25 +315,22 @@ Get-ChildItem *.txt | ForEach-Object {
 <h2>Output Format Questions<a class="headerlink" href="#output-format-questions" title="Link to this heading"></a></h2>
 <section id="what-output-formats-are-supported">
 <h3>What output formats are supported?<a class="headerlink" href="#what-output-formats-are-supported" title="Link to this heading"></a></h3>
-<p>OneCite supports:</p>
-<ul class="simple">
-<li><p><strong>BibTeX</strong> - For LaTeX/Overleaf documents</p></li>
-<li><p><strong>APA</strong> - American Psychological Association style</p></li>
-<li><p><strong>MLA</strong> - Modern Language Association style</p></li>
-</ul>
+<p>OneCite currently writes <strong>BibTeX</strong> only.  Earlier versions also offered
+APA and MLA, but those renderers were removed (see issues #31 and #32)
+because they produced inconsistent output.</p>
+<p>For APA or MLA, post-process the BibTeX with a dedicated tool such as
+<a class="reference external" href="https://pandoc.org/">pandoc</a> or
+<a class="reference external" href="https://github.com/brechtm/citeproc-py">citeproc-py</a>.</p>
 </section>
-<section id="can-i-customize-the-output-format">
-<h3>Can I customize the output format?<a class="headerlink" href="#can-i-customize-the-output-format" title="Link to this heading"></a></h3>
-<p>Yes! OneCite uses YAML-based templates. See <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for details on creating custom formats.</p>
+<section id="can-i-customize-which-fields-end-up-in-the-bibtex-output">
+<h3>Can I customize which fields end up in the BibTeX output?<a class="headerlink" href="#can-i-customize-which-fields-end-up-in-the-bibtex-output" title="Link to this heading"></a></h3>
+<p>Yes — templates control which fields OneCite tries to collect and which
+entry type it falls back to when classification is ambiguous.  See
+<a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for details.</p>
 </section>
-<section id="how-do-i-convert-between-formats">
-<h3>How do I convert between formats?<a class="headerlink" href="#how-do-i-convert-between-formats" title="Link to this heading"></a></h3>
-<p>Simply re-process your references with a different format:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Convert to APA</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">apa</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_apa</span><span class="o">.</span><span class="n">txt</span>
-
-<span class="c1"># Convert back to BibTeX</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_new</span><span class="o">.</span><span class="n">bib</span>
+<section id="how-do-i-re-run-onecite-on-an-existing-bibtex-file">
+<h3>How do I re-run OneCite on an existing BibTeX file?<a class="headerlink" href="#how-do-i-re-run-onecite-on-an-existing-bibtex-file" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">bib</span> <span class="o">--</span><span class="nb">input</span><span class="o">-</span><span class="nb">type</span> <span class="n">bib</span> <span class="o">-</span><span class="n">o</span> <span class="n">output_new</span><span class="o">.</span><span class="n">bib</span>
 </pre></div>
 </div>
 </section>
@@ -346,7 +343,7 @@ Get-ChildItem *.txt | ForEach-Object {
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
     <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
 <span class="p">)</span>
 
