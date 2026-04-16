@@ -5,6 +5,8 @@ terminal to convince yourself the tool actually works.
 All API calls are mocked via the ``run_onecite_process`` fixture.
 """
 
+import pytest
+
 
 class TestIntegration:
 

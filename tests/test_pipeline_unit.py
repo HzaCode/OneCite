@@ -19,6 +19,8 @@ from unittest.mock import patch, MagicMock
 
 from onecite.pipeline import EnricherModule, FormatterModule, IdentifierModule
 import onecite.pipeline as _pipeline_mod
+import onecite.pipeline.identifier as _identifier_mod
+import onecite.pipeline.enricher as _enricher_mod
 
 
 # ---------------------------------------------------------------------------
@@ -455,7 +457,7 @@ class TestIdentifierGoogleScholar:
 
         fake_scholarly = MagicMock()
         fake_scholarly.search_pubs = MagicMock(return_value=pubs)
-        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+        with patch.object(_identifier_mod, "scholarly", fake_scholarly), \
              patch("threading.Thread", ImmediateThread), \
              patch("time.sleep"), patch("time.time", return_value=1000.0):
             results = ident._search_google_scholar("neurips paper", limit=1)
@@ -469,7 +471,7 @@ class TestIdentifierGoogleScholar:
         ident = IdentifierModule(use_google_scholar=True)
         fake_scholarly = MagicMock()
         fake_scholarly.search_pubs = MagicMock(side_effect=Exception("captcha blocked"))
-        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+        with patch.object(_identifier_mod, "scholarly", fake_scholarly), \
              patch("threading.Thread", ImmediateThread), \
              patch("time.sleep"), patch("time.time", return_value=1000.0):
             assert ident._search_google_scholar("q", limit=1) == []
@@ -817,7 +819,7 @@ class TestEnricher:
         e = EnricherModule(use_google_scholar=True)
         fake_scholarly = MagicMock()
         fake_scholarly.search_pubs = MagicMock(side_effect=RuntimeError("boom"))
-        with patch.object(_pipeline_mod, "scholarly", fake_scholarly), \
+        with patch.object(_enricher_mod, "scholarly", fake_scholarly), \
              patch("threading.Thread", ImmediateThread), \
              patch("time.sleep"), patch("time.time", return_value=1000.0):
             assert e._fetch_from_google_scholar("pages", {"title": "T"}) is None
