@@ -8,7 +8,7 @@ authors:
     email: "ang@hezhiang.com"
 repository-code: "https://github.com/HzaCode/OneCite"
 url: "https://github.com/HzaCode/OneCite"
-abstract: "OneCite is a command-line tool and Python library that automates citation management. It supports multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and generates clean, accurate bibliographic entries in BibTeX, APA, or MLA format."
+abstract: "OneCite is a command-line tool and Python library that automates citation management. It accepts multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and produces clean BibTeX entries."
 keywords:
   - citation
   - bibliography
@@ -20,5 +20,5 @@ keywords:
   - research
 license: MIT
 version: "0.1.0"
-date-released: "2025-02-09"
+date-released: "2026-04-17"
 

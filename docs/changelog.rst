@@ -8,8 +8,12 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/>`_, and th
 Unreleased
 ----------
 
-[0.1.0] - 2025-02-09
+[0.1.0] - 2026-04-17
 ---------------------
+
+First formal PyPI release since ``0.0.12``.  Incorporates the complete
+pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
+See ``CHANGELOG.md`` at the repository root for the full per-issue list.
 
 Added
 ~~~~~
@@ -25,17 +29,30 @@ Added
 Changed
 ~~~~~~~
 
+- **Split monolithic pipeline.py (~3000 lines)** into a proper
+  ``onecite/pipeline/`` package with one module per stage (#17)
+- Unify CrossRef request and parsing methods, with ``User-Agent`` and
+  ``mailto`` set per CrossRef etiquette (#21, #26)
+- Rewrite fuzzy-search scoring as a weighted title/author/year/venue
+  model with three confidence tiers (#3, #23, #27)
+- Simplify identifier routing; CrossRef and Semantic Scholar are the
+  always-on sources, with signal-based PubMed / Google Books /
+  external providerRE / BASE queries (#8, #23)
+- Use ``bibtexparser.dumps()`` for BibTeX rendering (#30)
+- Expose ``use_google_scholar`` as a real CLI flag and API parameter (#10)
+- Clarify that templates define metadata-field requirements and a
+  fallback BibTeX entry type, not output formatting (#16, #29)
 - Refactored exception hierarchy
 - Added type hints to Python API
-- Updated README examples
-- Bumped minimum Python version declaration in docs to 3.10
-- Updated CI actions to latest versions (checkout v4, setup-python v5)
-- Updated copyright year to 2024-2025
-- Fixed Documentation URL in pyproject.toml to point to GitHub Pages
 
 Removed
 ~~~~~~~
 
+- APA and MLA output renderers; the CLI now rejects anything other than
+  ``--output-format bibtex``.  Use pandoc or citeproc-py to convert the
+  generated BibTeX to APA / MLA (#31, #32)
+- Hard-coded "well-known paper" shortcut that masked failures on the
+  main example input (#19)
 - MCP integration page and all related references
 - ``.readthedocs.yml`` (docs now hosted on GitHub Pages)
 - ``docs/_build/`` build artifacts from repository
@@ -43,6 +60,21 @@ Removed
 Fixed
 ~~~~~
 
+- OpenAlex and dblp no longer listed as data sources — they were never
+  wired into the code (#6)
+- ``docs/api/pipeline.rst`` rewritten to match the real modules;
+  removed references to nonexistent classes / methods (#11)
+- README and docs ``@inproceedings`` example now uses ``booktitle``
+  instead of ``journal = "arXiv preprint"`` (#28)
+- Crossref author names parsed as ``given family`` (#22)
+- Semantic Scholar HTTP 429 handled cleanly (#25)
+- Previously-unused exception classes now raised in the right places
+  (#13)
+- ``CONTRIBUTING.md`` documents ``pip install -e .[dev]`` instead of
+  the non-existent ``requirements.txt`` (#12)
+- URL-bearing entries no longer queried twice (#20)
+- Fallback paths mark entries as ``identification_failed`` rather than
+  fabricating invented metadata (#24)
 - CrossRef and Semantic Scholar response parsing edge cases
 - API documentation using incorrect return value fields
 - Version number inconsistencies across metadata files
