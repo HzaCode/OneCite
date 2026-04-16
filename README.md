@@ -225,13 +225,7 @@ print('\n\n'.join(result['results']))
 
 ## 🗺️ Roadmap
 
-Planned work — not yet scheduled, contributions welcome. Status reflects intent, not guarantees.
-
-| Item | Status | Notes |
-|---|---|---|
-| **OneCite Skill** for automation workflows | Planned | Reusable Skill package so agents (MCP client Code, Windsurf, etc.) can call OneCite directly without hand-crafting CLI invocations — input normalization, DOI/title/arXiv resolution, and `.bib` generation as first-class tool calls. |
-
-Have an idea? Open an [issue](https://github.com/HzaCode/OneCite/issues) or start a [discussion](https://github.com/HzaCode/OneCite/discussions).
+- **OneCite Skill** — Skill package for automation workflows (MCP client Code, Windsurf, etc.).
 
 ## 🤝 Contributing
 
