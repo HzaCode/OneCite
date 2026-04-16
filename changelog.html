@@ -71,7 +71,7 @@
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id1">[0.1.0] - 2025-02-09</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#id1">[0.1.0] - 2026-04-17</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#removed">Removed</a></li>
@@ -143,7 +143,10 @@
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 </section>
 <section id="id1">
-<h2>[0.1.0] - 2025-02-09<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<h2>[0.1.0] - 2026-04-17<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
+<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.  Incorporates the complete
+pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
+See <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> at the repository root for the full per-issue list.</p>
 <section id="added">
 <h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
 <ul class="simple">
@@ -159,18 +162,31 @@
 <section id="changed">
 <h3>Changed<a class="headerlink" href="#changed" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p><strong>Split monolithic pipeline.py (~3000 lines)</strong> into a proper
+<code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one module per stage (#17)</p></li>
+<li><p>Unify CrossRef request and parsing methods, with <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code> and
+<code class="docutils literal notranslate"><span class="pre">mailto</span></code> set per CrossRef etiquette (#21, #26)</p></li>
+<li><p>Rewrite fuzzy-search scoring as a weighted title/author/year/venue
+model with three confidence tiers (#3, #23, #27)</p></li>
+<li><p>Simplify identifier routing; CrossRef and Semantic Scholar are the
+always-on sources, with signal-based PubMed / Google Books /
+external providerRE / BASE queries (#8, #23)</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">bibtexparser.dumps()</span></code> for BibTeX rendering (#30)</p></li>
+<li><p>Expose <code class="docutils literal notranslate"><span class="pre">use_google_scholar</span></code> as a real CLI flag and API parameter (#10)</p></li>
+<li><p>Clarify that templates define metadata-field requirements and a
+fallback BibTeX entry type, not output formatting (#16, #29)</p></li>
 <li><p>Refactored exception hierarchy</p></li>
 <li><p>Added type hints to Python API</p></li>
-<li><p>Updated README examples</p></li>
-<li><p>Bumped minimum Python version declaration in docs to 3.10</p></li>
-<li><p>Updated CI actions to latest versions (checkout v4, setup-python v5)</p></li>
-<li><p>Updated copyright year to 2024-2025</p></li>
-<li><p>Fixed Documentation URL in pyproject.toml to point to GitHub Pages</p></li>
 </ul>
 </section>
 <section id="removed">
 <h3>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p>APA and MLA output renderers; the CLI now rejects anything other than
+<code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">bibtex</span></code>.  Use pandoc or citeproc-py to convert the
+generated BibTeX to APA / MLA (#31, #32)</p></li>
+<li><p>Hard-coded “well-known paper” shortcut that masked failures on the
+main example input (#19)</p></li>
 <li><p>MCP integration page and all related references</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">.readthedocs.yml</span></code> (docs now hosted on GitHub Pages)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">docs/_build/</span></code> build artifacts from repository</p></li>
@@ -179,6 +195,21 @@
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p>OpenAlex and dblp no longer listed as data sources — they were never
+wired into the code (#6)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">docs/api/pipeline.rst</span></code> rewritten to match the real modules;
+removed references to nonexistent classes / methods (#11)</p></li>
+<li><p>README and docs <code class="docutils literal notranslate"><span class="pre">&#64;inproceedings</span></code> example now uses <code class="docutils literal notranslate"><span class="pre">booktitle</span></code>
+instead of <code class="docutils literal notranslate"><span class="pre">journal</span> <span class="pre">=</span> <span class="pre">&quot;arXiv</span> <span class="pre">preprint&quot;</span></code> (#28)</p></li>
+<li><p>Crossref author names parsed as <code class="docutils literal notranslate"><span class="pre">given</span> <span class="pre">family</span></code> (#22)</p></li>
+<li><p>Semantic Scholar HTTP 429 handled cleanly (#25)</p></li>
+<li><p>Previously-unused exception classes now raised in the right places
+(#13)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> documents <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.[dev]</span></code> instead of
+the non-existent <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> (#12)</p></li>
+<li><p>URL-bearing entries no longer queried twice (#20)</p></li>
+<li><p>Fallback paths mark entries as <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> rather than
+fabricating invented metadata (#24)</p></li>
 <li><p>CrossRef and Semantic Scholar response parsing edge cases</p></li>
 <li><p>API documentation using incorrect return value fields</p></li>
 <li><p>Version number inconsistencies across metadata files</p></li>
