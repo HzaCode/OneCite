@@ -7,7 +7,30 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ## [Unreleased]
 
 ### Changed
+- Split monolithic ``pipeline.py`` (~3000 lines) into a proper
+  ``onecite/pipeline/`` package with one module per stage
+  (``parser.py`` / ``identifier.py`` / ``enricher.py`` /
+  ``formatter.py``) plus a ``_utils.py`` for shared helpers (#17).
+  Public imports (``from onecite.pipeline import IdentifierModule``)
+  and mocking targets (``patch("onecite.pipeline.requests.get", ...)``)
+  continue to work unchanged.
 - Unify CrossRef request and parsing methods in pipeline (#26)
+
+### Fixed
+- README no longer advertises OpenAlex and dblp as data sources — they
+  were never wired into the code (#6).
+- README quick-start example now shows ``booktitle`` (NeurIPS) instead
+  of ``journal = "arXiv preprint"`` for the ``@inproceedings`` sample
+  (#28).
+- ``docs/api/pipeline.rst`` rewritten to match the actual module
+  structure; removed references to classes and methods that never
+  existed (``Validator`` / ``Identifier`` / ``Completer`` / ``Formatter``,
+  ``set_source_priority``, ``set_timeout``, ``add_template_path``) (#11).
+- ``docs/output_formats.rst``, ``docs/faq.rst``, ``docs/quick_start.rst``,
+  ``docs/python_api.rst``, ``docs/templates.rst``, ``docs/index.rst`` and
+  docstrings in ``core.py`` / ``formatter.py`` no longer advertise
+  APA / MLA output — the renderers were removed and the CLI rejects
+  those values (#31, #32).
 
 ## [0.1.0] - 2025-02-09
 

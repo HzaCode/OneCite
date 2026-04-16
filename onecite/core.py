@@ -153,8 +153,8 @@ class PipelineController:
             template_name: Name of the YAML template that controls
                 which fields are collected (e.g.
                 ``"journal_article_full"``).
-            output_format: Desired citation style — ``"bibtex"``,
-                ``"apa"``, or ``"mla"``.
+            output_format: Output format. Only ``"bibtex"`` is
+                supported; any other value raises ``FormatError``.
             interactive_callback: A callable that receives a list of
                 candidate dictionaries and returns the index of the
                 selected candidate.
@@ -201,8 +201,8 @@ def process_references(
         input_type: Format of *input_content* — ``"txt"`` or ``"bib"``.
         template_name: Name of the YAML template (e.g.
             ``"journal_article_full"``).
-        output_format: Desired citation style — ``"bibtex"``, ``"apa"``,
-            or ``"mla"``.
+        output_format: Output format. Only ``"bibtex"`` is supported;
+            any other value raises ``FormatError``.
         interactive_callback: A callable that receives a list of
             candidate dictionaries and returns the index of the selected
             candidate.

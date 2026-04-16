@@ -78,9 +78,7 @@ OneCite solves this by accepting **any mix of identifiers and text queries** and
 
 [![CrossRef](https://img.shields.io/badge/CrossRef-B31B1B?style=for-the-badge&logo=crossref&logoColor=white)](https://www.crossref.org/)
 [![Semantic Scholar](https://img.shields.io/badge/Semantic-1857B6?style=for-the-badge&logo=semanticscholar&logoColor=white)](https://www.semanticscholar.org/)
-[![OpenAlex](https://img.shields.io/badge/OpenAlex-FF6B35?style=for-the-badge&logo=openalex&logoColor=white)](https://openalex.org/)
 [![PubMed](https://img.shields.io/badge/PubMed-326599?style=for-the-badge&logo=pubmed&logoColor=white)](https://pubmed.ncbi.nlm.nih.gov/)
-[![dblp](https://img.shields.io/badge/dblp-002B5B?style=for-the-badge&logo=dblp&logoColor=white)](https://dblp.org/)
 [![arXiv](https://img.shields.io/badge/𝒳_arXiv-B31B1B?style=for-the-badge)](https://arxiv.org/)
 [![DataCite](https://img.shields.io/badge/DataCite-00B4A0?style=for-the-badge&logo=datacite&logoColor=white)](https://datacite.org/)
 [![Zenodo](https://img.shields.io/badge/Zenodo-0A0E4A?style=for-the-badge&logo=zenodo&logoColor=white)](https://zenodo.org/)
@@ -150,7 +148,7 @@ Your `results.bib` file now contains entries of different types.
   title = "Attention Is All You Need",
   author = "Vaswani, Ashish and Shazeer, Noam and Parmar, Niki and Uszkoreit, Jakob and Jones, Llion and Gomez, Aidan N. and Kaiser, Lukasz and Polosukhin, Illia",
   year = 2017,
-  journal = "arXiv preprint",
+  booktitle = "Advances in Neural Information Processing Systems (NeurIPS)",
   url = "https://arxiv.org/abs/1706.03762",
 }
 # ... and 5 more entries ...

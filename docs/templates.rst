@@ -32,7 +32,7 @@ What Templates Actually Do
 
 OneCite templates define **metadata field requirements**, not output formatting.
 
-Output formats (BibTeX, APA, MLA) are implemented in the Python code, not in the YAML templates.
+Output formatting (BibTeX) is implemented in the Python code, not in the YAML templates.
 
 Templates control:
 
@@ -42,7 +42,7 @@ Templates control:
 
 Templates DO NOT control:
 
-- Output format style (BibTeX/APA/MLA formatting)
+- Output format style (BibTeX formatting)
 - Field ordering in the output
 - Punctuation or capitalization rules
 
@@ -274,20 +274,13 @@ You can load and inspect templates programmatically::
 Output Format Control
 ---------------------
 
-Output formats (BibTeX, APA, MLA) are controlled by the ``--output-format`` option, not by templates.
+OneCite currently writes BibTeX only.  The ``--output-format`` option exists
+for forward compatibility but accepts ``bibtex`` as the sole value::
 
-To change output format::
-
-    # Generate BibTeX format
     onecite process refs.txt --output-format bibtex
-    
-    # Generate APA format
-    onecite process refs.txt --output-format apa
-    
-    # Generate MLA format
-    onecite process refs.txt --output-format mla
 
-The template only affects which fields are collected and from where, not how they are formatted in the final output.
+The template only affects which fields are collected and from where, not how
+they are formatted in the final output.
 
 Best Practices
 --------------
