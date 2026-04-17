@@ -144,7 +144,7 @@ A TypedDict representing a fully processed entry with all metadata (Stage 3).
 - ``bib_key`` (str): BibTeX citation key (e.g., "LeCun2015Deep")
 - ``bib_data`` (dict): Complete bibliographic data with all fields
 
-CompletedEntry is a TypedDict. Use ``FormatterModule`` from ``pipeline.py`` to convert entries to different output formats.
+CompletedEntry is a TypedDict. Use ``FormatterModule`` from ``pipeline.py`` to render entries as BibTeX (the only supported output format). Templates control which fields are included and the fallback BibTeX entry type when auto-detection is ambiguous.
 
 Classes
 -------
@@ -239,7 +239,13 @@ Raised when entry validation fails.
 .. code-block:: python
 
     try:
-        result = process_references("")
+        result = process_references(
+            input_content="",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda c: 0,
+        )
     except ValidationError as e:
         print(f"Validation failed: {e}")
 
@@ -251,7 +257,13 @@ Raised when parsing input fails.
 .. code-block:: python
 
     try:
-        result = process_references("invalid input", input_type="bib")
+        result = process_references(
+            input_content="invalid input",
+            input_type="bib",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda c: 0,
+        )
     except ParseError as e:
         print(f"Parse failed: {e}")
 
@@ -263,7 +275,13 @@ Raised when data source resolution fails.
 .. code-block:: python
 
     try:
-        result = process_references("nonexistent doi")
+        result = process_references(
+            input_content="nonexistent doi",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda c: 0,
+        )
     except ResolverError as e:
         print(f"Resolver failed: {e}")
 
@@ -320,4 +338,4 @@ Next Steps
 
 - See :doc:`../python_api` for usage examples
 - Check :doc:`../advanced_usage` for complex scenarios
-- Review :doc:`../templates` for custom formatting
+- Review :doc:`../templates` for field requirements and fallback entry types

@@ -46,7 +46,7 @@ Templates control:
 
 1. **Which fields** are required or optional for a citation type
 2. **BibTeX entry type** (e.g., @article, @book, @inproceedings)
-3. **Optional field completion** strategy (limited data sources)
+3. **Field declarations** for template validation (the template lists which fields are expected, but broad template-driven field completion from external scrapers has been removed; only DOI-only abstract back-fill remains in `_complete_fields`)
 
 Templates DO NOT control:
 
@@ -111,16 +111,12 @@ Each field has:
 
 - ``name`` - Field name (e.g., author, title, journal)
 - ``required`` - Whether this field is required (true/false)
-- ``source_priority`` - Ordered list of data sources to try (optional fields only)
+- ``source_priority`` - Ordered list of data sources (legacy field, preserved in templates for backwards compatibility)
 
-Available Data Sources for source_priority
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Historical Note on source_priority
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``source_priority`` field controls optional field completion for missing fields:
-
-- ``crossref_api`` - CrossRef API
-- ``google_scholar_scraper`` - Google Scholar scraping (if enabled)
-- ``user_prompt`` - Prompt user to enter manually
+The ``source_priority`` field was originally designed to drive optional field completion from multiple data sources. As of 0.1.1, broad template-driven field completion from external scrapers has been removed (see pipeline documentation). The ``source_priority`` declarations remain in templates as field metadata but no longer drive automated multi-source completion. The only remaining automated enrichment is the DOI-only abstract fallback cascade (Semantic Scholar → PubMed) for entries where the raw input contained a DOI.
 
 Special Citation Types
 ~~~~~~~~~~~~~~~~~~~~~~

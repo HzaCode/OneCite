@@ -119,5 +119,5 @@ Next Steps
 ----------
 
 - Learn more about :doc:`advanced_usage`
-- Check :doc:`templates` to customize output format
+- Check :doc:`templates` to customize field requirements and fallback entry types
 - See :doc:`api/core` for Python API reference
