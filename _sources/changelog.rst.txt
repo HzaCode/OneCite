@@ -8,6 +8,84 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/>`_, and th
 Unreleased
 ----------
 
+[0.1.1] - 2026-04-17
+---------------------
+
+Maintenance release focused on **aligning the abstract-retrieval
+semantics across code, templates, docs, tests, and metadata**.  No
+breaking public-API changes; the one renamed kwarg keeps its old name
+as a deprecated alias for this release cycle.
+
+Added
+~~~~~
+
+- Abstract retrieval now falls back through a DOI-only cascade when
+  CrossRef does not return an abstract: Semantic Scholar
+  (``/paper/DOI:{doi}?fields=abstract``) → PubMed (ESearch DOI→PMID,
+  then EFetch PMID→abstract).  The cascade is only invoked when the
+  user's **original raw input** carried a DOI; DOIs inferred by fuzzy
+  search do not trigger it, so a possibly-wrong candidate does not cost
+  extra roundtrips.  In particular, a local BibTeX entry with no
+  ``doi`` field — regardless of whether other stages would later
+  resolve one — does not trigger the abstract cascade.
+- Semantic Scholar search results now carry the ``abstract`` field,
+  which propagates through ``_convert_search_metadata`` into the final
+  BibTeX output whenever the identification stage already resolved the
+  entry through SS.
+- ``EnricherModule._get_semantic_scholar_abstract(doi)`` helper for
+  DOI-based Semantic Scholar abstract retrieval.  Handles ``404`` /
+  ``429`` gracefully by returning ``None``.
+- ``_complete_fields`` gained an ``allow_abstract_fallback`` kwarg
+  (default ``False``) that gates the new cascade.
+  ``_enrich_single_entry`` passes ``True`` only when the raw entry
+  contributed a DOI.
+- Default ``journal_article_full`` template now lists ``abstract`` as
+  an optional field so the declaration matches what the enricher
+  emits.  The older ``journal_article_with_abstract`` template is
+  retained as a compatibility alias and will stay available for at
+  least one release cycle.
+- Regression test ``test_enrich_single_entry_no_doi_in_raw_skips_abstract_fallback``
+  pinning the "no-DOI-in raw ⇒ no Semantic-Scholar/PubMed network
+  call" guarantee at the ``_enrich_single_entry`` layer.
+
+Changed
+~~~~~~~
+
+- ``_get_pubmed_abstract`` now requires a DOI and no longer falls back
+  to PubMed title search.  The removed title-based path empirically
+  returned the abstract of an unrelated paper (e.g. the Zhang 2020 automation
+  Review DOI ``10.1007/s10462-019-09792-7`` pulled the abstract of a
+  different RSI segmentation paper), which is strictly worse than
+  returning ``None`` for downstream semantic cross-checks such as the
+  ``sci`` skill.
+- Abstract coverage on an internal 10-DOI cross-publisher spot-check
+  rose from 4/9 to 8/9.  This number is a local indicator, **not** a
+  release gate: reproducing it requires a live network and the probe
+  scripts are no longer in the repository.
+
+Deprecated
+~~~~~~~~~~
+
+- ``_complete_fields(..., allow_pubmed_fallback=...)`` is deprecated in
+  favour of ``allow_abstract_fallback``.  The old name still works for
+  one release cycle and emits ``DeprecationWarning``.  It was renamed
+  because the flag actually gates the entire Semantic-Scholar + PubMed
+  cascade, not PubMed alone.
+
+Removed
+~~~~~~~
+
+- ``IdentifierModule._check_doi_content_consistency`` and the
+  ``consistency_score`` / ``low_consistency`` warning path.  The fuzzy
+  string-similarity score was empirically unable to detect subtle
+  invalid references (scored 85/100 on author-only
+  hallucinations against a real DOI) and was only surfaced as a
+  ``logger.warning`` that downstream tools could not observe, producing
+  false reassurance.  Citation-authenticity verification belongs at
+  the abstract-vs-claim semantic layer in the consuming tool
+  (e.g. the ``sci`` skill), not at the bibliographic-string layer
+  here.
+
 [0.1.0] - 2026-04-17
 ---------------------
 

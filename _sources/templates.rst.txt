@@ -8,12 +8,19 @@ Template Basics
 
 Templates define the **structure and metadata requirements** for different citation types. OneCite comes with built-in templates for:
 
-- **journal_article_full** - Journal articles with complete metadata
+- **journal_article_full** - Journal articles with complete metadata (includes ``abstract`` as an optional field)
 - **conference_paper** - Conference proceedings papers
 - **book** - Books and monographs
 - **thesis** - Theses and dissertations
 - **software** - Software and code repositories
 - **dataset** - Research datasets
+
+A legacy ``journal_article_with_abstract`` template is also shipped for
+backwards compatibility with older configurations. Since ``journal_article_full``
+now also declares ``abstract`` as an optional field, the two templates
+behave equivalently for journal articles; new configurations should
+prefer ``journal_article_full`` and treat ``journal_article_with_abstract``
+as deprecated.
 
 Default Templates Location
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,6 +28,7 @@ Default Templates Location
 Built-in templates are located in the ``onecite/templates/`` directory:
 
 - ``journal_article_full.yaml``
+- ``journal_article_with_abstract.yaml`` *(deprecated alias of the above)*
 - ``conference_paper.yaml``
 - ``book.yaml``
 - ``thesis.yaml``

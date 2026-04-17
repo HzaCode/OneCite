@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pipeline Processing Reference &mdash; OneCite 0.1.0 documentation</title>
+  <title>Pipeline Processing Reference &mdash; OneCite 0.1.1 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/documentation_options.js?v=a58bc63e"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -242,16 +242,41 @@ requires.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">author</span></code>, <code class="docutils literal notranslate"><span class="pre">title</span></code>, <code class="docutils literal notranslate"><span class="pre">journal</span></code> / <code class="docutils literal notranslate"><span class="pre">booktitle</span></code>, <code class="docutils literal notranslate"><span class="pre">year</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">volume</span></code>, <code class="docutils literal notranslate"><span class="pre">number</span></code>, <code class="docutils literal notranslate"><span class="pre">pages</span></code>, <code class="docutils literal notranslate"><span class="pre">publisher</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">doi</span></code>, <code class="docutils literal notranslate"><span class="pre">url</span></code>, <code class="docutils literal notranslate"><span class="pre">arxiv</span></code> / <code class="docutils literal notranslate"><span class="pre">arxiv_id</span></code></p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">abstract</span></code> (from CrossRef when available, otherwise from PubMed’s
-<code class="docutils literal notranslate"><span class="pre">EFetch</span></code> endpoint when the entry has a resolvable PMID)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abstract</span></code> — returned directly by CrossRef or Semantic Scholar when
+the identification stage resolved the entry through them; otherwise
+filled in by a post-hoc DOI-only cascade described below.</p></li>
 </ul>
 <p>The <code class="docutils literal notranslate"><span class="pre">_get_crossref_metadata</span></code> method requests each DOI with a proper
 <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code> header and a <code class="docutils literal notranslate"><span class="pre">mailto</span></code> query-string parameter, per
 CrossRef’s etiquette (fixes #21).</p>
-<p><code class="docutils literal notranslate"><span class="pre">_complete_fields</span></code> is intentionally a no-op pass-through:
-template-driven field completion from external scrapers was removed
-(see #16, #29).  The template now only affects which <code class="docutils literal notranslate"><span class="pre">entry_type</span></code> the
-formatter falls back to when classification is ambiguous.</p>
+<p><code class="docutils literal notranslate"><span class="pre">_complete_fields</span></code> intentionally performs <strong>only one</strong> kind of
+completion: abstract back-fill, through a DOI-only cascade</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>Semantic Scholar (/paper/DOI:{doi}?fields=abstract)
+  ↓  (empty or 4xx)
+PubMed ESearch (DOI → PMID) + EFetch (PMID → abstract)
+</pre></div>
+</div>
+<p>The cascade is gated by <code class="docutils literal notranslate"><span class="pre">allow_abstract_fallback</span></code> and is only invoked
+when the caller’s <strong>raw input</strong> carried a DOI; DOIs inferred by fuzzy
+search never trigger it, so a possibly-wrong candidate does not cost
+extra roundtrips.  Title-based fallback is intentionally not used
+anywhere on this path — in testing it silently returned the abstract
+of an unrelated paper for at least one DOI
+(<code class="docutils literal notranslate"><span class="pre">10.1007/s10462-019-09792-7</span></code>), which is strictly worse than
+returning <code class="docutils literal notranslate"><span class="pre">None</span></code> for downstream semantic cross-checks.</p>
+<p>Wider template-driven field completion from external scrapers (the
+Google Scholar path flagged in review #29) was removed in 0.1.0 and is
+<strong>not</strong> being reintroduced here.  The template still controls which
+<code class="docutils literal notranslate"><span class="pre">entry_type</span></code> the formatter falls back to when classification is
+ambiguous, and continues to determine the declared field set; as of
+this release, the default <code class="docutils literal notranslate"><span class="pre">journal_article_full</span></code> template lists
+<code class="docutils literal notranslate"><span class="pre">abstract</span></code> as an optional field so its declaration matches what the
+enricher actually emits.</p>
+<p>The legacy kwarg name <code class="docutils literal notranslate"><span class="pre">allow_pubmed_fallback</span></code> is retained as a
+deprecated alias for one release cycle and emits
+<code class="docutils literal notranslate"><span class="pre">DeprecationWarning</span></code> when used — its replacement
+<code class="docutils literal notranslate"><span class="pre">allow_abstract_fallback</span></code> reflects that the flag gates the full
+Semantic-Scholar + PubMed cascade, not just PubMed.</p>
 </section>
 <section id="stage-4-format-formattermodule">
 <h2>Stage 4: Format (<code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code>)<a class="headerlink" href="#stage-4-format-formattermodule" title="Link to this heading"></a></h2>

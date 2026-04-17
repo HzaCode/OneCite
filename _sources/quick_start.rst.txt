@@ -51,6 +51,7 @@ Your ``results.bib`` file now contains entries in BibTeX format::
       doi = "10.1038/nature14539",
       title = "Deep learning",
       author = "LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey",
+      abstract = "Deep learning allows computational models that are composed of multiple processing layers to learn representations of data with multiple levels of abstraction...",
       journal = "Nature",
       year = 2015,
       volume = 521,
