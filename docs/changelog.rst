@@ -229,35 +229,10 @@ From 0.0.10 to 0.0.11
 
 No migration needed. All existing functionality is backward compatible. New features are opt-in.
 
-Planned Features
-================
-
-**Version 0.1.0 (Planned)**
-
-- Web interface at hezhiang.com/onecite
-- Support for more citation formats (Chicago, IEEE, etc.)
-- Citation deduplication tools
-- Bibliography merging utilities
-- Advanced search filters
-
-**Version 0.2.0 (Planned)**
-
-- Database support for storing citations
-- Collaborative features
-- Export to popular reference managers (Zotero, Mendeley)
-- Advanced batch processing
-
-**Future Roadmap**
-
-- Machine learning-based citation quality assessment
-- Automatic citation error detection
-- Citation trend analysis
-- Integration with more academic platforms
-
 Version History
 ===============
 
-**Latest Stable:** 0.1.0
+**Latest Stable:** 0.1.1
 
 **Python Support:**
 
@@ -266,7 +241,7 @@ Version History
 
 **Requirements:**
 
-See ``requirements.txt`` for current dependencies.
+See ``pyproject.toml`` for current dependencies.
 
 Getting Help
 ============
