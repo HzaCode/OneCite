@@ -87,42 +87,22 @@ class IdentifierModule:
             'status': 'identification_failed'
         }
         
-        # If valid DOI already exists, verify it against Crossref API
+        # If valid DOI already exists, verify it against Crossref / DataCite
         if raw_entry.get('doi'):
             if self._validate_doi(raw_entry['doi']):
                 real_metadata = self._verify_doi_and_get_metadata(raw_entry['doi'])
                 if real_metadata:
-                    text_without_doi = raw_entry['raw_text'].replace(raw_entry['doi'], '').strip()
-                    is_doi_only = len(text_without_doi) < 10  # Less than 10 chars means mostly just DOI
-                    
-                    if is_doi_only:
-                        self.logger.info(f"Entry {raw_entry['id']} is DOI-only, accepting without consistency check")
-                        identified_entry['doi'] = raw_entry['doi']
-                        identified_entry['metadata'] = real_metadata
-                        identified_entry['status'] = 'identified'
-                        return identified_entry
-                    
-                    # Compare user input with fetched metadata
-                    consistency_score = self._check_doi_content_consistency(raw_entry['raw_text'], real_metadata)
-                    
+                    # DOI resolved. We deliberately do NOT perform a fuzzy
+                    # string comparison between the user's raw text and the
+                    # canonical metadata here. Downstream downstream workflows
+                    # (e.g. the `sci` skill) perform a semantic abstract-vs-
+                    # claim check on the enriched record, which is strictly
+                    # stronger than any bibliographic-string similarity score
+                    # OneCite could produce and would create false reassurance
+                    # for those downstream tools.
                     identified_entry['doi'] = raw_entry['doi']
                     identified_entry['metadata'] = real_metadata
-                    identified_entry['metadata']['consistency_score'] = consistency_score
                     identified_entry['status'] = 'identified'
-                    
-                    if consistency_score < 70:
-                        self.logger.warning(f"Entry {raw_entry['id']} DOI verified but content inconsistent (score: {consistency_score}). Possible generated fake reference.")
-                        identified_entry['metadata']['warning'] = 'low_consistency'
-                        
-                        # Reject the reference if consistency score is too low
-                        # But allow DOI-only entries to pass through
-                        if consistency_score < 20 and len(raw_entry['raw_text'].strip()) > 20:
-                            self.logger.error(f"Entry {raw_entry['id']} consistency score too low ({consistency_score}), marking as failed")
-                            identified_entry['status'] = 'identification_failed'
-                            return identified_entry
-                    else:
-                        self.logger.info(f"Entry {raw_entry['id']} DOI verified with good consistency (score: {consistency_score})")
-                    
                     return identified_entry
                 else:
                     self.logger.warning(f"Entry {raw_entry['id']} has valid DOI format but DOI does not exist: {raw_entry['doi']}")
@@ -276,71 +256,6 @@ class IdentifierModule:
         except Exception as e:
             self.logger.error(f"Failed to verify DOI {doi}: {str(e)}")
             return None
-    
-    def _check_doi_content_consistency(self, user_input: str, real_metadata: Dict) -> float:
-        """Check consistency between user input and real DOI metadata to detect generated fake references"""
-        try:
-            # Normalize user input
-            user_input_lower = user_input.lower()
-            
-            real_title = real_metadata.get('title', '').lower()
-            real_authors = [author.lower() for author in real_metadata.get('authors', [])]
-            real_year = str(real_metadata.get('year', ''))
-            real_journal = real_metadata.get('journal', '').lower()
-            
-            scores = []
-            
-            # Title consistency (most important)
-            if real_title:
-                title_score = max(
-                    fuzz.ratio(user_input_lower, real_title),
-                    fuzz.partial_ratio(user_input_lower, real_title),
-                    fuzz.token_set_ratio(user_input_lower, real_title)
-                )
-                scores.append(('title', title_score, 0.4))  # 40% weight
-            
-            # Author consistency
-            if real_authors:
-                author_scores = []
-                for real_author in real_authors:
-                    author_score = max(
-                        fuzz.partial_ratio(user_input_lower, real_author),
-                        fuzz.token_set_ratio(user_input_lower, real_author)
-                    )
-                    author_scores.append(author_score)
-                best_author_score = max(author_scores) if author_scores else 0
-                scores.append(('author', best_author_score, 0.3))  # 30% weight
-            
-            # Year consistency
-            if real_year and real_year in user_input:
-                scores.append(('year', 100, 0.2))  # 20% weight
-            elif real_year:
-                scores.append(('year', 0, 0.2))
-            
-            # Journal consistency
-            if real_journal:
-                journal_score = max(
-                    fuzz.partial_ratio(user_input_lower, real_journal),
-                    fuzz.token_set_ratio(user_input_lower, real_journal)
-                )
-                scores.append(('journal', journal_score, 0.1))  # 10% weight
-            
-            if not scores:
-                return 0.0
-            
-            total_weighted_score = sum(score * weight for _, score, weight in scores)
-            total_weight = sum(weight for _, _, weight in scores)
-            
-            final_score = total_weighted_score / total_weight if total_weight > 0 else 0.0
-            
-            score_details = {field: score for field, score, _ in scores}
-            self.logger.info(f"DOI consistency check details: {score_details}, final: {final_score:.2f}")
-            
-            return round(final_score, 2)
-            
-        except Exception as e:
-            self.logger.error(f"Error in DOI content consistency check: {str(e)}")
-            return 0.0
     
     def _extract_github_info(self, text: str) -> Optional[Dict]:
         """Extract GitHub repository information"""
@@ -808,7 +723,7 @@ class IdentifierModule:
             params = {
                 'query': query,
                 'limit': limit,
-                'fields': 'title,authors,year,venue,citationCount,publicationDate,externalIds,journal,url'
+                'fields': 'title,authors,year,venue,citationCount,publicationDate,externalIds,journal,url,abstract'
             }
             
             response = requests.get(url, params=params, timeout=10)
@@ -855,6 +770,7 @@ class IdentifierModule:
                         'journal': venue,
                         'citations': paper.get('citationCount', 0),
                         'url': paper_url,
+                        'abstract': paper.get('abstract'),
                         'type': 'article'
                     }
                     

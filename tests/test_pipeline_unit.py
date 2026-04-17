@@ -739,7 +739,13 @@ class TestEnricher:
     def test_complete_fields_passthrough_no_google_scholar(self):
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "year": "2020"}
-        result = e._complete_fields(base, {"fields": [{"name": "pages", "source_priority": ["google_scholar_scraper"]}]})
+        with patch.object(e, "_get_pubmed_abstract", return_value=None):
+            result = e._complete_fields(
+                base,
+                {"fields": [{"name": "pages", "source_priority": ["google_scholar_scraper"]}]},
+            )
+        # fields other than abstract are still untouched; only abstract is
+        # now a possible PubMed fallback target
         assert result == base
 
     def test_convert_book(self):
@@ -806,7 +812,13 @@ class TestEnricher:
     def test_complete_fields_is_passthrough_with_google_scholar(self):
         e = EnricherModule(use_google_scholar=True)
         base = {"title": "T", "author": "Doe, John", "year": "2020"}
-        result = e._complete_fields(base, {"fields": [{"name": "pages", "source_priority": ["google_scholar_scraper"]}]})
+        with patch.object(e, "_get_pubmed_abstract", return_value=None):
+            result = e._complete_fields(
+                base,
+                {"fields": [{"name": "pages", "source_priority": ["google_scholar_scraper"]}]},
+            )
+        # google_scholar path is not reintroduced (see #29); only PubMed
+        # is consulted for abstracts, and here it returned None.
         assert result == base
 
     def test_google_scholar_timeout(self):
@@ -935,14 +947,208 @@ class TestEnricher:
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             assert e._get_pubmed_abstract({"doi": "10.1234/noabs"}) is None
 
-    def test_complete_fields_abstract_is_passthrough(self):
-        """After fix #29, _complete_fields does not call any external source."""
+    def test_complete_fields_fills_abstract_from_pubmed_when_flag_set(self):
+        """With allow_abstract_fallback=True and SS empty, abstract is filled
+        from PubMed as the second leg of the cascade."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_pubmed_abstract") as m:
-            result = e._complete_fields(base, {"fields": [{"name": "abstract", "source_priority": ["pubmed_api"]}]})
+        with patch.object(e, "_get_semantic_scholar_abstract", return_value=None), \
+             patch.object(e, "_get_pubmed_abstract", return_value="retrieved abstract") as m:
+            result = e._complete_fields(
+                base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
+            )
+        assert m.call_count == 1
+        assert result["abstract"] == "retrieved abstract"
+        # original base_record must not be mutated
+        assert "abstract" not in base
+
+    def test_complete_fields_skips_fallback_when_flag_unset(self):
+        """Default (allow_abstract_fallback=False) is the safe passthrough:
+        no network call even when abstract is missing and a DOI is present."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T", "doi": "10.1/x"}
+        with patch.object(e, "_get_pubmed_abstract") as pm, \
+             patch.object(e, "_get_semantic_scholar_abstract") as ss:
+            result = e._complete_fields(base, {"fields": [{"name": "abstract"}]})
+        pm.assert_not_called()
+        ss.assert_not_called()
+        assert "abstract" not in result
+
+    def test_complete_fields_does_not_override_existing_abstract(self):
+        """If base_record already carries an abstract, fallbacks are not consulted."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T", "doi": "10.1/x", "abstract": "upstream abstract"}
+        with patch.object(e, "_get_pubmed_abstract") as pm, \
+             patch.object(e, "_get_semantic_scholar_abstract") as ss:
+            result = e._complete_fields(
+                base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
+            )
+        pm.assert_not_called()
+        ss.assert_not_called()
+        assert result["abstract"] == "upstream abstract"
+
+    def test_complete_fields_skips_fallback_when_no_doi(self):
+        """Even with allow_abstract_fallback=True, no DOI means no network call."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T"}
+        with patch.object(e, "_get_pubmed_abstract") as pm, \
+             patch.object(e, "_get_semantic_scholar_abstract") as ss:
+            result = e._complete_fields(
+                base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
+            )
+        pm.assert_not_called()
+        ss.assert_not_called()
+        assert "abstract" not in result
+
+    def test_complete_fields_prefers_semantic_scholar_over_pubmed(self):
+        """When both fallbacks can supply an abstract, Semantic Scholar wins
+        because its cross-disciplinary coverage is broader than PubMed's
+        biomedical focus."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T", "doi": "10.1/x"}
+        with patch.object(e, "_get_semantic_scholar_abstract", return_value="ss abstract") as ss, \
+             patch.object(e, "_get_pubmed_abstract", return_value="pm abstract") as pm:
+            result = e._complete_fields(
+                base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
+            )
+        ss.assert_called_once()
+        pm.assert_not_called()
+        assert result["abstract"] == "ss abstract"
+
+    def test_complete_fields_falls_through_to_pubmed_when_ss_empty(self):
+        """If Semantic Scholar has no abstract for the DOI, PubMed is tried."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T", "doi": "10.1/x"}
+        with patch.object(e, "_get_semantic_scholar_abstract", return_value=None) as ss, \
+             patch.object(e, "_get_pubmed_abstract", return_value="pm abstract") as pm:
+            result = e._complete_fields(
+                base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
+            )
+        ss.assert_called_once()
+        pm.assert_called_once()
+        assert result["abstract"] == "pm abstract"
+
+    def test_complete_fields_legacy_kwarg_emits_deprecation_warning(self):
+        """`allow_pubmed_fallback` is retained as a deprecated alias for one
+        release cycle; using it must still work but must emit a
+        DeprecationWarning so callers can migrate."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T", "doi": "10.1/x"}
+        with patch.object(e, "_get_semantic_scholar_abstract", return_value="ss abstract"), \
+             patch.object(e, "_get_pubmed_abstract"):
+            with pytest.warns(DeprecationWarning, match="allow_abstract_fallback"):
+                result = e._complete_fields(
+                    base,
+                    {"fields": [{"name": "abstract"}]},
+                    allow_pubmed_fallback=True,  # legacy name
+                )
+        assert result["abstract"] == "ss abstract"
+
+
+    def test_get_semantic_scholar_abstract_success(self):
+        """_get_semantic_scholar_abstract returns abstract when SS finds the DOI."""
+        e = EnricherModule(use_google_scholar=False)
+        with patch("onecite.pipeline.requests.get",
+                   return_value=DummyResponse(json_data={"abstract": "hello world"})):
+            result = e._get_semantic_scholar_abstract("10.1/x")
+        assert result == "hello world"
+
+    def test_get_semantic_scholar_abstract_404_returns_none(self):
+        """404 from Semantic Scholar is handled as 'not found', not a crash."""
+        e = EnricherModule(use_google_scholar=False)
+        with patch("onecite.pipeline.requests.get",
+                   return_value=DummyResponse(status_code=404, json_data={})):
+            assert e._get_semantic_scholar_abstract("10.1/missing") is None
+
+    def test_get_semantic_scholar_abstract_no_doi(self):
+        """Empty/None DOI short-circuits to None without any network call."""
+        e = EnricherModule(use_google_scholar=False)
+        with patch("onecite.pipeline.requests.get") as m:
+            assert e._get_semantic_scholar_abstract("") is None
+            assert e._get_semantic_scholar_abstract(None) is None
         m.assert_not_called()
-        assert result == base
+
+    def test_complete_fields_survives_fallback_exceptions(self):
+        """If both Semantic Scholar and PubMed raise, the record comes back
+        unchanged rather than propagating the error up the pipeline."""
+        e = EnricherModule(use_google_scholar=False)
+        base = {"title": "T", "doi": "10.1/x"}
+        with patch.object(e, "_get_semantic_scholar_abstract",
+                          side_effect=RuntimeError("ss network")), \
+             patch.object(e, "_get_pubmed_abstract",
+                          side_effect=RuntimeError("pm network")):
+            result = e._complete_fields(
+                base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
+            )
+        assert "abstract" not in result
+
+    def test_enrich_single_entry_no_doi_in_raw_skips_abstract_fallback(self):
+        """Pipeline-level guarantee for the 'local .bib without a DOI does not
+        touch Semantic Scholar / PubMed' promise in the 0.1.1 changelog.
+
+        Setup deliberately decouples the two DOI slots:
+
+        - ``identified_entry`` *does* carry a DOI, as if the identifier
+          stage fuzzy-resolved the entry to one.
+        - ``raw_entry`` does **not** carry a top-level ``doi`` — this is
+          the signal ``_enrich_single_entry`` uses to decide whether the
+          caller's original input warranted an abstract round-trip.
+
+        In this configuration ``_complete_fields`` must be invoked with
+        ``allow_abstract_fallback=False``, and neither of the abstract
+        endpoints may be consulted — even though a DOI is technically
+        available on the ``base_record``.  Without this guarantee, a
+        refactor of the ``raw_has_doi`` check in ``_enrich_single_entry``
+        could silently start leaking network calls for local-only inputs.
+        """
+        e = EnricherModule(use_google_scholar=False)
+
+        identified = {
+            "id": 0,
+            "status": "identified",
+            "doi": "10.1/resolved-by-fuzzy-search",
+            "metadata": {},
+        }
+        # Critically: no top-level 'doi' key on the raw entry.
+        raw = {
+            "id": 0,
+            "raw_text": "@article{local2023,...}",
+            "original_entry": {
+                "title": "Local Test Article",
+                "author": "Test Author",
+                "journal": "Test Journal",
+                "year": "2023",
+            },
+        }
+        template = {
+            "name": "journal_article_full",
+            "entry_type": "@article",
+            "fields": [{"name": "abstract", "required": False}],
+        }
+
+        crossref_record = {
+            "title": "Local Test Article",
+            "author": "Test, Author",
+            "journal": "Test Journal",
+            "year": "2023",
+            "doi": "10.1/resolved-by-fuzzy-search",
+            # Intentionally no 'abstract' key — the whole point is that
+            # even when the abstract is missing, the fallback must stay
+            # silent for no-DOI-in-raw inputs.
+        }
+
+        with patch.object(e, "_get_crossref_metadata",
+                          return_value=crossref_record), \
+             patch.object(e, "_get_semantic_scholar_abstract") as ss, \
+             patch.object(e, "_get_pubmed_abstract") as pm:
+            result = e._enrich_single_entry(identified, template, raw)
+
+        # The structural guarantee: no abstract endpoint was called.
+        ss.assert_not_called()
+        pm.assert_not_called()
+        # And the emitted record reflects that — no abstract was invented.
+        assert result["status"] == "completed"
+        assert "abstract" not in result["bib_data"]
 
 
 # ===================================================================
@@ -999,12 +1205,18 @@ class TestFormatter:
         assert result.get('booktitle'), "conference paper must have booktitle"
         assert 'journal' not in result, "conference paper must not have journal field"
 
-    def test_complete_fields_is_passthrough(self):
-        """fix #29: _complete_fields must be a no-op passthrough."""
+    def test_complete_fields_no_google_scholar_for_abstract(self):
+        """Even when template asks for google_scholar_scraper, we never call
+        Google Scholar from _complete_fields (pyOpenSci #29). PubMed is the
+        only abstract fallback, and if it returns nothing the result stays
+        untouched."""
         enr = EnricherModule(use_google_scholar=False)
         base = {'title': 'T', 'author': 'A', 'year': '2020'}
         template = {'fields': [{'name': 'abstract', 'source_priority': ['google_scholar_scraper']}]}
-        result = enr._complete_fields(base, template)
+        with patch.object(enr, "_get_pubmed_abstract", return_value=None), \
+             patch.object(enr, "_fetch_from_google_scholar") as gs:
+            result = enr._complete_fields(base, template)
+        gs.assert_not_called()
         assert result == base
         assert 'abstract' not in result
 

@@ -65,7 +65,7 @@ OneCite solves this by accepting **any mix of identifiers and text queries** and
 | **Fuzzy Matching**          | Match references against multiple academic databases even from incomplete or inaccurate info.         |
 | **Multiple Formats**        | Input `.txt`/`.bib` → Output **BibTeX**.                                                             |
 | **4-stage Pipeline**        | A 4-stage process (clean → query → validate → format) to produce consistent output.                  |
-| **Field Completion**        | Enrich entries by filling in missing fields like journal, volume, pages, and authors.                |
+| **Field Completion**        | Enrich entries by filling in missing fields like journal, volume, pages, authors, and abstract.                |
 | 🎓 **7+ Citation Types**    | Handles journal articles, conference papers, books, software, datasets, theses, and preprints.        |
 | **Multi-Source Lookup**     | Queries CrossRef, arXiv, PubMed, Semantic Scholar, Google Books, and others for every entry.         |
 | **Many Identifier Types**   | Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text queries.                    |
@@ -143,6 +143,7 @@ Your `results.bib` file now contains entries of different types.
   publisher = "Springer Science and Business Media LLC",
   url = "https://doi.org/10.1038/nature14539",
   type = "journal-article",
+  abstract = "Deep learning allows computational models that are composed of multiple processing layers to learn representations of data with multiple levels of abstraction...",
 }
 @inproceedings{Vaswani2017Attention,
   arxiv = "1706.03762",

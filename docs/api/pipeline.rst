@@ -142,17 +142,46 @@ requires.
 - ``author``, ``title``, ``journal`` / ``booktitle``, ``year``
 - ``volume``, ``number``, ``pages``, ``publisher``
 - ``doi``, ``url``, ``arxiv`` / ``arxiv_id``
-- ``abstract`` (from CrossRef when available, otherwise from PubMed's
-  ``EFetch`` endpoint when the entry has a resolvable PMID)
+- ``abstract`` — returned directly by CrossRef or Semantic Scholar when
+  the identification stage resolved the entry through them; otherwise
+  filled in by a post-hoc DOI-only cascade described below.
 
 The ``_get_crossref_metadata`` method requests each DOI with a proper
 ``User-Agent`` header and a ``mailto`` query-string parameter, per
 CrossRef's etiquette (fixes #21).
 
-``_complete_fields`` is intentionally a no-op pass-through:
-template-driven field completion from external scrapers was removed
-(see #16, #29).  The template now only affects which ``entry_type`` the
-formatter falls back to when classification is ambiguous.
+``_complete_fields`` intentionally performs **only one** kind of
+completion: abstract back-fill, through a DOI-only cascade
+
+.. code-block:: text
+
+    Semantic Scholar (/paper/DOI:{doi}?fields=abstract)
+      ↓  (empty or 4xx)
+    PubMed ESearch (DOI → PMID) + EFetch (PMID → abstract)
+
+The cascade is gated by ``allow_abstract_fallback`` and is only invoked
+when the caller's **raw input** carried a DOI; DOIs inferred by fuzzy
+search never trigger it, so a possibly-wrong candidate does not cost
+extra roundtrips.  Title-based fallback is intentionally not used
+anywhere on this path — in testing it silently returned the abstract
+of an unrelated paper for at least one DOI
+(``10.1007/s10462-019-09792-7``), which is strictly worse than
+returning ``None`` for downstream semantic cross-checks.
+
+Wider template-driven field completion from external scrapers (the
+Google Scholar path flagged in review #29) was removed in 0.1.0 and is
+**not** being reintroduced here.  The template still controls which
+``entry_type`` the formatter falls back to when classification is
+ambiguous, and continues to determine the declared field set; as of
+this release, the default ``journal_article_full`` template lists
+``abstract`` as an optional field so its declaration matches what the
+enricher actually emits.
+
+The legacy kwarg name ``allow_pubmed_fallback`` is retained as a
+deprecated alias for one release cycle and emits
+``DeprecationWarning`` when used — its replacement
+``allow_abstract_fallback`` reflects that the flag gates the full
+Semantic-Scholar + PubMed cascade, not just PubMed.
 
 Stage 4: Format (``FormatterModule``)
 -------------------------------------

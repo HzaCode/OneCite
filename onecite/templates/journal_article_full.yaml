@@ -19,3 +19,5 @@ fields:
     required: false
   - name: doi
     required: false
+  - name: abstract
+    required: false
