@@ -62,7 +62,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#template-structure">Template Structure</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-journal-article-template">Example: Journal Article Template</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#field-definitions">Field Definitions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#available-data-sources-for-source-priority">Available Data Sources for source_priority</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#historical-note-on-source-priority">Historical Note on source_priority</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#special-citation-types">Special Citation Types</a></li>
 </ul>
 </li>
@@ -180,7 +180,7 @@ as deprecated.</p>
 <ol class="arabic simple">
 <li><p><strong>Which fields</strong> are required or optional for a citation type</p></li>
 <li><p><strong>BibTeX entry type</strong> (e.g., &#64;article, &#64;book, &#64;inproceedings)</p></li>
-<li><p><strong>Optional field completion</strong> strategy (limited data sources)</p></li>
+<li><p><strong>Field declarations</strong> for template validation (the template lists which fields are expected, but broad template-driven field completion from external scrapers has been removed; only DOI-only abstract back-fill remains in <cite>_complete_fields</cite>)</p></li>
 </ol>
 <p>Templates DO NOT control:</p>
 <ul class="simple">
@@ -244,17 +244,12 @@ as deprecated.</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span></code> - Field name (e.g., author, title, journal)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">required</span></code> - Whether this field is required (true/false)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">source_priority</span></code> - Ordered list of data sources to try (optional fields only)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_priority</span></code> - Ordered list of data sources (legacy field, preserved in templates for backwards compatibility)</p></li>
 </ul>
 </section>
-<section id="available-data-sources-for-source-priority">
-<h3>Available Data Sources for source_priority<a class="headerlink" href="#available-data-sources-for-source-priority" title="Link to this heading"></a></h3>
-<p>The <code class="docutils literal notranslate"><span class="pre">source_priority</span></code> field controls optional field completion for missing fields:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">crossref_api</span></code> - CrossRef API</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">google_scholar_scraper</span></code> - Google Scholar scraping (if enabled)</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">user_prompt</span></code> - Prompt user to enter manually</p></li>
-</ul>
+<section id="historical-note-on-source-priority">
+<h3>Historical Note on source_priority<a class="headerlink" href="#historical-note-on-source-priority" title="Link to this heading"></a></h3>
+<p>The <code class="docutils literal notranslate"><span class="pre">source_priority</span></code> field was originally designed to drive optional field completion from multiple data sources. As of 0.1.1, broad template-driven field completion from external scrapers has been removed (see pipeline documentation). The <code class="docutils literal notranslate"><span class="pre">source_priority</span></code> declarations remain in templates as field metadata but no longer drive automated multi-source completion. The only remaining automated enrichment is the DOI-only abstract fallback cascade (Semantic Scholar → PubMed) for entries where the raw input contained a DOI.</p>
 </section>
 <section id="special-citation-types">
 <h3>Special Citation Types<a class="headerlink" href="#special-citation-types" title="Link to this heading"></a></h3>

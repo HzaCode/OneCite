@@ -262,7 +262,7 @@
 <li><p><code class="docutils literal notranslate"><span class="pre">bib_key</span></code> (str): BibTeX citation key (e.g., “LeCun2015Deep”)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">bib_data</span></code> (dict): Complete bibliographic data with all fields</p></li>
 </ul>
-<p>CompletedEntry is a TypedDict. Use <code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code> from <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> to convert entries to different output formats.</p>
+<p>CompletedEntry is a TypedDict. Use <code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code> from <code class="docutils literal notranslate"><span class="pre">pipeline.py</span></code> to render entries as BibTeX (the only supported output format). Templates control which fields are included and the fallback BibTeX entry type when auto-detection is ambiguous.</p>
 </section>
 </section>
 <section id="classes">
@@ -340,7 +340,13 @@
 <h3>ValidationError<a class="headerlink" href="#validationerror" title="Link to this heading"></a></h3>
 <p>Raised when entry validation fails.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
 <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -350,7 +356,13 @@
 <h3>ParseError<a class="headerlink" href="#parseerror" title="Link to this heading"></a></h3>
 <p>Raised when parsing input fails.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="s2">&quot;invalid input&quot;</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;invalid input&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
 <span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -360,7 +372,13 @@
 <h3>ResolverError<a class="headerlink" href="#resolvererror" title="Link to this heading"></a></h3>
 <p>Raised when data source resolution fails.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="s2">&quot;nonexistent doi&quot;</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;nonexistent doi&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+    <span class="p">)</span>
 <span class="k">except</span> <span class="n">ResolverError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resolver failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
@@ -418,7 +436,7 @@
 <ul class="simple">
 <li><p>See <a class="reference internal" href="../python_api.html"><span class="doc">Python API Reference</span></a> for usage examples</p></li>
 <li><p>Check <a class="reference internal" href="../advanced_usage.html"><span class="doc">Advanced Usage</span></a> for complex scenarios</p></li>
-<li><p>Review <a class="reference internal" href="../templates.html"><span class="doc">Custom Templates</span></a> for custom formatting</p></li>
+<li><p>Review <a class="reference internal" href="../templates.html"><span class="doc">Custom Templates</span></a> for field requirements and fallback entry types</p></li>
 </ul>
 </section>
 </section>
