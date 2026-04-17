@@ -41,20 +41,12 @@
 
 ---
 
-## Statement of Need
 
  Researchers frequently accumulate reference lists in ad-hoc formats—DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into a consistent, complete `.bib` file is tedious and error-prone. However, in the era of automation, compiling a bibliography is no longer just about formatting—it is about **verification**. OneCite takes raw, unverified text and cross-checks every single entry against canonical academic databases (CrossRef, PubMed, arXiv, Semantic Scholar, etc.). By serving as a deterministic truth-detector at the API-lookup layer, **OneCite acts as the firewall between automation outputs and your manuscript.**
 
 
 
-**When to use OneCite vs. alternatives:**
 
-| Tool | Best for |
-|---|---|
-| **OneCite** | One-shot conversion of messy reference lists to BibTeX in a terminal/script |
-| **Zotero** | Long-term reference management, GUI-based, browser integration |
-| **CrossRef API directly** | When you have clean DOIs and want canonical metadata |
-| **doi2bib** | Single DOI → BibTeX conversion, no fuzzy matching |
 
 ---
 
