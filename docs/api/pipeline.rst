@@ -12,10 +12,9 @@ into formatted BibTeX:
 3. **Enrich** — fetch full metadata for the identified entries
 4. **Format** — render the completed entries as BibTeX
 
-Since pyOpenSci review issue #17, the implementation lives in the
-``onecite/pipeline/`` package with one module per stage.  For
-backwards-compatibility all public symbols remain importable from
-``onecite.pipeline``:
+The implementation lives in the ``onecite/pipeline/`` package with one
+module per stage.  For backwards-compatibility all public symbols remain
+importable from ``onecite.pipeline``:
 
 .. code-block:: python
 
@@ -116,8 +115,9 @@ year / venue similarity to the query.  The decision logic in
 - ``match_score >= 50`` and a title is present → adopt cautiously
 - otherwise → mark the entry as ``identification_failed``
 
-This matches what the pyOpenSci review flagged in issues #3, #23 and
-#27.  Fallbacks never fabricate data (see #24).
+Fallback paths never fabricate data: an entry that cannot be resolved is
+marked ``identification_failed`` rather than filled with invented
+metadata.
 
 .. code-block:: python
 

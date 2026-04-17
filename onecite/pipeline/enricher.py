@@ -581,11 +581,12 @@ class EnricherModule:
         ``10.1007/s10462-019-09792-7``), which is strictly worse for
         downstream semantic checks than returning ``None``.
 
-        Older versions of this function attempted template-driven completion
-        of many fields across several sources (including Google Scholar),
-        which the pyOpenSci review (#29) correctly flagged as a no-op in
-        the default CLI path and as structurally wrong. That machinery is
-        not being reintroduced. The narrow abstract cascade here is
+        Older versions of this function attempted template-driven
+        completion of many fields across several sources (including Google
+        Scholar), which was a no-op in the default CLI path and
+        structurally wrong (the declared sources were never actually wired
+        for broad field completion). That machinery is not being
+        reintroduced. The narrow abstract cascade here is
         directly observable by downstream tools via the ``abstract`` field
         in the emitted BibTeX and was empirically the only way to bridge
         the gap between CrossRef-only (~44% coverage on a 10-DOI

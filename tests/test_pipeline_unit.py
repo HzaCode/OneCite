@@ -1207,9 +1207,8 @@ class TestFormatter:
 
     def test_complete_fields_no_google_scholar_for_abstract(self):
         """Even when template asks for google_scholar_scraper, we never call
-        Google Scholar from _complete_fields (pyOpenSci #29). PubMed is the
-        only abstract fallback, and if it returns nothing the result stays
-        untouched."""
+        Google Scholar from _complete_fields. PubMed is the only abstract
+        fallback, and if it returns nothing the result stays untouched."""
         enr = EnricherModule(use_google_scholar=False)
         base = {'title': 'T', 'author': 'A', 'year': '2020'}
         template = {'fields': [{'name': 'abstract', 'source_priority': ['google_scholar_scraper']}]}

@@ -3,9 +3,9 @@
 
 """OneCite's 4-stage processing pipeline.
 
-Historically this lived in a single ``pipeline.py`` of ~3000 lines.  It was
-split per pyOpenSci review issue #17 into one module per stage.  All public
-symbols are re-exported here so callers and tests that do
+Historically this lived in a single ``pipeline.py`` of ~3000 lines.  It has
+been split into one module per stage.  All public symbols are re-exported
+here so callers and tests that do
 
     from onecite.pipeline import IdentifierModule
     import onecite.pipeline as pm  # and then: patch("onecite.pipeline.requests.get", ...)

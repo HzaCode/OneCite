@@ -76,22 +76,18 @@ Removed
 ~~~~~~~
 
 - ``IdentifierModule._check_doi_content_consistency`` and the
-  ``consistency_score`` / ``low_consistency`` warning path.  The fuzzy
-  string-similarity score was empirically unable to detect subtle
-  invalid references (scored 85/100 on author-only
-  hallucinations against a real DOI) and was only surfaced as a
-  ``logger.warning`` that downstream tools could not observe, producing
-  false reassurance.  Citation-authenticity verification belongs at
-  the abstract-vs-claim semantic layer in the consuming tool
-  (e.g. the ``sci`` skill), not at the bibliographic-string layer
-  here.
+  ``consistency_score`` / ``low_consistency`` warning path.  A fuzzy
+  string-similarity score on bibliographic fields is not a reliable
+  signal for detecting fabricated references, and it was only emitted
+  as a ``logger.warning`` that downstream tools could not act on.
+  Citation-authenticity verification belongs at the abstract-vs-claim
+  semantic layer in the consuming tool, not at the bibliographic-string
+  layer here.
 
 [0.1.0] - 2026-04-17
 ---------------------
 
-First formal PyPI release since ``0.0.12``.  Incorporates the complete
-pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
-See ``CHANGELOG.md`` at the repository root for the full per-issue list.
+First formal PyPI release since ``0.0.12``.
 
 Added
 ~~~~~
@@ -108,18 +104,18 @@ Changed
 ~~~~~~~
 
 - **Split monolithic pipeline.py (~3000 lines)** into a proper
-  ``onecite/pipeline/`` package with one module per stage (#17)
+  ``onecite/pipeline/`` package with one module per stage
 - Unify CrossRef request and parsing methods, with ``User-Agent`` and
-  ``mailto`` set per CrossRef etiquette (#21, #26)
+  ``mailto`` set per CrossRef etiquette
 - Rewrite fuzzy-search scoring as a weighted title/author/year/venue
-  model with three confidence tiers (#3, #23, #27)
+  model with three confidence tiers
 - Simplify identifier routing; CrossRef and Semantic Scholar are the
   always-on sources, with signal-based PubMed / Google Books /
-  external providerRE / BASE queries (#8, #23)
-- Use ``bibtexparser.dumps()`` for BibTeX rendering (#30)
-- Expose ``use_google_scholar`` as a real CLI flag and API parameter (#10)
+  external providerRE / BASE queries
+- Use ``bibtexparser.dumps()`` for BibTeX rendering
+- Expose ``use_google_scholar`` as a real CLI flag and API parameter
 - Clarify that templates define metadata-field requirements and a
-  fallback BibTeX entry type, not output formatting (#16, #29)
+  fallback BibTeX entry type, not output formatting
 - Refactored exception hierarchy
 - Added type hints to Python API
 
@@ -128,9 +124,9 @@ Removed
 
 - APA and MLA output renderers; the CLI now rejects anything other than
   ``--output-format bibtex``.  Use pandoc or citeproc-py to convert the
-  generated BibTeX to APA / MLA (#31, #32)
+  generated BibTeX to APA / MLA
 - Hard-coded "well-known paper" shortcut that masked failures on the
-  main example input (#19)
+  main example input
 - MCP integration page and all related references
 - ``.readthedocs.yml`` (docs now hosted on GitHub Pages)
 - ``docs/_build/`` build artifacts from repository
@@ -139,20 +135,19 @@ Fixed
 ~~~~~
 
 - OpenAlex and dblp no longer listed as data sources — they were never
-  wired into the code (#6)
+  wired into the code
 - ``docs/api/pipeline.rst`` rewritten to match the real modules;
-  removed references to nonexistent classes / methods (#11)
+  removed references to nonexistent classes / methods
 - README and docs ``@inproceedings`` example now uses ``booktitle``
-  instead of ``journal = "arXiv preprint"`` (#28)
-- Crossref author names parsed as ``given family`` (#22)
-- Semantic Scholar HTTP 429 handled cleanly (#25)
+  instead of ``journal = "arXiv preprint"``
+- Crossref author names parsed as ``given family``
+- Semantic Scholar HTTP 429 handled cleanly
 - Previously-unused exception classes now raised in the right places
-  (#13)
 - ``CONTRIBUTING.md`` documents ``pip install -e .[dev]`` instead of
-  the non-existent ``requirements.txt`` (#12)
-- URL-bearing entries no longer queried twice (#20)
+  the non-existent ``requirements.txt``
+- URL-bearing entries no longer queried twice
 - Fallback paths mark entries as ``identification_failed`` rather than
-  fabricating invented metadata (#24)
+  fabricating invented metadata
 - CrossRef and Semantic Scholar response parsing edge cases
 - API documentation using incorrect return value fields
 - Version number inconsistencies across metadata files

@@ -67,19 +67,17 @@ as a deprecated alias for this release cycle.
 
 ### Removed
 - `IdentifierModule._check_doi_content_consistency` and the
-  `consistency_score` / `low_consistency` warning path. The fuzzy
-  string-similarity score was empirically unable to detect subtle
-  invalid references (scored 85/100 on author-only
-  hallucinations against a real DOI) and was only surfaced as a
-  `logger.warning` that downstream tools could not observe, producing
-  false reassurance. Citation authenticity verification belongs at the
-  abstract-vs-claim semantic layer in the consuming tool (e.g. the
-  `sci` skill), not at the bibliographic-string layer here.
+  `consistency_score` / `low_consistency` warning path. A fuzzy
+  string-similarity score on bibliographic fields is not a reliable
+  signal for detecting fabricated references, and it was only emitted
+  as a `logger.warning` that downstream tools could not act on.
+  Citation-authenticity verification belongs at the abstract-vs-claim
+  semantic layer in the consuming tool, not at the bibliographic-string
+  layer here.
 
 ## [0.1.0] - 2026-04-17
 
-First formal PyPI release since `0.0.12`.  Incorporates the complete
-pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
+First formal PyPI release since `0.0.12`.
 
 ### Added
 - RST documentation using Sphinx
@@ -94,25 +92,25 @@ pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
 - **Split monolithic `pipeline.py` (~3000 lines)** into a proper
   `onecite/pipeline/` package with one module per stage
   (`parser.py` / `identifier.py` / `enricher.py` / `formatter.py`)
-  plus a `_utils.py` for shared helpers (#17).  Public imports
+  plus a `_utils.py` for shared helpers.  Public imports
   (`from onecite.pipeline import IdentifierModule`) and mocking targets
   (`patch("onecite.pipeline.requests.get", ...)`) continue to work
   unchanged because `__init__.py` re-exports every public symbol and
   keeps `requests` at the package level.
-- Unify CrossRef request and parsing methods (#26); all CrossRef calls
+- Unify CrossRef request and parsing methods; all CrossRef calls
   now go through a single helper with a proper `User-Agent` header and
-  `mailto` query-string parameter (#21).
+  `mailto` query-string parameter.
 - Rewrite fuzzy-search scoring as a weighted title / author / year /
   venue model with three confidence tiers (auto-adopt / interactive /
-  cautious) and a unified low-confidence threshold (#3, #23, #27).
+  cautious) and a unified low-confidence threshold.
 - Simplify identifier routing; CrossRef and Semantic Scholar are always
   consulted for text queries, with signal-based additional queries to
-  PubMed / Google Books / external providerRE / BASE (#8, #23).
-- Use `bibtexparser.dumps()` for BibTeX rendering (#30).
+  PubMed / Google Books / external providerRE / BASE.
+- Use `bibtexparser.dumps()` for BibTeX rendering.
 - Expose `use_google_scholar` as a real CLI flag and API parameter
-  instead of a hard-coded `False` (#10).
+  instead of a hard-coded `False`.
 - Clarify that templates define metadata-field requirements and a
-  fallback BibTeX entry type, not output formatting (#16, #29).
+  fallback BibTeX entry type, not output formatting.
 - Refactored exception hierarchy
 - Added type hints to Python API
 - Updated README examples
@@ -125,9 +123,9 @@ pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
 - APA and MLA output renderers; they produced inconsistent output and
   the CLI now rejects anything other than `--output-format bibtex`.
   Users wanting APA/MLA should post-process the BibTeX through pandoc
-  or citeproc-py (#31, #32).
+  or citeproc-py.
 - Hard-coded "well-known paper" shortcut that masked failures on the
-  main example input (#19).
+  main example input.
 - MCP integration page and all related references
 - `.readthedocs.yml` (docs now hosted on GitHub Pages)
 - `docs/_build/` build artifacts from repository
@@ -135,32 +133,30 @@ pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
 ### Fixed
 - README / `docs/index.rst` / `docs/faq.rst` no longer advertise
   OpenAlex or dblp as data sources — they were never wired into the
-  code (#6).
+  code.
 - README quick-start example now shows `booktitle` (NeurIPS) instead
-  of `journal = "arXiv preprint"` for the `@inproceedings` sample
-  (#28).
+  of `journal = "arXiv preprint"` for the `@inproceedings` sample.
 - `docs/api/pipeline.rst` rewritten to match the actual module
   structure; removed references to classes and methods that never
   existed (`Validator` / `Identifier` / `Completer` / `Formatter`,
-  `set_source_priority`, `set_timeout`, `add_template_path`) (#11).
+  `set_source_priority`, `set_timeout`, `add_template_path`).
 - `docs/output_formats.rst`, `docs/faq.rst`, `docs/quick_start.rst`,
   `docs/python_api.rst`, `docs/templates.rst`, `docs/index.rst` and
   docstrings in `core.py` / `formatter.py` no longer advertise APA /
-  MLA output (#31, #32).
+  MLA output.
 - Crossref author names parsed as `given family` instead of mangled
-  concatenations (#22).
+  concatenations.
 - Semantic Scholar HTTP 429 responses return an empty candidate list
-  cleanly instead of bubbling up (#25).
+  cleanly instead of bubbling up.
 - Previously-unused exception classes (`ParseError`, `ValidationError`,
-  `FormatError`) are now actually raised in the right places (#13).
+  `FormatError`) are now actually raised in the right places.
 - `CONTRIBUTING.md` no longer tells developers to use a `requirements.txt`
-  that does not exist; the documented install is `pip install -e .[dev]`
-  (#12).
+  that does not exist; the documented install is `pip install -e .[dev]`.
 - `black` formatting is enforced via `pyproject.toml` `[tool.black]`
-  plus a pre-commit hook (#15).
-- URL-bearing entries are no longer queried twice (#20).
+  plus a pre-commit hook.
+- URL-bearing entries are no longer queried twice.
 - Fallback paths mark entries as `identification_failed` rather than
-  fabricating plausible-looking but invented metadata (#24).
+  fabricating plausible-looking but invented metadata.
 - CrossRef and Semantic Scholar response parsing edge cases
 - API documentation using incorrect return value fields (`output_content` -> `results`)
 - Version number inconsistencies across metadata files
