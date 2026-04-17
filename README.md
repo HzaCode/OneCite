@@ -43,9 +43,7 @@
 
 ## Statement of Need
 
-Researchers frequently accumulate reference lists in ad-hoc formats — DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into a consistent, complete `.bib` file is tedious and error-prone.
-
-OneCite solves this by accepting **any mix of identifiers and text queries** and automatically resolving them to structured BibTeX through a pipeline of academic APIs (CrossRef, arXiv, PubMed, Semantic Scholar, and others). It is designed for researchers who work primarily in the terminal, use LaTeX, and want a lightweight, scriptable tool — not a full reference manager.
+Researchers frequently accumulate reference lists in ad-hoc formats — DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into a consistent, complete `.bib` file is tedious and error-prone. However, in the era of automation, compiling a bibliography is no longer just about formatting—it is about **verification**. **OneCite acts as the firewall between automation outputs and your manuscript.** By serving as a deterministic truth-detector at the API-lookup layer, OneCite takes raw, unverified text and cross-checks every single entry against canonical academic databases (CrossRef, PubMed, arXiv, Semantic Scholar, etc.). 
 
 **When to use OneCite vs. alternatives:**
 
