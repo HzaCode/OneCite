@@ -130,10 +130,9 @@ into formatted BibTeX:</p>
 <li><p><strong>Enrich</strong> — fetch full metadata for the identified entries</p></li>
 <li><p><strong>Format</strong> — render the completed entries as BibTeX</p></li>
 </ol>
-<p>Since pyOpenSci review issue #17, the implementation lives in the
-<code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one module per stage.  For
-backwards-compatibility all public symbols remain importable from
-<code class="docutils literal notranslate"><span class="pre">onecite.pipeline</span></code>:</p>
+<p>The implementation lives in the <code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one
+module per stage.  For backwards-compatibility all public symbols remain
+importable from <code class="docutils literal notranslate"><span class="pre">onecite.pipeline</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
     <span class="n">ParserModule</span><span class="p">,</span>
     <span class="n">IdentifierModule</span><span class="p">,</span>
@@ -220,8 +219,9 @@ the score is still ≥ 75</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">match_score</span> <span class="pre">&gt;=</span> <span class="pre">50</span></code> and a title is present → adopt cautiously</p></li>
 <li><p>otherwise → mark the entry as <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code></p></li>
 </ul>
-<p>This matches what the pyOpenSci review flagged in issues #3, #23 and
-#27.  Fallbacks never fabricate data (see #24).</p>
+<p>Fallback paths never fabricate data: an entry that cannot be resolved is
+marked <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> rather than filled with invented
+metadata.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">IdentifierModule</span>
 
 <span class="n">identifier</span> <span class="o">=</span> <span class="n">IdentifierModule</span><span class="p">(</span><span class="n">use_google_scholar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>

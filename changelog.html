@@ -217,23 +217,19 @@ cascade, not PubMed alone.</p></li>
 <h3>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">IdentifierModule._check_doi_content_consistency</span></code> and the
-<code class="docutils literal notranslate"><span class="pre">consistency_score</span></code> / <code class="docutils literal notranslate"><span class="pre">low_consistency</span></code> warning path.  The fuzzy
-string-similarity score was empirically unable to detect subtle
-invalid references (scored 85/100 on author-only
-hallucinations against a real DOI) and was only surfaced as a
-<code class="docutils literal notranslate"><span class="pre">logger.warning</span></code> that downstream tools could not observe, producing
-false reassurance.  Citation-authenticity verification belongs at
-the abstract-vs-claim semantic layer in the consuming tool
-(e.g. the <code class="docutils literal notranslate"><span class="pre">sci</span></code> skill), not at the bibliographic-string layer
-here.</p></li>
+<code class="docutils literal notranslate"><span class="pre">consistency_score</span></code> / <code class="docutils literal notranslate"><span class="pre">low_consistency</span></code> warning path.  A fuzzy
+string-similarity score on bibliographic fields is not a reliable
+signal for detecting fabricated references, and it was only emitted
+as a <code class="docutils literal notranslate"><span class="pre">logger.warning</span></code> that downstream tools could not act on.
+Citation-authenticity verification belongs at the abstract-vs-claim
+semantic layer in the consuming tool, not at the bibliographic-string
+layer here.</p></li>
 </ul>
 </section>
 </section>
 <section id="id2">
 <h2>[0.1.0] - 2026-04-17<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
-<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.  Incorporates the complete
-pyOpenSci review pass (issues #3, #5–#34, #36) plus follow-up cleanup.
-See <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code> at the repository root for the full per-issue list.</p>
+<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.</p>
 <section id="id3">
 <h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
 <ul class="simple">
@@ -250,18 +246,18 @@ See <code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</s
 <h3>Changed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Split monolithic pipeline.py (~3000 lines)</strong> into a proper
-<code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one module per stage (#17)</p></li>
+<code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one module per stage</p></li>
 <li><p>Unify CrossRef request and parsing methods, with <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code> and
-<code class="docutils literal notranslate"><span class="pre">mailto</span></code> set per CrossRef etiquette (#21, #26)</p></li>
+<code class="docutils literal notranslate"><span class="pre">mailto</span></code> set per CrossRef etiquette</p></li>
 <li><p>Rewrite fuzzy-search scoring as a weighted title/author/year/venue
-model with three confidence tiers (#3, #23, #27)</p></li>
+model with three confidence tiers</p></li>
 <li><p>Simplify identifier routing; CrossRef and Semantic Scholar are the
 always-on sources, with signal-based PubMed / Google Books /
-external providerRE / BASE queries (#8, #23)</p></li>
-<li><p>Use <code class="docutils literal notranslate"><span class="pre">bibtexparser.dumps()</span></code> for BibTeX rendering (#30)</p></li>
-<li><p>Expose <code class="docutils literal notranslate"><span class="pre">use_google_scholar</span></code> as a real CLI flag and API parameter (#10)</p></li>
+external providerRE / BASE queries</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">bibtexparser.dumps()</span></code> for BibTeX rendering</p></li>
+<li><p>Expose <code class="docutils literal notranslate"><span class="pre">use_google_scholar</span></code> as a real CLI flag and API parameter</p></li>
 <li><p>Clarify that templates define metadata-field requirements and a
-fallback BibTeX entry type, not output formatting (#16, #29)</p></li>
+fallback BibTeX entry type, not output formatting</p></li>
 <li><p>Refactored exception hierarchy</p></li>
 <li><p>Added type hints to Python API</p></li>
 </ul>
@@ -271,9 +267,9 @@ fallback BibTeX entry type, not output formatting (#16, #29)</p></li>
 <ul class="simple">
 <li><p>APA and MLA output renderers; the CLI now rejects anything other than
 <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">bibtex</span></code>.  Use pandoc or citeproc-py to convert the
-generated BibTeX to APA / MLA (#31, #32)</p></li>
+generated BibTeX to APA / MLA</p></li>
 <li><p>Hard-coded “well-known paper” shortcut that masked failures on the
-main example input (#19)</p></li>
+main example input</p></li>
 <li><p>MCP integration page and all related references</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">.readthedocs.yml</span></code> (docs now hosted on GitHub Pages)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">docs/_build/</span></code> build artifacts from repository</p></li>
@@ -283,20 +279,19 @@ main example input (#19)</p></li>
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>OpenAlex and dblp no longer listed as data sources — they were never
-wired into the code (#6)</p></li>
+wired into the code</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">docs/api/pipeline.rst</span></code> rewritten to match the real modules;
-removed references to nonexistent classes / methods (#11)</p></li>
+removed references to nonexistent classes / methods</p></li>
 <li><p>README and docs <code class="docutils literal notranslate"><span class="pre">&#64;inproceedings</span></code> example now uses <code class="docutils literal notranslate"><span class="pre">booktitle</span></code>
-instead of <code class="docutils literal notranslate"><span class="pre">journal</span> <span class="pre">=</span> <span class="pre">&quot;arXiv</span> <span class="pre">preprint&quot;</span></code> (#28)</p></li>
-<li><p>Crossref author names parsed as <code class="docutils literal notranslate"><span class="pre">given</span> <span class="pre">family</span></code> (#22)</p></li>
-<li><p>Semantic Scholar HTTP 429 handled cleanly (#25)</p></li>
-<li><p>Previously-unused exception classes now raised in the right places
-(#13)</p></li>
+instead of <code class="docutils literal notranslate"><span class="pre">journal</span> <span class="pre">=</span> <span class="pre">&quot;arXiv</span> <span class="pre">preprint&quot;</span></code></p></li>
+<li><p>Crossref author names parsed as <code class="docutils literal notranslate"><span class="pre">given</span> <span class="pre">family</span></code></p></li>
+<li><p>Semantic Scholar HTTP 429 handled cleanly</p></li>
+<li><p>Previously-unused exception classes now raised in the right places</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">CONTRIBUTING.md</span></code> documents <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.[dev]</span></code> instead of
-the non-existent <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code> (#12)</p></li>
-<li><p>URL-bearing entries no longer queried twice (#20)</p></li>
+the non-existent <code class="docutils literal notranslate"><span class="pre">requirements.txt</span></code></p></li>
+<li><p>URL-bearing entries no longer queried twice</p></li>
 <li><p>Fallback paths mark entries as <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> rather than
-fabricating invented metadata (#24)</p></li>
+fabricating invented metadata</p></li>
 <li><p>CrossRef and Semantic Scholar response parsing edge cases</p></li>
 <li><p>API documentation using incorrect return value fields</p></li>
 <li><p>Version number inconsistencies across metadata files</p></li>
