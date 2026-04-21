@@ -219,6 +219,7 @@ print('\n\n'.join(result['results']))
 ## 🗺️ Roadmap
 
 - **OneCite Skill** — Skill package for automation workflows (MCP client Code, Windsurf, etc.).
+- **Benchmarking** — Public benchmark suite and leaderboard for citation extraction/verification accuracy.
 
 ## 🤝 Contributing
 
