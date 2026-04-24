@@ -214,12 +214,104 @@ print('\n\n'.join(result['results']))
 ```
 </details>
 
+## 💻 CLI Commands & Options
 
+OneCite provides a command-line interface with the following commands and options:
+
+### `onecite process`
+
+The main command for processing references through the OneCite pipeline.
+
+**Usage:**
+```bash
+onecite process <input_file> [OPTIONS]
+```
+
+**Arguments:**
+- `input_file` - Input file path, `-` for stdin, or a reference string (e.g., DOI, title)
+
+**Options:**
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--input-type` | | Input format: `txt` or `bib` | `txt` |
+| `--template` | | Fallback BibTeX entry-type preset when auto-detection is inconclusive | `journal_article_full` |
+| `--output-format` | | Output format (currently only `bibtex` supported) | `bibtex` |
+| `--output` | `-o` | Output file path (default: stdout) | - |
+| `--interactive` | | Enable interactive mode for ambiguous matches | `False` |
+| `--quiet` | `-q` | Suppress verbose logging output | `False` |
+| `--google-scholar` | | Enable Google Scholar as an additional data source (requires scholarly package) | `False` |
+
+**Examples:**
+```bash
+# Process a text file
+onecite process references.txt -o results.bib
+
+# Process a BibTeX file with auto-detection
+onecite process references.bib
+
+# Process with interactive mode
+onecite process ambiguous.txt --interactive
+
+# Use stdin
+echo "10.1038/nature14539" | onecite process -
+
+# Process a direct string (DOI)
+onecite process "10.1038/nature14539"
+
+# Process with custom template
+onecite process references.txt --template conference_paper
+
+# Enable Google Scholar (requires scholarly package)
+onecite process references.txt --google-scholar
+
+# Quiet mode for scripts
+onecite process references.txt -o results.bib --quiet
+```
+
+### `onecite --version`
+
+Display the installed OneCite version.
+
+**Usage:**
+```bash
+onecite --version
+```
+
+### `onecite version`
+
+Alternative command to display version information.
+
+**Usage:**
+```bash
+onecite version
+```
+
+### Input Type Auto-Detection
+
+When `--input-type` is not specified, OneCite automatically detects the input type:
+- Files ending with `.bib` are treated as BibTeX format
+- All other files and strings are treated as plain text
+
+### Available Templates
+
+OneCite supports several template presets for different entry types:
+- `journal_article_full` - Full journal article entry (default)
+- `conference_paper` - Conference proceedings paper
+- `book` - Book entry
+- `thesis` - Thesis/dissertation entry
+- `dataset` - Dataset entry
+- `software` - Software/code entry
+
+### Exit Codes
+
+- `0` - Success
+- `1` - Error occurred (invalid input, processing failure, etc.)
 
 ## 🗺️ Roadmap
 
-- **OneCite Skill** — Skill package for automation workflows (MCP client Code, Windsurf, etc.).
-- **Benchmarking** — Public benchmark suite and leaderboard for citation extraction/verification accuracy.
+- **OneCite Skill** — Skill package for automation workflows
+- **Benchmarking** — Public benchmark suite and leaderboard
+- **Enhanced CLI** — Additional CLI commands
 
 ## 🤝 Contributing
 
