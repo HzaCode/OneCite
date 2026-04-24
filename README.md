@@ -214,7 +214,8 @@ print('\n\n'.join(result['results']))
 ```
 </details>
 
-## 💻 CLI Commands & Options
+<details>
+<summary><strong>💻 CLI Commands & Options</strong></summary>
 
 OneCite provides a command-line interface with the following commands and options:
 
@@ -306,6 +307,8 @@ OneCite supports several template presets for different entry types:
 
 - `0` - Success
 - `1` - Error occurred (invalid input, processing failure, etc.)
+
+</details>
 
 ## 🗺️ Roadmap
 
