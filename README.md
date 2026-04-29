@@ -12,7 +12,7 @@
 <div align="center">
 
 [![Downloads](https://img.shields.io/pepy/dt/onecite?style=flat-square&label=Downloads)](https://pepy.tech/project/onecite)
-[![Awesome CLI Apps](https://img.shields.io/badge/🏆%20Featured-Awesome%20CLI%20Apps%2019.2k⭐-FF6B35?style=flat-square)](https://github.com/agarrharr/awesome-cli-apps?tab=readme-ov-file#academia)
+[![Awesome CLI Apps](https://img.shields.io/badge/🏆%20Featured-Awesome%20CLI%20Apps%20-FF6B35?style=flat-square)](https://github.com/agarrharr/awesome-cli-apps?tab=readme-ov-file#academia)
 
 [![Tests](https://img.shields.io/github/actions/workflow/status/HzaCode/OneCite/tests.yml?style=flat-square&logo=github)](https://github.com/HzaCode/OneCite/actions)
 [![codecov](https://img.shields.io/codecov/c/github/HzaCode/OneCite?style=flat-square&logo=codecov)](https://codecov.io/gh/HzaCode/OneCite)
