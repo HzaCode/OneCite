@@ -6,6 +6,7 @@ the unit tests poke at ``cli.process_command`` / ``cli.main`` directly so we
 can exercise error branches without spawning a child process every time.
 """
 import argparse
+import json
 import subprocess
 import sys
 
@@ -38,6 +39,7 @@ class TestCLI:
         assert code == 0
         assert "Citation management" in out
         assert "process" in out
+        assert "templates" in out
 
     def test_version(self):
         code, out, _ = self._run(["--version"])
@@ -67,6 +69,23 @@ class TestCLI:
         path = create_test_file(sample_references["doi_only"])
         code, _, _ = self._run(["process", path, "--output-format", "invalid"])
         assert code != 0
+
+    def test_templates_command(self):
+        code, out, err = self._run(["templates"])
+        assert code == 0
+        assert err == ""
+        assert "Available templates:" in out
+        assert "journal_article_full" in out
+        assert "@article" in out
+
+    def test_templates_command_json(self):
+        code, out, err = self._run(["templates", "--json"])
+        assert code == 0
+        assert err == ""
+        data = json.loads(out)
+        names = {item["name"] for item in data}
+        assert "journal_article_full" in names
+        assert all("required_fields" in item for item in data)
 
 
 # ---------------------------------------------------------------------------
@@ -283,6 +302,13 @@ class TestCLIUnit:
         parser.parse_args.return_value = argparse.Namespace(command="process")
         with patch("onecite.cli.create_parser", return_value=parser), \
              patch("onecite.cli.process_command", return_value=0):
+            assert cli.main() == 0
+
+    def test_main_templates(self):
+        parser = Mock()
+        parser.parse_args.return_value = argparse.Namespace(command="templates")
+        with patch("onecite.cli.create_parser", return_value=parser), \
+             patch("onecite.cli.templates_command", return_value=0):
             assert cli.main() == 0
 
     def test_main_no_command(self):

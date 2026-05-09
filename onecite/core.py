@@ -101,6 +101,50 @@ class TemplateLoader:
         except Exception as e:
             self.logger.error(f"Failed to load template {template_name}: {str(e)}")
             return self._get_default_template()
+
+    def list_templates(self) -> List[Dict[str, Any]]:
+        """Return metadata for the built-in YAML templates.
+
+        Returns:
+            A list of dictionaries sorted by template name. Each item
+            includes the template ``name``, fallback ``entry_type``,
+            ``required_fields``, and ``optional_fields``.
+        """
+        templates = []
+        if not os.path.isdir(self.templates_dir):
+            return templates
+
+        for filename in sorted(os.listdir(self.templates_dir)):
+            if not filename.endswith((".yaml", ".yml")):
+                continue
+
+            template_path = os.path.join(self.templates_dir, filename)
+            try:
+                with open(template_path, "r", encoding="utf-8") as f:
+                    template = yaml.safe_load(f) or {}
+            except Exception as e:
+                self.logger.warning("Skipping unreadable template %s: %s", filename, e)
+                continue
+
+            fields = template.get("fields", [])
+            required_fields = [
+                field.get("name")
+                for field in fields
+                if field.get("name") and field.get("required") is True
+            ]
+            optional_fields = [
+                field.get("name")
+                for field in fields
+                if field.get("name") and field.get("required") is not True
+            ]
+            templates.append({
+                "name": template.get("name") or os.path.splitext(filename)[0],
+                "entry_type": template.get("entry_type", ""),
+                "required_fields": required_fields,
+                "optional_fields": optional_fields,
+            })
+
+        return sorted(templates, key=lambda item: item["name"])
     
     def _get_default_template(self) -> Dict[str, Any]:
         """Return default journal_article template"""

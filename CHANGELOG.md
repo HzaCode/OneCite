@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 
 ## [Unreleased]
 
+### Added
+- `onecite templates` CLI command for listing bundled fallback BibTeX
+  templates, including machine-readable `--json` output for tools that
+  need to inspect available presets.
+
 ## [0.1.1] - 2026-04-17
 
 Maintenance release focused on **aligning the abstract-retrieval

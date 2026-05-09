@@ -6,11 +6,12 @@ Command-line interface for OneCite.
 """
 
 import argparse
+import json
 import sys
 import os
 from typing import Optional, List, Dict
 
-from .core import process_references
+from .core import process_references, TemplateLoader
 from .exceptions import OneCiteError
 from . import __version__
 
@@ -23,6 +24,8 @@ def main() -> int:
     try:
         if args.command == 'process':
             return process_command(args)
+        elif args.command == 'templates':
+            return templates_command(args)
         elif args.command == 'version':
             print(f"OneCite version {__version__}")
             return 0
@@ -51,6 +54,7 @@ Examples:
   onecite process references.txt --interactive --output results.bib
   onecite process "10.1038/nature14539"
   onecite process "attention is all you need, Vaswani et al., NIPS 2017"
+  onecite templates
   echo "10.1038/nature14539" | onecite process -
         """
     )
@@ -111,8 +115,45 @@ Examples:
         default=False,
         help='Enable Google Scholar as an additional data source (requires scholarly package)'
     )
+
+    templates_parser = subparsers.add_parser(
+        'templates',
+        help='List bundled fallback BibTeX templates'
+    )
+    templates_parser.add_argument(
+        '--json',
+        action='store_true',
+        dest='as_json',
+        help='Print template metadata as JSON'
+    )
     
     return parser
+
+
+def templates_command(args: "argparse.Namespace") -> int:
+    """Run the ``onecite templates`` subcommand.
+
+    Args:
+        args: Parsed command-line arguments from :func:`create_parser`.
+
+    Returns:
+        Exit code — ``0`` on success.
+    """
+    templates = TemplateLoader().list_templates()
+
+    if args.as_json:
+        print(json.dumps(templates, indent=2))
+        return 0
+
+    print("Available templates:")
+    for template in templates:
+        required = ", ".join(template["required_fields"]) or "-"
+        optional = ", ".join(template["optional_fields"]) or "-"
+        print(f"- {template['name']} ({template['entry_type']})")
+        print(f"  required: {required}")
+        print(f"  optional: {optional}")
+
+    return 0
 
 
 def process_command(args: "argparse.Namespace") -> int:

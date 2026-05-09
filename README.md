@@ -287,6 +287,16 @@ Alternative command to display version information.
 onecite version
 ```
 
+### `onecite templates`
+
+List the bundled fallback BibTeX templates and the fields they request.
+
+**Usage:**
+```bash
+onecite templates
+onecite templates --json
+```
+
 ### Input Type Auto-Detection
 
 When `--input-type` is not specified, OneCite automatically detects the input type:
@@ -314,7 +324,7 @@ OneCite supports several template presets for different entry types:
 
 - **OneCite Skill** — Skill package for automation workflows
 - **Benchmarking** — Public benchmark suite and leaderboard
-- **Enhanced CLI** — Additional CLI commands
+- **Batch Validation Reports** — Machine-readable summaries for large reference-cleaning jobs
 
 ## 🤝 Contributing
 

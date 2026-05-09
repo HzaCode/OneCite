@@ -123,6 +123,17 @@ Display help information::
     onecite --help
     onecite process --help
 
+Template Discovery
+~~~~~~~~~~~~~~~~~~
+
+List the bundled fallback BibTeX templates and the fields they request::
+
+    onecite templates
+
+Use JSON output when another tool needs to inspect the same metadata::
+
+    onecite templates --json
+
 Practical Examples
 ------------------
 
