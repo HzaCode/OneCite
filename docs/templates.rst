@@ -35,6 +35,18 @@ Built-in templates are located in the ``onecite/templates/`` directory:
 - ``software.yaml``
 - ``dataset.yaml``
 
+Inspecting Templates from the CLI
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use ``onecite templates`` to list the bundled fallback BibTeX templates and
+their required / optional fields::
+
+    onecite templates
+
+Use JSON output when another tool needs to inspect the same metadata::
+
+    onecite templates --json
+
 What Templates Actually Do
 ---------------------------
 

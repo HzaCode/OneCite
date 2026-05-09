@@ -6,8 +6,37 @@ missing fields trigger enrichment.  We only test the two built-in templates
 here; users can add custom ones at runtime.
 """
 
+from onecite.core import TemplateLoader
+
 
 class TestTemplates:
+
+    def test_list_templates_schema(self):
+        templates = TemplateLoader().list_templates()
+        names = [template["name"] for template in templates]
+
+        assert names == sorted(names)
+        assert "journal_article_full" in names
+
+        journal_template = next(
+            template
+            for template in templates
+            if template["name"] == "journal_article_full"
+        )
+        assert set(journal_template) == {
+            "name",
+            "entry_type",
+            "required_fields",
+            "optional_fields",
+        }
+        assert journal_template["entry_type"] == "@article"
+        assert journal_template["required_fields"] == [
+            "author",
+            "title",
+            "journal",
+            "year",
+        ]
+        assert "abstract" in journal_template["optional_fields"]
 
     def test_default_template(self, sample_references, run_onecite_process):
         """journal_article_full is the default when no --template is given."""

@@ -103,7 +103,7 @@ class TemplateLoader:
             return self._get_default_template()
 
     def list_templates(self) -> List[Dict[str, Any]]:
-        """Return metadata for the built-in YAML templates.
+        """Return metadata for the configured YAML template directory.
 
         Returns:
             A list of dictionaries sorted by template name. Each item
