@@ -1,9 +1,14 @@
 """Quick sanity checks for the public Python API.
 
-These run against the real network, so they're skipped when the ``--offline``
-marker is active.  For fully-mocked equivalents see ``test_python_api.py``.
+These run against the real network, so they're marked ``live`` and skipped
+by default. For fully-mocked equivalents see ``test_python_api.py``.
 """
+
+import pytest
+
 from onecite import process_references
+
+pytestmark = pytest.mark.live
 
 
 def _auto_pick(candidates):
@@ -23,4 +28,3 @@ def test_readme_example():
     assert isinstance(result, dict)
     assert result.get("results"), "Expected at least one formatted entry"
     assert "report" in result
-

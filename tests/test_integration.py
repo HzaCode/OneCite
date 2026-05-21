@@ -87,6 +87,8 @@ class TestIntegration:
         code1, bibtex_out, _, _ = run_onecite_process("10.1038/nature14539", output_format="bibtex")
         if code1 != 0 or not bibtex_out:
             pytest.skip("first pass failed; nothing to round-trip")
-        code2, _, err2, result2 = run_onecite_process(bibtex_out, input_type="bib", output_format="bibtex")
+        code2, _, err2, result2 = run_onecite_process(
+            bibtex_out, input_type="bib", output_format="bibtex"
+        )
         assert code2 == 0, err2
         self._check(result2)

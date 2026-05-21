@@ -10,12 +10,35 @@ Why only Crossref + arXiv?
 """
 
 # -- Crossref -----------------------------------------------------------------
-# Corresponds to DOI 10.1038/nature14539 (Mnih et al., 2015 – DQN paper).
+# Corresponds to DOI 10.1038/nature14539.
 MOCK_CROSSREF_RESPONSE = {
     "status": "ok",
     "message-type": "work",
     "message": {
         "DOI": "10.1038/nature14539",
+        "type": "journal-article",
+        "title": ["Deep learning"],
+        "author": [
+            {"given": "Yann", "family": "LeCun", "sequence": "first"},
+            {"given": "Yoshua", "family": "Bengio", "sequence": "additional"},
+            {"given": "Geoffrey", "family": "Hinton", "sequence": "additional"},
+        ],
+        "container-title": ["Nature"],
+        "published-print": {"date-parts": [[2015, 5, 28]]},
+        "volume": "521",
+        "issue": "7553",
+        "page": "436-444",
+        "publisher": "Springer Nature",
+        "ISSN": ["0028-0836", "1476-4687"],
+    },
+}
+
+# Corresponds to DOI 10.1038/nature14236 (Mnih et al., 2015 - DQN paper).
+MOCK_CROSSREF_DQN_RESPONSE = {
+    "status": "ok",
+    "message-type": "work",
+    "message": {
+        "DOI": "10.1038/nature14236",
         "type": "journal-article",
         "title": ["Human-level control through deep reinforcement learning"],
         "author": [
@@ -43,7 +66,7 @@ MOCK_ARXIV_RESPONSE = """\
     <updated>2017-12-06T00:00:00Z</updated>
     <published>2017-06-12T00:00:00Z</published>
     <title>Attention Is All You Need</title>
-    <summary>The dominant sequence transduction models are based on complex recurrent or convolutional neural networks.</summary>
+    <summary>Transformer sequence transduction fixture.</summary>
     <author><name>Ashish Vaswani</name></author>
     <author><name>Noam Shazeer</name></author>
     <author><name>Niki Parmar</name></author>
@@ -115,6 +138,19 @@ MOCK_S2_RESPONSE = {
 # -- Pre-rendered BibTeX strings (for tests that check final output) ----------
 
 MOCK_BIBTEX_DOI = """\
+@article{LeCun2015,
+  author = {LeCun, Yann and Bengio, Yoshua and Hinton, Geoffrey},
+  title = {Deep learning},
+  journal = {Nature},
+  year = {2015},
+  volume = {521},
+  number = {7553},
+  pages = {436--444},
+  doi = {10.1038/nature14539},
+  publisher = {Springer Nature}
+}"""
+
+MOCK_BIBTEX_DQN = """\
 @article{Mnih2015,
   author = {Mnih, Volodymyr and Kavukcuoglu, Koray and Silver, David},
   title = {Human-level control through deep reinforcement learning},
@@ -123,7 +159,7 @@ MOCK_BIBTEX_DOI = """\
   volume = {518},
   number = {7540},
   pages = {529--533},
-  doi = {10.1038/nature14539},
+  doi = {10.1038/nature14236},
   publisher = {Springer Nature}
 }"""
 
@@ -149,6 +185,7 @@ MOCK_BIBTEX_CONFERENCE = """\
 # ---------------------------------------------------------------------------
 # Router
 # ---------------------------------------------------------------------------
+
 
 class MockResponse:
     """Minimal stand-in for ``requests.Response``."""
@@ -183,6 +220,9 @@ def mock_requests_get(url, *args, **kwargs):
     if "api.crossref.org" in url and "10.1038/nature14539" in url:
         return MockResponse(json_data=MOCK_CROSSREF_RESPONSE)
 
+    if "api.crossref.org" in url and "10.1038/nature14236" in url:
+        return MockResponse(json_data=MOCK_CROSSREF_DQN_RESPONSE)
+
     # Crossref: proceedings DOI from Attention-Is-All-You-Need fuzzy search result
     if "api.crossref.org" in url and "10.5555/3295222.3295349" in url:
         return MockResponse(json_data=MOCK_CROSSREF_PROCEEDINGS_RESPONSE)
@@ -208,6 +248,8 @@ def get_mock_bibtex_output(input_text):
     low = input_text.lower()
     if "10.1038/nature14539" in low:
         return MOCK_BIBTEX_DOI
+    if "10.1038/nature14236" in low:
+        return MOCK_BIBTEX_DQN
     if "1706.03762" in low or "arxiv" in low:
         return MOCK_BIBTEX_ARXIV
     if "attention" in low and "need" in low:

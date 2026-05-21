@@ -8,9 +8,9 @@ NoopThread) keep the individual test bodies short and readable.
 Note: synthetic DOIs like 10.1234/xyz are used intentionally – they don't
 exist on Crossref, which makes it obvious when a mock is missing.
 """
+
 import builtins
 import io
-import json
 import types
 
 import pytest
@@ -18,14 +18,13 @@ import requests
 from unittest.mock import patch, MagicMock
 
 from onecite.pipeline import EnricherModule, FormatterModule, IdentifierModule
-import onecite.pipeline as _pipeline_mod
 import onecite.pipeline.identifier as _identifier_mod
 import onecite.pipeline.enricher as _enricher_mod
-
 
 # ---------------------------------------------------------------------------
 # Test doubles
 # ---------------------------------------------------------------------------
+
 
 class DummyResponse:
     """Minimal ``requests.Response`` stand-in."""
@@ -47,6 +46,7 @@ class DummyResponse:
 
 class ImmediateThread:
     """Runs the target synchronously in ``start()`` – no real threading."""
+
     def __init__(self, target=None, args=(), kwargs=None):
         self._target = target
         self._args = args
@@ -60,6 +60,7 @@ class ImmediateThread:
 
 class NoopThread:
     """start() does nothing → simulates a thread that never finishes."""
+
     def __init__(self, target=None, args=(), kwargs=None):
         self.daemon = False
 
@@ -71,6 +72,7 @@ class NoopThread:
 # IdentifierModule
 # ===================================================================
 
+
 class TestIdentifierGitHub:
 
     def test_extracts_repo_info(self):
@@ -78,13 +80,17 @@ class TestIdentifierGitHub:
 
         def fake_get(url, *a, **kw):
             if url.endswith("/repos/owner/repo"):
-                return DummyResponse(json_data={
-                    "name": "repo", "description": "desc",
-                    "owner": {"login": "owner"},
-                    "created_at": "2020-01-02T00:00:00Z",
-                    "html_url": "https://github.com/owner/repo",
-                    "language": "Python", "stargazers_count": 123,
-                })
+                return DummyResponse(
+                    json_data={
+                        "name": "repo",
+                        "description": "desc",
+                        "owner": {"login": "owner"},
+                        "created_at": "2020-01-02T00:00:00Z",
+                        "html_url": "https://github.com/owner/repo",
+                        "language": "Python",
+                        "stargazers_count": 123,
+                    }
+                )
             if url.endswith("/repos/owner/repo/tags"):
                 return DummyResponse(json_data=[{"name": "v1.2.3"}])
             return DummyResponse(status_code=404, json_data={})
@@ -104,13 +110,17 @@ class TestIdentifierZenodo:
 
         def fake_get(url, *a, **kw):
             if "/api/records/12345" in url:
-                return DummyResponse(json_data={
-                    "metadata": {
-                        "title": "Dataset", "creators": [{"name": "A"}],
-                        "publication_date": "2021-01-01", "version": "1.0",
-                        "resource_type": {"type": "dataset"},
+                return DummyResponse(
+                    json_data={
+                        "metadata": {
+                            "title": "Dataset",
+                            "creators": [{"name": "A"}],
+                            "publication_date": "2021-01-01",
+                            "version": "1.0",
+                            "resource_type": {"type": "dataset"},
+                        }
                     }
-                })
+                )
             return DummyResponse(status_code=404, json_data={})
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
@@ -128,8 +138,11 @@ class TestIdentifierZenodo:
 
     def test_datacite_fallback(self):
         ident = IdentifierModule()
-        with patch.object(ident, "_query_datacite",
-                          return_value={"source": "datacite", "doi": "10.5061/dryad.abc"}):
+        with patch.object(
+            ident,
+            "_query_datacite",
+            return_value={"source": "datacite", "doi": "10.5061/dryad.abc"},
+        ):
             info = ident._extract_zenodo_info("10.5061/dryad.abc")
         assert info["source"] == "datacite"
 
@@ -142,16 +155,22 @@ class TestIdentifierPubMed:
         def fake_get(url, *a, **kw):
             if url.endswith("/esummary.fcgi"):
                 pmid = kw.get("params", {}).get("id")
-                return DummyResponse(json_data={
-                    "result": {pmid: {
-                        "title": "My Paper",
-                        "articleids": [{"idtype": "doi", "value": "10.1234/abc"}],
-                        "authors": [{"name": "Doe J"}],
-                        "fulljournalname": "J",
-                        "pubdate": "2020 Jan",
-                        "volume": "1", "issue": "2", "pages": "3-4",
-                    }}
-                })
+                return DummyResponse(
+                    json_data={
+                        "result": {
+                            pmid: {
+                                "title": "My Paper",
+                                "articleids": [{"idtype": "doi", "value": "10.1234/abc"}],
+                                "authors": [{"name": "Doe J"}],
+                                "fulljournalname": "J",
+                                "pubdate": "2020 Jan",
+                                "volume": "1",
+                                "issue": "2",
+                                "pages": "3-4",
+                            }
+                        }
+                    }
+                )
             return DummyResponse(status_code=404, json_data={})
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
@@ -169,10 +188,19 @@ class TestIdentifierPubMed:
                 return DummyResponse(json_data={"esearchresult": {"idlist": ["1234567"]}})
             return DummyResponse(status_code=404, json_data={})
 
-        with patch("onecite.pipeline.requests.get", side_effect=fake_get), \
-             patch.object(ident, "_search_pubmed_by_id",
-                          return_value={"source": "pubmed", "pmid": "1234567",
-                                        "title": "T", "authors": ["A"]}):
+        with (
+            patch("onecite.pipeline.requests.get", side_effect=fake_get),
+            patch.object(
+                ident,
+                "_search_pubmed_by_id",
+                return_value={
+                    "source": "pubmed",
+                    "pmid": "1234567",
+                    "title": "T",
+                    "authors": ["A"],
+                },
+            ),
+        ):
             results = ident._search_pubmed("some query")
 
         assert len(results) == 1
@@ -186,12 +214,24 @@ class TestIdentifierSemanticScholar:
         ident = IdentifierModule()
 
         def fake_get(url, *a, **kw):
-            return DummyResponse(json_data={"data": [{
-                "title": "T", "authors": [{"name": "A"}], "year": 2020,
-                "venue": "", "journal": {"name": "J"}, "citationCount": 5,
-                "publicationDate": "2020-01-01", "externalIds": None,
-                "paperId": "pid", "url": None,
-            }]})
+            return DummyResponse(
+                json_data={
+                    "data": [
+                        {
+                            "title": "T",
+                            "authors": [{"name": "A"}],
+                            "year": 2020,
+                            "venue": "",
+                            "journal": {"name": "J"},
+                            "citationCount": 5,
+                            "publicationDate": "2020-01-01",
+                            "externalIds": None,
+                            "paperId": "pid",
+                            "url": None,
+                        }
+                    ]
+                }
+            )
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             results = ident._search_semantic_scholar("query")
@@ -209,8 +249,7 @@ class TestIdentifierArxiv:
         assert ident._extract_arxiv_id("arxiv:1706.03762") == "1706.03762"
         assert ident._extract_arxiv_id("arXiv:1706.03762") == "1706.03762"
         assert ident._extract_arxiv_id("1706.03762") == "1706.03762"
-        assert ident._extract_arxiv_id_from_url(
-            "https://arxiv.org/abs/1706.03762") == "1706.03762"
+        assert ident._extract_arxiv_id_from_url("https://arxiv.org/abs/1706.03762") == "1706.03762"
 
 
 class TestIdentifierDOIExtraction:
@@ -219,25 +258,33 @@ class TestIdentifierDOIExtraction:
         ident = IdentifierModule()
         html = '<html><head><meta name="citation_doi" content="10.1234/xyz" /></head></html>'
 
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(content=html.encode())):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(content=html.encode()),
+        ):
             assert ident._extract_doi_from_url("https://example.com/paper") == "10.1234/xyz"
 
     def test_from_structured_data(self):
         ident = IdentifierModule()
-        html = ('<html><head><script type="application/ld+json">'
-                '{"identifier": "10.2345/abc"}</script></head></html>')
+        html = (
+            '<html><head><script type="application/ld+json">'
+            '{"identifier": "10.2345/abc"}</script></head></html>'
+        )
 
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(content=html.encode())):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(content=html.encode()),
+        ):
             assert ident._extract_doi_from_url("https://example.com/paper") == "10.2345/abc"
 
     def test_from_body_text(self):
         ident = IdentifierModule()
-        html = '<html><body><main>doi:10.3456/def</main></body></html>'
+        html = "<html><body><main>doi:10.3456/def</main></body></html>"
 
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(content=html.encode())):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(content=html.encode()),
+        ):
             assert ident._extract_doi_from_url("https://example.com/paper") == "10.3456/def"
 
 
@@ -313,9 +360,13 @@ class TestIdentifierURLMetadata:
           </body>
         </html>
         """
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(content=html.encode(),
-                                               headers={"content-type": "text/html"})):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(
+                content=html.encode(),
+                headers={"content-type": "text/html"},
+            ),
+        ):
             meta = ident._extract_metadata_from_url("https://example.com/page")
 
         assert meta["title"] == "My Very Long Paper Title"
@@ -325,12 +376,19 @@ class TestIdentifierURLMetadata:
     def test_pdf_delegates_to_extractor(self):
         ident = IdentifierModule()
 
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(content=b"%PDF",
-                                               headers={"content-type": "application/pdf"})), \
-             patch.object(ident, "_extract_from_pdf_content",
-                          return_value={"title": "T"}) as m:
-            meta = ident._extract_metadata_from_url("https://example.com/file.pdf")
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(
+                content=b"%PDF",
+                headers={"content-type": "application/pdf"},
+            ),
+        ):
+            with patch.object(
+                ident,
+                "_extract_from_pdf_content",
+                return_value={"title": "T"},
+            ) as m:
+                meta = ident._extract_metadata_from_url("https://example.com/file.pdf")
 
         assert meta == {"title": "T"}
         assert m.called
@@ -340,20 +398,30 @@ class TestIdentifierURLMetadata:
 # Crossref searches
 # ===================================================================
 
+
 class TestIdentifierCrossref:
 
     def test_resolve_doi_via_title(self):
         ident = IdentifierModule()
 
         def fake_get(url, *a, **kw):
-            return DummyResponse(json_data={"message": {"items": [
-                {"title": ["Deep Learning"], "DOI": "10.1000/abc",
-                 "author": [{"given": "Ian", "family": "Goodfellow"}],
-                 "container-title": ["Nature"],
-                 "published-print": {"date-parts": [[2016]]},
-                 "is-referenced-by-count": 10},
-                {"title": ["Other"], "DOI": "10.1000/def"},
-            ]}})
+            return DummyResponse(
+                json_data={
+                    "message": {
+                        "items": [
+                            {
+                                "title": ["Deep Learning"],
+                                "DOI": "10.1000/abc",
+                                "author": [{"given": "Ian", "family": "Goodfellow"}],
+                                "container-title": ["Nature"],
+                                "published-print": {"date-parts": [[2016]]},
+                                "is-referenced-by-count": 10,
+                            },
+                            {"title": ["Other"], "DOI": "10.1000/def"},
+                        ]
+                    }
+                }
+            )
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             r = ident._resolve_doi_via_crossref_title("Deep Learning", "Deep Learning 2016")
@@ -370,24 +438,47 @@ class TestIdentifierCrossref:
         def fake_get(url, *a, **kw):
             call_n["n"] += 1
             if call_n["n"] == 1:
-                return DummyResponse(json_data={"message": {"items": [{
-                    "DOI": "10.1111/aaa", "title": ["Paper A"],
-                    "type": "proceedings-article",
-                    "author": [{"given": "A", "family": "B"}],
-                    "event": {"name": ["NeurIPS"]},
-                    "issued": {"date-parts": [[2020]]},
-                    "is-referenced-by-count": 5, "publisher": "P",
-                }]}})
+                return DummyResponse(
+                    json_data={
+                        "message": {
+                            "items": [
+                                {
+                                    "DOI": "10.1111/aaa",
+                                    "title": ["Paper A"],
+                                    "type": "proceedings-article",
+                                    "author": [{"given": "A", "family": "B"}],
+                                    "event": {"name": ["NeurIPS"]},
+                                    "issued": {"date-parts": [[2020]]},
+                                    "is-referenced-by-count": 5,
+                                    "publisher": "P",
+                                }
+                            ]
+                        }
+                    }
+                )
             if call_n["n"] == 2:
-                return DummyResponse(json_data={"message": {"items": [
-                    {"DOI": "10.1111/aaa", "title": ["Paper A"],
-                     "type": "proceedings-article"},  # dup
-                    {"DOI": "10.2222/book", "title": ["A Great Book"],
-                     "type": "book", "ISBN": ["9780000000001"],
-                     "publisher": "Wiley",
-                     "author": [{"given": "C", "family": "D"}],
-                     "published-online": {"date-parts": [[2018]]}},
-                ]}})
+                return DummyResponse(
+                    json_data={
+                        "message": {
+                            "items": [
+                                {
+                                    "DOI": "10.1111/aaa",
+                                    "title": ["Paper A"],
+                                    "type": "proceedings-article",
+                                },  # dup
+                                {
+                                    "DOI": "10.2222/book",
+                                    "title": ["A Great Book"],
+                                    "type": "book",
+                                    "ISBN": ["9780000000001"],
+                                    "publisher": "Wiley",
+                                    "author": [{"given": "C", "family": "D"}],
+                                    "published-online": {"date-parts": [[2018]]},
+                                },
+                            ]
+                        }
+                    }
+                )
             return DummyResponse(json_data={"message": {"items": []}})
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
@@ -406,6 +497,7 @@ class TestIdentifierCrossref:
 # Google Books
 # ===================================================================
 
+
 class TestIdentifierGoogleBooks:
 
     def test_edition_and_isbn(self):
@@ -414,22 +506,31 @@ class TestIdentifierGoogleBooks:
 
         def fake_get(url, *a, **kw):
             captured["params"] = kw.get("params")
-            return DummyResponse(json_data={"items": [{
-                "volumeInfo": {
-                    "title": "Deep Learning", "subtitle": "2nd edition",
-                    "authors": ["John Doe"],
-                    "publisher": "Cambridge University Press",
-                    "publishedDate": "2020-01-01",
-                    "industryIdentifiers": [
-                        {"type": "ISBN_13", "identifier": "9780000000001"}],
-                    "pageCount": 500,
-                    "infoLink": "https://books.example/book",
-                },
-            }]})
+            return DummyResponse(
+                json_data={
+                    "items": [
+                        {
+                            "volumeInfo": {
+                                "title": "Deep Learning",
+                                "subtitle": "2nd edition",
+                                "authors": ["John Doe"],
+                                "publisher": "Cambridge University Press",
+                                "publishedDate": "2020-01-01",
+                                "industryIdentifiers": [
+                                    {"type": "ISBN_13", "identifier": "9780000000001"}
+                                ],
+                                "pageCount": 500,
+                                "infoLink": "https://books.example/book",
+                            },
+                        }
+                    ]
+                }
+            )
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             results = ident._search_google_books(
-                "Doe, J. (2020). Deep Learning (2nd ed.). Cambridge University Press.")
+                "Doe, J. (2020). Deep Learning (2nd ed.). Cambridge University Press."
+            )
 
         assert len(results) == 1
         assert results[0]["is_book"] is True
@@ -442,24 +543,33 @@ class TestIdentifierGoogleBooks:
 # Google Scholar (threaded, needs special mocking)
 # ===================================================================
 
+
 class TestIdentifierGoogleScholar:
 
     def test_success(self):
         ident = IdentifierModule(use_google_scholar=True)
-        pubs = [{
-            "bib": {"title": "NeurIPS Paper",
+        pubs = [
+            {
+                "bib": {
+                    "title": "NeurIPS Paper",
                     "author": "Doe, John and Smith, Alice",
-                    "pub_year": "2019", "venue": "NeurIPS"},
-            "num_citations": 12,
-            "pub_url": "https://doi.org/10.9999/xyz",
-            "eprint": "arXiv:1706.03762",
-        }]
+                    "pub_year": "2019",
+                    "venue": "NeurIPS",
+                },
+                "num_citations": 12,
+                "pub_url": "https://doi.org/10.9999/xyz",
+                "eprint": "arXiv:1706.03762",
+            }
+        ]
 
         fake_scholarly = MagicMock()
         fake_scholarly.search_pubs = MagicMock(return_value=pubs)
-        with patch.object(_identifier_mod, "scholarly", fake_scholarly), \
-             patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0):
+        with (
+            patch.object(_identifier_mod, "scholarly", fake_scholarly),
+            patch("threading.Thread", ImmediateThread),
+            patch("time.sleep"),
+            patch("time.time", return_value=1000.0),
+        ):
             results = ident._search_google_scholar("neurips paper", limit=1)
 
         assert results[0]["source"] == "google_scholar"
@@ -471,15 +581,21 @@ class TestIdentifierGoogleScholar:
         ident = IdentifierModule(use_google_scholar=True)
         fake_scholarly = MagicMock()
         fake_scholarly.search_pubs = MagicMock(side_effect=Exception("captcha blocked"))
-        with patch.object(_identifier_mod, "scholarly", fake_scholarly), \
-             patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0):
+        with (
+            patch.object(_identifier_mod, "scholarly", fake_scholarly),
+            patch("threading.Thread", ImmediateThread),
+            patch("time.sleep"),
+            patch("time.time", return_value=1000.0),
+        ):
             assert ident._search_google_scholar("q", limit=1) == []
 
     def test_timeout_returns_empty(self):
         ident = IdentifierModule(use_google_scholar=True)
-        with patch("threading.Thread", NoopThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0):
+        with (
+            patch("threading.Thread", NoopThread),
+            patch("time.sleep"),
+            patch("time.time", return_value=1000.0),
+        ):
             assert ident._search_google_scholar("q", limit=1) == []
 
 
@@ -487,55 +603,89 @@ class TestIdentifierGoogleScholar:
 # Fuzzy search
 # ===================================================================
 
+
 class TestIdentifierFuzzySearch:
+
+    @pytest.fixture(autouse=True)
+    def _block_live_core_searches(self, monkeypatch):
+        """Fuzzy-search unit tests must opt into each core source explicitly."""
+        monkeypatch.setattr(IdentifierModule, "_search_crossref", lambda _self, _query: [])
+        monkeypatch.setattr(IdentifierModule, "_search_semantic_scholar", lambda _self, _query: [])
 
     def test_no_hardcoded_well_known_papers(self):
         """fix #19: IdentifierModule must not have a well_known_papers shortcut."""
         ident = IdentifierModule()
-        assert not hasattr(ident, 'well_known_papers'), (
-            "well_known_papers shortcut should have been removed (#19)")
+        assert not hasattr(
+            ident, "well_known_papers"
+        ), "well_known_papers shortcut should have been removed (#19)"
 
     def test_attention_query_goes_through_normal_search(self):
         """fix #19: 'attention is all you need' must go through normal multi-source search."""
         ident = IdentifierModule()
-        entry = {"id": 1, "raw_text": "Attention is all you need",
-                 "query_string": "Attention is all you need"}
-        arxiv_result = {"source": "arxiv", "arxiv_id": "1706.03762",
-                        "doi": "10.48550/arXiv.1706.03762",
-                        "title": "Attention Is All You Need",
-                        "url": "https://arxiv.org/abs/1706.03762"}
+        entry = {
+            "id": 1,
+            "raw_text": "Attention is all you need",
+            "query_string": "Attention is all you need",
+        }
+        arxiv_result = {
+            "source": "arxiv",
+            "arxiv_id": "1706.03762",
+            "doi": "10.48550/arXiv.1706.03762",
+            "title": "Attention Is All You Need",
+            "url": "https://arxiv.org/abs/1706.03762",
+        }
         with patch.object(ident, "_search_crossref", return_value=[arxiv_result]):
             r = ident._fuzzy_search(entry, lambda _: -1)
         assert r["status"] == "identified"
 
     def test_pmid_shortcut(self):
         ident = IdentifierModule()
-        entry = {"id": 2, "raw_text": "PMID:12345678",
-                 "query_string": "PMID:12345678"}
-        with patch.object(ident, "_search_pubmed_by_id",
-                          return_value={"source": "pubmed", "doi": "10.1234/pmid",
-                                        "url": "https://example.com"}):
+        entry = {"id": 2, "raw_text": "PMID:12345678", "query_string": "PMID:12345678"}
+        with patch.object(
+            ident,
+            "_search_pubmed_by_id",
+            return_value={"source": "pubmed", "doi": "10.1234/pmid", "url": "https://example.com"},
+        ):
             r = ident._fuzzy_search(entry, lambda _: -1)
         assert r["status"] == "identified"
         assert r["doi"] == "10.1234/pmid"
 
     def test_book_prefers_google_books(self):
         ident = IdentifierModule()
-        entry = {"id": 3,
-                 "raw_text": "Doe, J. (2020). Deep Learning (2nd ed.). Wiley.",
-                 "query_string": "Doe, J. (2020). Deep Learning (2nd ed.). Wiley."}
+        entry = {
+            "id": 3,
+            "raw_text": "Doe, J. (2020). Deep Learning (2nd ed.). Wiley.",
+            "query_string": "Doe, J. (2020). Deep Learning (2nd ed.). Wiley.",
+        }
 
-        gb = {"source": "google_books", "is_book": True, "type": "book",
-              "title": "Deep Learning", "authors": ["John Doe"],
-              "publisher": "Wiley", "year": 2020,
-              "url": "https://books.example/book", "citations": 0,
-              "is_primary_google_books_match": True}
-        cr = {"source": "crossref", "doi": "10.0000/low", "title": "Unrelated",
-              "authors": ["Someone"], "year": 2020, "journal": "",
-              "citations": 0, "type": "book", "publisher": "Wiley"}
+        gb = {
+            "source": "google_books",
+            "is_book": True,
+            "type": "book",
+            "title": "Deep Learning",
+            "authors": ["John Doe"],
+            "publisher": "Wiley",
+            "year": 2020,
+            "url": "https://books.example/book",
+            "citations": 0,
+            "is_primary_google_books_match": True,
+        }
+        cr = {
+            "source": "crossref",
+            "doi": "10.0000/low",
+            "title": "Unrelated",
+            "authors": ["Someone"],
+            "year": 2020,
+            "journal": "",
+            "citations": 0,
+            "type": "book",
+            "publisher": "Wiley",
+        }
 
-        with patch.object(ident, "_search_google_books", return_value=[gb]), \
-             patch.object(ident, "_search_crossref", return_value=[cr]):
+        with (
+            patch.object(ident, "_search_google_books", return_value=[gb]),
+            patch.object(ident, "_search_crossref", return_value=[cr]),
+        ):
             r = ident._fuzzy_search(entry, lambda _: -1)
 
         assert r["status"] == "identified"
@@ -545,14 +695,26 @@ class TestIdentifierFuzzySearch:
         ident = IdentifierModule()
         entry = {"id": 4, "raw_text": "Some query", "query_string": "Some query"}
         scored = [
-            {"source": "crossref", "doi": "10.1/a", "title": "A",
-             "match_score": 75, "url": "https://doi.org/10.1/a"},
-            {"source": "crossref", "doi": "10.1/b", "title": "B",
-             "match_score": 74, "url": "https://doi.org/10.1/b"},
+            {
+                "source": "crossref",
+                "doi": "10.1/a",
+                "title": "A",
+                "match_score": 75,
+                "url": "https://doi.org/10.1/a",
+            },
+            {
+                "source": "crossref",
+                "doi": "10.1/b",
+                "title": "B",
+                "match_score": 74,
+                "url": "https://doi.org/10.1/b",
+            },
         ]
 
-        with patch.object(ident, "_search_crossref", return_value=[{"doi": "10.1/a"}]), \
-             patch.object(ident, "_score_candidates", return_value=scored):
+        with (
+            patch.object(ident, "_search_crossref", return_value=[{"doi": "10.1/a"}]),
+            patch.object(ident, "_score_candidates", return_value=scored),
+        ):
             r = ident._fuzzy_search(entry, lambda c: 1)  # pick index 1
 
         assert r["status"] == "identified"
@@ -563,19 +725,28 @@ class TestIdentifierFuzzySearch:
 # Thesis detection
 # ===================================================================
 
+
 class TestIdentifierThesis:
 
     def test_base_search(self):
         ident = IdentifierModule()
 
         def fake_get(url, *a, **kw):
-            return DummyResponse(json_data={"response": {"docs": [{
-                "dctitle": ["Thesis Title"],
-                "dcauthor": ["Doe, John"],
-                "dcyear": ["2020"],
-                "dccreator": ["Test University"],
-                "dclink": ["https://example.com/thesis"],
-            }]}})
+            return DummyResponse(
+                json_data={
+                    "response": {
+                        "docs": [
+                            {
+                                "dctitle": ["Thesis Title"],
+                                "dcauthor": ["Doe, John"],
+                                "dcyear": ["2020"],
+                                "dccreator": ["Test University"],
+                                "dclink": ["https://example.com/thesis"],
+                            }
+                        ]
+                    }
+                }
+            )
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             r = ident._search_base_for_thesis("Some Thesis PhD dissertation", year=2020)
@@ -588,16 +759,39 @@ class TestIdentifierThesis:
         ident = IdentifierModule()
 
         def fake_get(url, *a, **kw):
-            return DummyResponse(json_data={"response": {"results": {"result": [{
-                "metadata": {"oaf:entity": {"oaf:result": {
-                    "title": {"$": "external providerRE Thesis"},
-                    "creator": [{"$": "Doe, John"}],
-                    "dateofacceptance": {"$": "2021-01-01"},
-                    "publisher": {"$": "external providerRE University"},
-                    "children": {"instance": [{"webresource": {
-                        "url": {"$": "https://example.com/openaire"}}}]},
-                }}}
-            }]}}})
+            return DummyResponse(
+                json_data={
+                    "response": {
+                        "results": {
+                            "result": [
+                                {
+                                    "metadata": {
+                                        "oaf:entity": {
+                                            "oaf:result": {
+                                                "title": {"$": "external providerRE Thesis"},
+                                                "creator": [{"$": "Doe, John"}],
+                                                "dateofacceptance": {"$": "2021-01-01"},
+                                                "publisher": {"$": "external providerRE University"},
+                                                "children": {
+                                                    "instance": [
+                                                        {
+                                                            "webresource": {
+                                                                "url": {
+                                                                    "$": "https://example.com/openaire"
+                                                                }
+                                                            }
+                                                        }
+                                                    ]
+                                                },
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            )
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             r = ident._search_openaire_for_thesis("external providerRE Thesis", year=2021)
@@ -609,13 +803,22 @@ class TestIdentifierThesis:
 
     def test_openaire_via_detect_thesis(self):
         ident = IdentifierModule()
-        with patch.object(ident, "_search_openaire_for_thesis",
-                          return_value={"source": "openaire", "title": "Great Work",
-                                        "authors": ["X"], "year": "2020",
-                                        "school": "U", "url": "http://u",
-                                        "type": "thesis"}):
+        with patch.object(
+            ident,
+            "_search_openaire_for_thesis",
+            return_value={
+                "source": "openaire",
+                "title": "Great Work",
+                "authors": ["X"],
+                "year": "2020",
+                "school": "U",
+                "url": "http://u",
+                "type": "thesis",
+            },
+        ):
             t = ident._detect_thesis(
-                "Smith, J. (2020). Great Work. PhD thesis. Stanford University.")
+                "Smith, J. (2020). Great Work. PhD thesis. Stanford University."
+            )
 
         assert t["is_thesis"] is True
         assert t["thesis_type"] == "phdthesis"
@@ -624,10 +827,11 @@ class TestIdentifierThesis:
     def test_manual_fallback(self):
         """When both external providerRE and BASE return nothing we parse the text ourselves."""
         ident = IdentifierModule()
-        with patch.object(ident, "_search_openaire_for_thesis", return_value=None), \
-             patch.object(ident, "_search_base_for_thesis", return_value=None):
-            t = ident._detect_thesis(
-                "Doe, J. (2020). Great Thesis. PhD thesis. Test University.")
+        with (
+            patch.object(ident, "_search_openaire_for_thesis", return_value=None),
+            patch.object(ident, "_search_base_for_thesis", return_value=None),
+        ):
+            t = ident._detect_thesis("Doe, J. (2020). Great Thesis. PhD thesis. Test University.")
 
         assert t["source"] == "manual"
         assert t["is_thesis"] is True
@@ -638,20 +842,28 @@ class TestIdentifierThesis:
 # DataCite
 # ===================================================================
 
+
 class TestIdentifierDataCite:
 
     def test_success(self):
         ident = IdentifierModule()
-        payload = {"data": {"attributes": {
-            "titles": [{"title": "My Dataset"}],
-            "creators": [{"name": "Doe, Jane"}],
-            "publicationYear": 2022, "publisher": "Zenodo",
-            "url": "https://doi.org/10.1234/data",
-            "types": {"resourceTypeGeneral": "Dataset"},
-        }}}
+        payload = {
+            "data": {
+                "attributes": {
+                    "titles": [{"title": "My Dataset"}],
+                    "creators": [{"name": "Doe, Jane"}],
+                    "publicationYear": 2022,
+                    "publisher": "Zenodo",
+                    "url": "https://doi.org/10.1234/data",
+                    "types": {"resourceTypeGeneral": "Dataset"},
+                }
+            }
+        }
 
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(json_data=payload)):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(json_data=payload),
+        ):
             r = ident._query_datacite("10.1234/data")
 
         assert r["title"] == "My Dataset"
@@ -661,8 +873,10 @@ class TestIdentifierDataCite:
 
     def test_404_returns_none(self):
         ident = IdentifierModule()
-        with patch("onecite.pipeline.requests.get",
-                    return_value=DummyResponse(status_code=404)):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(status_code=404),
+        ):
             assert ident._query_datacite("10.9999/missing") is None
 
 
@@ -670,28 +884,39 @@ class TestIdentifierDataCite:
 # EnricherModule
 # ===================================================================
 
+
 class TestEnricher:
 
     def test_convert_dataset(self):
         e = EnricherModule(use_google_scholar=False)
-        c = e._convert_search_metadata({
-            "source": "zenodo", "type": "dataset", "title": "T",
-            "authors": ["A"], "year": 2020, "publisher": "Zenodo",
-            "url": "https://example.com", "version": "1",
-        })
+        c = e._convert_search_metadata(
+            {
+                "source": "zenodo",
+                "type": "dataset",
+                "title": "T",
+                "authors": ["A"],
+                "year": 2020,
+                "publisher": "Zenodo",
+                "url": "https://example.com",
+                "version": "1",
+            }
+        )
         assert c["howpublished"] == "Zenodo"
         assert c["author"] == "A"
 
     def test_bibtex_key_generation(self):
         e = EnricherModule(use_google_scholar=False)
         key = e._generate_bibtex_key(
-            {"author": "Doe, John and Smith, Alice", "year": "2020", "title": "Deep Learning"})
+            {"author": "Doe, John and Smith, Alice", "year": "2020", "title": "Deep Learning"}
+        )
         assert key == "Doe2020Deep"
 
     def test_strip_html(self):
         e = EnricherModule(use_google_scholar=False)
-        assert e._strip_html_tags("Human-level <i>control</i> &amp; learning") == \
-               "Human-level control & learning"
+        assert (
+            e._strip_html_tags("Human-level <i>control</i> &amp; learning")
+            == "Human-level control & learning"
+        )
 
     def test_semantic_scholar_429_returns_empty(self):
         """fix #25: 429 from Semantic Scholar must return [] without raising."""
@@ -707,12 +932,17 @@ class TestEnricher:
         captured = {}
 
         def fake_get(url, *a, **kw):
-            captured['headers'] = kw.get('headers', {})
-            captured['params'] = kw.get('params', {})
-            return DummyResponse(json_data={"message": {
-                "DOI": "10.1234/x", "title": ["T"],
-                "published-print": {"date-parts": [[2020]]},
-            }})
+            captured["headers"] = kw.get("headers", {})
+            captured["params"] = kw.get("params", {})
+            return DummyResponse(
+                json_data={
+                    "message": {
+                        "DOI": "10.1234/x",
+                        "title": ["T"],
+                        "published-print": {"date-parts": [[2020]]},
+                    }
+                }
+            )
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             e._get_crossref_metadata("10.1234/x")
@@ -750,12 +980,19 @@ class TestEnricher:
 
     def test_convert_book(self):
         e = EnricherModule()
-        r = e._convert_search_metadata({
-            "title": "Deep Learning", "authors": ["Ian Goodfellow"],
-            "year": 2016, "publisher": "MIT Press", "type": "book",
-            "is_book": True, "edition": "1st", "isbn": "978-0262035613",
-            "address": "Cambridge, MA",
-        })
+        r = e._convert_search_metadata(
+            {
+                "title": "Deep Learning",
+                "authors": ["Ian Goodfellow"],
+                "year": 2016,
+                "publisher": "MIT Press",
+                "type": "book",
+                "is_book": True,
+                "edition": "1st",
+                "isbn": "978-0262035613",
+                "address": "Cambridge, MA",
+            }
+        )
         assert "Goodfellow" in r["author"]
         assert r["publisher"] == "MIT Press"
         assert r["edition"] == "1st"
@@ -763,49 +1000,73 @@ class TestEnricher:
 
     def test_convert_conference(self):
         e = EnricherModule()
-        r = e._convert_search_metadata({
-            "title": "Attention Is All You Need", "authors": ["Ashish Vaswani"],
-            "year": 2017, "journal": "Proceedings of NeurIPS", "type": "conference",
-        })
+        r = e._convert_search_metadata(
+            {
+                "title": "Attention Is All You Need",
+                "authors": ["Ashish Vaswani"],
+                "year": 2017,
+                "journal": "Proceedings of NeurIPS",
+                "type": "conference",
+            }
+        )
         assert "booktitle" in r
         assert "Vaswani" in r["author"]
 
     def test_convert_dataset_with_version(self):
         e = EnricherModule()
-        r = e._convert_search_metadata({
-            "title": "ImageNet", "authors": ["Jia Deng"], "year": 2009,
-            "type": "dataset", "is_dataset": True,
-            "url": "https://example.com", "version": "1.0",
-        })
+        r = e._convert_search_metadata(
+            {
+                "title": "ImageNet",
+                "authors": ["Jia Deng"],
+                "year": 2009,
+                "type": "dataset",
+                "is_dataset": True,
+                "url": "https://example.com",
+                "version": "1.0",
+            }
+        )
         assert r["url"] == "https://example.com"
         assert r["version"] == "1.0"
 
     def test_convert_thesis(self):
         e = EnricherModule()
-        r = e._convert_search_metadata({
-            "title": "Neural Arch Search", "authors": ["John Smith"],
-            "year": 2020, "type": "phdthesis", "is_thesis": True,
-            "school": "Stanford University", "url": "https://example.com/thesis",
-            "thesis_type": "phdthesis",
-        })
+        r = e._convert_search_metadata(
+            {
+                "title": "Neural Arch Search",
+                "authors": ["John Smith"],
+                "year": 2020,
+                "type": "phdthesis",
+                "is_thesis": True,
+                "school": "Stanford University",
+                "url": "https://example.com/thesis",
+                "thesis_type": "phdthesis",
+            }
+        )
         assert r["school"] == "Stanford University"
         assert r["type"] == "phdthesis"
 
     def test_convert_authors_as_string(self):
         e = EnricherModule()
-        r = e._convert_search_metadata({
-            "title": "Some Paper",
-            "authors": "LeCun, Yann and Bengio, Yoshua",
-            "year": 2020, "journal": "Nature",
-        })
+        r = e._convert_search_metadata(
+            {
+                "title": "Some Paper",
+                "authors": "LeCun, Yann and Bengio, Yoshua",
+                "year": 2020,
+                "journal": "Nature",
+            }
+        )
         assert "LeCun" in r["author"]
 
     def test_bibtex_key_dedup(self):
         """Two papers by the same first author in the same year should get
         distinct keys (Smith2020Deep vs Smith2020Deepa)."""
         e = EnricherModule()
-        k1 = e._generate_bibtex_key({"author": "Smith, John", "year": "2020", "title": "Deep stuff"})
-        k2 = e._generate_bibtex_key({"author": "Smith, John", "year": "2020", "title": "Deep things"})
+        k1 = e._generate_bibtex_key(
+            {"author": "Smith, John", "year": "2020", "title": "Deep stuff"}
+        )
+        k2 = e._generate_bibtex_key(
+            {"author": "Smith, John", "year": "2020", "title": "Deep things"}
+        )
         assert k1 == "Smith2020Deep"
         assert k2 == "Smith2020Deepa"
 
@@ -823,17 +1084,23 @@ class TestEnricher:
 
     def test_google_scholar_timeout(self):
         e = EnricherModule(use_google_scholar=True)
-        with patch("threading.Thread", NoopThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0):
+        with (
+            patch("threading.Thread", NoopThread),
+            patch("time.sleep"),
+            patch("time.time", return_value=1000.0),
+        ):
             assert e._fetch_from_google_scholar("pages", {"title": "T"}) is None
 
     def test_google_scholar_worker_error(self):
         e = EnricherModule(use_google_scholar=True)
         fake_scholarly = MagicMock()
         fake_scholarly.search_pubs = MagicMock(side_effect=RuntimeError("boom"))
-        with patch.object(_enricher_mod, "scholarly", fake_scholarly), \
-             patch("threading.Thread", ImmediateThread), \
-             patch("time.sleep"), patch("time.time", return_value=1000.0):
+        with (
+            patch.object(_enricher_mod, "scholarly", fake_scholarly),
+            patch("threading.Thread", ImmediateThread),
+            patch("time.sleep"),
+            patch("time.time", return_value=1000.0),
+        ):
             assert e._fetch_from_google_scholar("pages", {"title": "T"}) is None
 
     def test_strip_html_jats_and_entities(self):
@@ -851,27 +1118,35 @@ class TestEnricher:
     def test_crossref_metadata_abstract(self):
         """Abstract extracted and JATS-cleaned when present; absent when Crossref omits it."""
         e = EnricherModule(use_google_scholar=False)
-        payload_with = {"message": {
-            "DOI": "10.1234/test", "title": ["Test Article"],
-            "author": [{"given": "Jane", "family": "Doe"}],
-            "container-title": ["Test Journal"],
-            "published-print": {"date-parts": [[2023]]},
-            "abstract": "<jats:p>This is the <jats:italic>abstract</jats:italic> text.</jats:p>",
-        }}
-        with patch("onecite.pipeline.requests.get",
-                   return_value=DummyResponse(json_data=payload_with)):
+        payload_with = {
+            "message": {
+                "DOI": "10.1234/test",
+                "title": ["Test Article"],
+                "author": [{"given": "Jane", "family": "Doe"}],
+                "container-title": ["Test Journal"],
+                "published-print": {"date-parts": [[2023]]},
+                "abstract": "<jats:p>This is the <jats:italic>abstract</jats:italic> text.</jats:p>",
+            }
+        }
+        with patch(
+            "onecite.pipeline.requests.get", return_value=DummyResponse(json_data=payload_with)
+        ):
             meta = e._get_crossref_metadata("10.1234/test")
         assert "abstract" in meta and "abstract" in meta["abstract"]
         assert "<jats:" not in meta["abstract"]
 
-        payload_without = {"message": {
-            "DOI": "10.1234/noabs", "title": ["No Abstract"],
-            "author": [{"given": "A", "family": "B"}],
-            "container-title": ["J"],
-            "published-print": {"date-parts": [[2020]]},
-        }}
-        with patch("onecite.pipeline.requests.get",
-                   return_value=DummyResponse(json_data=payload_without)):
+        payload_without = {
+            "message": {
+                "DOI": "10.1234/noabs",
+                "title": ["No Abstract"],
+                "author": [{"given": "A", "family": "B"}],
+                "container-title": ["J"],
+                "published-print": {"date-parts": [[2020]]},
+            }
+        }
+        with patch(
+            "onecite.pipeline.requests.get", return_value=DummyResponse(json_data=payload_without)
+        ):
             assert "abstract" not in e._get_crossref_metadata("10.1234/noabs")
 
     def test_get_pubmed_abstract_via_doi(self):
@@ -885,11 +1160,8 @@ class TestEnricher:
         </MedlineCitation></PubmedArticle></PubmedArticleSet>"""
 
         def fake_get(url, *a, **kw):
-            params = kw.get("params", {})
             if "esearch" in url:
-                return DummyResponse(json_data={
-                    "esearchresult": {"idlist": ["12345678"]}
-                })
+                return DummyResponse(json_data={"esearchresult": {"idlist": ["12345678"]}})
             if "efetch" in url:
                 return DummyResponse(content=xml_content)
             return DummyResponse(status_code=404, json_data={})
@@ -930,8 +1202,10 @@ class TestEnricher:
         """Returns None when PMID not found, or when PubMed record has no Abstract."""
         e = EnricherModule(use_google_scholar=False)
 
-        with patch("onecite.pipeline.requests.get",
-                   return_value=DummyResponse(json_data={"esearchresult": {"idlist": []}})):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(json_data={"esearchresult": {"idlist": []}}),
+        ):
             assert e._get_pubmed_abstract({"doi": "10.9999/notinpubmed"}) is None
 
         xml_no_abstract = b"""<?xml version="1.0"?>
@@ -952,8 +1226,10 @@ class TestEnricher:
         from PubMed as the second leg of the cascade."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_semantic_scholar_abstract", return_value=None), \
-             patch.object(e, "_get_pubmed_abstract", return_value="retrieved abstract") as m:
+        with (
+            patch.object(e, "_get_semantic_scholar_abstract", return_value=None),
+            patch.object(e, "_get_pubmed_abstract", return_value="retrieved abstract") as m,
+        ):
             result = e._complete_fields(
                 base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
             )
@@ -967,8 +1243,10 @@ class TestEnricher:
         no network call even when abstract is missing and a DOI is present."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_pubmed_abstract") as pm, \
-             patch.object(e, "_get_semantic_scholar_abstract") as ss:
+        with (
+            patch.object(e, "_get_pubmed_abstract") as pm,
+            patch.object(e, "_get_semantic_scholar_abstract") as ss,
+        ):
             result = e._complete_fields(base, {"fields": [{"name": "abstract"}]})
         pm.assert_not_called()
         ss.assert_not_called()
@@ -978,8 +1256,10 @@ class TestEnricher:
         """If base_record already carries an abstract, fallbacks are not consulted."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x", "abstract": "upstream abstract"}
-        with patch.object(e, "_get_pubmed_abstract") as pm, \
-             patch.object(e, "_get_semantic_scholar_abstract") as ss:
+        with (
+            patch.object(e, "_get_pubmed_abstract") as pm,
+            patch.object(e, "_get_semantic_scholar_abstract") as ss,
+        ):
             result = e._complete_fields(
                 base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
             )
@@ -991,8 +1271,10 @@ class TestEnricher:
         """Even with allow_abstract_fallback=True, no DOI means no network call."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T"}
-        with patch.object(e, "_get_pubmed_abstract") as pm, \
-             patch.object(e, "_get_semantic_scholar_abstract") as ss:
+        with (
+            patch.object(e, "_get_pubmed_abstract") as pm,
+            patch.object(e, "_get_semantic_scholar_abstract") as ss,
+        ):
             result = e._complete_fields(
                 base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
             )
@@ -1006,8 +1288,10 @@ class TestEnricher:
         biomedical focus."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_semantic_scholar_abstract", return_value="ss abstract") as ss, \
-             patch.object(e, "_get_pubmed_abstract", return_value="pm abstract") as pm:
+        with (
+            patch.object(e, "_get_semantic_scholar_abstract", return_value="ss abstract") as ss,
+            patch.object(e, "_get_pubmed_abstract", return_value="pm abstract") as pm,
+        ):
             result = e._complete_fields(
                 base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
             )
@@ -1019,8 +1303,10 @@ class TestEnricher:
         """If Semantic Scholar has no abstract for the DOI, PubMed is tried."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_semantic_scholar_abstract", return_value=None) as ss, \
-             patch.object(e, "_get_pubmed_abstract", return_value="pm abstract") as pm:
+        with (
+            patch.object(e, "_get_semantic_scholar_abstract", return_value=None) as ss,
+            patch.object(e, "_get_pubmed_abstract", return_value="pm abstract") as pm,
+        ):
             result = e._complete_fields(
                 base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
             )
@@ -1034,8 +1320,10 @@ class TestEnricher:
         DeprecationWarning so callers can migrate."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_semantic_scholar_abstract", return_value="ss abstract"), \
-             patch.object(e, "_get_pubmed_abstract"):
+        with (
+            patch.object(e, "_get_semantic_scholar_abstract", return_value="ss abstract"),
+            patch.object(e, "_get_pubmed_abstract"),
+        ):
             with pytest.warns(DeprecationWarning, match="allow_abstract_fallback"):
                 result = e._complete_fields(
                     base,
@@ -1044,20 +1332,23 @@ class TestEnricher:
                 )
         assert result["abstract"] == "ss abstract"
 
-
     def test_get_semantic_scholar_abstract_success(self):
         """_get_semantic_scholar_abstract returns abstract when SS finds the DOI."""
         e = EnricherModule(use_google_scholar=False)
-        with patch("onecite.pipeline.requests.get",
-                   return_value=DummyResponse(json_data={"abstract": "hello world"})):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(json_data={"abstract": "hello world"}),
+        ):
             result = e._get_semantic_scholar_abstract("10.1/x")
         assert result == "hello world"
 
     def test_get_semantic_scholar_abstract_404_returns_none(self):
         """404 from Semantic Scholar is handled as 'not found', not a crash."""
         e = EnricherModule(use_google_scholar=False)
-        with patch("onecite.pipeline.requests.get",
-                   return_value=DummyResponse(status_code=404, json_data={})):
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(status_code=404, json_data={}),
+        ):
             assert e._get_semantic_scholar_abstract("10.1/missing") is None
 
     def test_get_semantic_scholar_abstract_no_doi(self):
@@ -1073,10 +1364,12 @@ class TestEnricher:
         unchanged rather than propagating the error up the pipeline."""
         e = EnricherModule(use_google_scholar=False)
         base = {"title": "T", "doi": "10.1/x"}
-        with patch.object(e, "_get_semantic_scholar_abstract",
-                          side_effect=RuntimeError("ss network")), \
-             patch.object(e, "_get_pubmed_abstract",
-                          side_effect=RuntimeError("pm network")):
+        with (
+            patch.object(
+                e, "_get_semantic_scholar_abstract", side_effect=RuntimeError("ss network")
+            ),
+            patch.object(e, "_get_pubmed_abstract", side_effect=RuntimeError("pm network")),
+        ):
             result = e._complete_fields(
                 base, {"fields": [{"name": "abstract"}]}, allow_abstract_fallback=True
             )
@@ -1137,10 +1430,11 @@ class TestEnricher:
             # silent for no-DOI-in-raw inputs.
         }
 
-        with patch.object(e, "_get_crossref_metadata",
-                          return_value=crossref_record), \
-             patch.object(e, "_get_semantic_scholar_abstract") as ss, \
-             patch.object(e, "_get_pubmed_abstract") as pm:
+        with (
+            patch.object(e, "_get_crossref_metadata", return_value=crossref_record),
+            patch.object(e, "_get_semantic_scholar_abstract") as ss,
+            patch.object(e, "_get_pubmed_abstract") as pm,
+        ):
             result = e._enrich_single_entry(identified, template, raw)
 
         # The structural guarantee: no abstract endpoint was called.
@@ -1155,6 +1449,7 @@ class TestEnricher:
 # FormatterModule
 # ===================================================================
 
+
 class TestFormatter:
 
     def test_latex_escaping(self):
@@ -1168,14 +1463,21 @@ class TestFormatter:
     def test_all_three_formats(self):
         fmt = FormatterModule()
         entry = {
-            "id": 1, "doi": "10.1234/xyz", "status": "completed",
+            "id": 1,
+            "doi": "10.1234/xyz",
+            "status": "completed",
             "bib_key": "Doe2020Deep",
             "bib_data": {
-                "ENTRYTYPE": "article", "ID": "Doe2020Deep",
+                "ENTRYTYPE": "article",
+                "ID": "Doe2020Deep",
                 "author": "Doe, John and Smith, Alice",
-                "title": "Deep Learning", "journal": "Nature",
-                "year": 2020, "volume": "1", "number": "2",
-                "pages": "3--4", "doi": "10.1234/xyz",
+                "title": "Deep Learning",
+                "journal": "Nature",
+                "year": 2020,
+                "volume": "1",
+                "number": "2",
+                "pages": "3--4",
+                "doi": "10.1234/xyz",
             },
         }
         r = fmt.format([entry], "bibtex")
@@ -1183,8 +1485,7 @@ class TestFormatter:
 
     def test_failed_entry_counted(self):
         fmt = FormatterModule()
-        entry = {"id": 1, "doi": "", "status": "enrichment_failed",
-                 "bib_key": "", "bib_data": {}}
+        entry = {"id": 1, "doi": "", "status": "enrichment_failed", "bib_key": "", "bib_data": {}}
         r = fmt.format([entry], "bibtex")
         assert r["report"]["succeeded"] == 0
         assert len(r["report"]["failed_entries"]) == 1
@@ -1193,39 +1494,43 @@ class TestFormatter:
         """fix #28: proceedings-article type must yield @inproceedings with booktitle."""
         enr = EnricherModule(use_google_scholar=False)
         metadata = {
-            'type': 'proceedings-article',
-            'title': 'Attention Is All You Need',
-            'authors': ['Ashish Vaswani', 'Noam Shazeer'],
-            'year': 2017,
-            'journal': 'Advances in Neural Information Processing Systems',
-            'doi': '10.5555/3295222.3295349',
+            "type": "proceedings-article",
+            "title": "Attention Is All You Need",
+            "authors": ["Ashish Vaswani", "Noam Shazeer"],
+            "year": 2017,
+            "journal": "Advances in Neural Information Processing Systems",
+            "doi": "10.5555/3295222.3295349",
         }
         result = enr._convert_search_metadata(metadata)
         assert result is not None
-        assert result.get('booktitle'), "conference paper must have booktitle"
-        assert 'journal' not in result, "conference paper must not have journal field"
+        assert result.get("booktitle"), "conference paper must have booktitle"
+        assert "journal" not in result, "conference paper must not have journal field"
 
     def test_complete_fields_no_google_scholar_for_abstract(self):
         """Even when template asks for google_scholar_scraper, we never call
         Google Scholar from _complete_fields. PubMed is the only abstract
         fallback, and if it returns nothing the result stays untouched."""
         enr = EnricherModule(use_google_scholar=False)
-        base = {'title': 'T', 'author': 'A', 'year': '2020'}
-        template = {'fields': [{'name': 'abstract', 'source_priority': ['google_scholar_scraper']}]}
-        with patch.object(enr, "_get_pubmed_abstract", return_value=None), \
-             patch.object(enr, "_fetch_from_google_scholar") as gs:
+        base = {"title": "T", "author": "A", "year": "2020"}
+        template = {"fields": [{"name": "abstract", "source_priority": ["google_scholar_scraper"]}]}
+        with (
+            patch.object(enr, "_get_pubmed_abstract", return_value=None),
+            patch.object(enr, "_fetch_from_google_scholar") as gs,
+        ):
             result = enr._complete_fields(base, template)
         gs.assert_not_called()
         assert result == base
-        assert 'abstract' not in result
+        assert "abstract" not in result
 
     def test_unsupported_format_raises_format_error(self):
         """fix #13: unsupported output_format must raise FormatError, not silently use bibtex."""
-        from onecite.exceptions import FormatError
         fmt = FormatterModule()
         entry = {
-            "id": 1, "doi": "10.1/x", "status": "completed",
-            "bib_key": "K", "bib_data": {"ENTRYTYPE": "article", "ID": "K", "title": "T"},
+            "id": 1,
+            "doi": "10.1/x",
+            "status": "completed",
+            "bib_key": "K",
+            "bib_data": {"ENTRYTYPE": "article", "ID": "K", "title": "T"},
         }
         r = fmt.format([entry], "ris")
         assert len(r["report"]["failed_entries"]) == 1
@@ -1234,8 +1539,10 @@ class TestFormatter:
     def test_no_placeholder_in_thesis_fallback(self):
         """fix #24: manual thesis fallback must not inject Unknown Title/University."""
         ident = IdentifierModule()
-        with patch.object(ident, "_search_openaire_for_thesis", return_value=None), \
-             patch.object(ident, "_search_base_for_thesis", return_value=None):
+        with (
+            patch.object(ident, "_search_openaire_for_thesis", return_value=None),
+            patch.object(ident, "_search_base_for_thesis", return_value=None),
+        ):
             result = ident._detect_thesis(
                 "Smith, J. (2020). Neural Architecture Search. PhD Thesis. Stanford University."
             )
@@ -1249,6 +1556,7 @@ class TestFormatter:
         from onecite.exceptions import ValidationError
         from onecite.core import process_references
         import pytest
+
         with pytest.raises(ValidationError):
             process_references("", "txt", "journal_article_full", "bibtex", lambda c: -1)
         with pytest.raises(ValidationError):
@@ -1258,10 +1566,16 @@ class TestFormatter:
         """fix #13: unknown format results in failed entry, not silent bibtex fallback."""
         fmt = FormatterModule()
         entry = {
-            "id": 1, "doi": "10.1234/x", "status": "completed",
+            "id": 1,
+            "doi": "10.1234/x",
+            "status": "completed",
             "bib_key": "Test2020",
-            "bib_data": {"ENTRYTYPE": "article", "title": "Test",
-                         "author": "Author, A", "year": "2020"},
+            "bib_data": {
+                "ENTRYTYPE": "article",
+                "title": "Test",
+                "author": "Author, A",
+                "year": "2020",
+            },
         }
         r = fmt.format([entry], "unknown_format")
         assert r["report"]["succeeded"] == 0
@@ -1272,17 +1586,21 @@ class TestFormatter:
 # Helpers
 # ===================================================================
 
+
 class TestSafeYear:
 
     def test_normal(self):
         from onecite.pipeline import _safe_year
+
         assert _safe_year({"date-parts": [[2021, 3, 1]]}) == 2021
 
     def test_empty_inner(self):
         from onecite.pipeline import _safe_year
+
         assert _safe_year({"date-parts": [[]]}) is None
 
     def test_missing(self):
         from onecite.pipeline import _safe_year
+
         assert _safe_year(None) is None
         assert _safe_year({}) is None

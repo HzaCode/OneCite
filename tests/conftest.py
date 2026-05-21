@@ -6,6 +6,7 @@ go through the ``run_onecite_process`` fixture which patches
 ``requests.get`` with our hand-crafted mock responses so the CI stays
 deterministic and fast.
 """
+
 import os
 import sys
 import shutil
@@ -24,6 +25,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 # ---------------------------------------------------------------------------
 # Simple scalar fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def sample_doi():
@@ -77,6 +79,7 @@ def sample_references():
 # File / directory helpers
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def create_test_file(tmp_path):
     """Return a factory that writes *content* to a temp file and gives back
@@ -101,6 +104,7 @@ def temp_dir():
 # ---------------------------------------------------------------------------
 # High-level "run the whole pipeline" fixture
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def run_onecite_process():

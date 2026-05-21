@@ -19,9 +19,7 @@ class TestTemplates:
         assert "journal_article_full" in names
 
         journal_template = next(
-            template
-            for template in templates
-            if template["name"] == "journal_article_full"
+            template for template in templates if template["name"] == "journal_article_full"
         )
         assert set(journal_template) == {
             "name",

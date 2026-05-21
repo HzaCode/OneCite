@@ -30,6 +30,9 @@ OneCite - Citation & Academic Reference Toolkit
    advanced_usage
    python_api
    templates
+   benchmarking
+   cli_contracts
+   onecite_skill
    output_formats
 
 .. toctree::

@@ -42,7 +42,7 @@
 ---
 
 
- Researchers frequently accumulate reference lists in ad-hoc formats—DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into a consistent, complete `.bib` file is tedious and error-prone. However, in the era of automation, compiling a bibliography is no longer just about formatting—it is about **verification**. OneCite takes raw, unverified text and cross-checks every single entry against canonical academic databases (CrossRef, PubMed, arXiv, Semantic Scholar, etc.). By serving as a deterministic truth-detector at the API-lookup layer, **OneCite acts as the firewall between automation outputs and your manuscript.**
+ Researchers frequently accumulate reference lists in ad-hoc formats—DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into consistent BibTeX output is tedious and error-prone. OneCite parses raw reference text and attempts metadata lookup against configured sources such as CrossRef, PubMed, arXiv, and Semantic Scholar. The result is a reproducible processing layer that reports unresolved entries and produces auditable BibTeX where metadata can be found.
 
 
 
@@ -54,12 +54,12 @@
 
 | Feature                 | Description                                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| **Fuzzy Matching**          | Match references against multiple academic databases even from incomplete or inaccurate info.         |
+| **Fuzzy Matching**          | Attempt to match incomplete references against configured academic metadata sources.                 |
 | **Multiple Formats**        | Input `.txt`/`.bib` → Output **BibTeX**.                                                             |
 | **4-stage Pipeline**        | A 4-stage process (clean → query → validate → format) to produce consistent output.                  |
-| **Field Completion**        | Enrich entries by filling in missing fields like journal, volume, pages, authors, and abstract.                |
+| **Field Completion**        | Fill available fields returned by metadata sources, such as journal, volume, pages, authors, and abstract. |
 | 🎓 **7+ Citation Types**    | Handles journal articles, conference papers, books, software, datasets, theses, and preprints.        |
-| **Multi-Source Lookup**     | Queries CrossRef, arXiv, PubMed, Semantic Scholar, Google Books, and others for every entry.         |
+| **Multi-Source Lookup**     | Uses source-specific routes for CrossRef, arXiv, PubMed, Semantic Scholar, Google Books, and others. |
 | **Many Identifier Types**   | Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text queries.                    |
 | 🎛️ **Interactive Mode**    | Manually select the correct entry when multiple potential matches are found.                          |
 | **Custom Templates**        | YAML-based presets that provide a fallback BibTeX entry type when auto-detection is inconclusive.    |
@@ -240,6 +240,9 @@ onecite process <input_file> [OPTIONS]
 | `--output` | `-o` | Output file path (default: stdout) | - |
 | `--interactive` | | Enable interactive mode for ambiguous matches | `False` |
 | `--quiet` | `-q` | Suppress verbose logging output | `False` |
+| `--json` | | Print a stable JSON envelope instead of BibTeX text | `False` |
+| `--ndjson` | | Print newline-delimited JSON events for streaming automation workflows | `False` |
+| `--fail-on-unresolved` | | Return exit code `2` when any entry cannot be resolved | `False` |
 | `--google-scholar` | | Enable Google Scholar as an additional data source (requires scholarly package) | `False` |
 
 **Examples:**
@@ -267,6 +270,12 @@ onecite process references.txt --google-scholar
 
 # Quiet mode for scripts
 onecite process references.txt -o results.bib --quiet
+
+# Automation-friendly JSON with unresolved-entry exit-code handling
+onecite process references.txt --json --fail-on-unresolved
+
+# Streaming NDJSON for automation
+onecite process references.txt --ndjson
 ```
 
 ### `onecite --version`
@@ -297,6 +306,63 @@ onecite templates
 onecite templates --json
 ```
 
+### `onecite benchmark`
+
+Run a small deterministic regression suite for covered DOI lookup, arXiv
+lookup, PMID/PubMed lookup, GitHub software URLs, Zenodo/DataCite dataset
+DOIs, and mixed valid/invalid batches. The command is designed for CI and
+automation workflows that need a machine-readable pass/fail check; it is not
+a comprehensive citation-accuracy benchmark.
+
+**Usage:**
+```bash
+onecite benchmark [OPTIONS]
+```
+
+**Options:**
+| Option | Description | Default |
+|--------|-------------|---------|
+| `--cases` | Path to a custom benchmark suite JSON file | bundled golden cases |
+| `--min-success-rate` | Minimum covered-case pass rate required for exit code `0` | `1.0` |
+| `--json` | Print the benchmark report as JSON | `False` |
+| `--live` | Use live external APIs instead of bundled offline fixtures | `False` |
+
+**Examples:**
+```bash
+onecite benchmark
+onecite benchmark --json
+onecite benchmark --live --json
+onecite benchmark --cases my_cases.json --min-success-rate 1.0 --json
+```
+
+The repository baseline record is stored at `benchmarks/leaderboard.json`, with
+reproduction instructions in `benchmarks/README.md`.
+
+### `onecite doctor`
+
+Check the local installation health for automation and CI. The doctor
+command checks package importability, bundled templates, packaged benchmark
+resources, the repository-contained OneCite Skill, and the offline benchmark
+regression check.
+
+**Usage:**
+```bash
+onecite doctor
+onecite doctor --json
+```
+
+The JSON output is a stable envelope with `schema_version`, `tool`,
+`command`, `status`, `environment`, `summary`, and `checks` fields.
+
+### OneCite Skill for Automated Workflows
+
+The repository includes a local skill package at `skills/onecite/SKILL.md`.
+It gives automation and contributor workflows a repeatable procedure for
+reference cleanup, benchmark and doctor checks, and explicit
+reporting of unresolved entries.
+The skill is repository-contained and does not install itself into any local
+tool memory.
+
 ### Input Type Auto-Detection
 
 When `--input-type` is not specified, OneCite automatically detects the input type:
@@ -317,14 +383,18 @@ OneCite supports several template presets for different entry types:
 
 - `0` - Success
 - `1` - Error occurred (invalid input, processing failure, etc.)
+- `2` - One or more entries were unresolved when `--fail-on-unresolved` was used
+
+For `onecite benchmark` and `onecite doctor`, exit code `0` means the
+configured checks passed and exit code `1` means at least one check failed.
 
 </details>
 
 ## 🗺️ Roadmap
 
-- **OneCite Skill** — Skill package for automation workflows
-- **Benchmarking** — Public benchmark suite and leaderboard
-- **Batch Validation Reports** — Machine-readable summaries for large reference-cleaning jobs
+- [x] **OneCite Skill** — Repository-contained operating guide for local citation-cleanup workflows
+- [x] **Benchmarking** — Small deterministic regression suite, configurable pass-rate gate, and baseline record
+- [x] **Enhanced CLI** — Automation-friendly JSON, NDJSON, summaries, and exit codes for reference processing
 
 ## 🤝 Contributing
 
@@ -333,12 +403,6 @@ Contributions are always welcome! Please see [**CONTRIBUTING.md**](CONTRIBUTING.
 ## 📄 License
 
 This project is licensed under the **MIT License**. See the [**LICENSE**](LICENSE) file for details.
-
-
-
-
-
----
 
 <div align="center">
 

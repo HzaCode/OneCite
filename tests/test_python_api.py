@@ -3,6 +3,7 @@ Tests for the ``process_references()`` public API surface.
 
 All calls go through the mocked fixture so we don't depend on network.
 """
+
 import pytest
 
 from onecite import process_references

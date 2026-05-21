@@ -5,8 +5,13 @@ End-to-end sanity check that mirrors what a user would do right after
 ``pip install onecite``: import, run --help, process a small file,
 and call the Python API.
 """
+
 import subprocess
 import sys
+import os
+from unittest.mock import patch
+
+from .mock_responses import mock_requests_get
 
 
 def test_pypi_version(tmp_path):
@@ -19,7 +24,9 @@ def test_pypi_version(tmp_path):
     # 2. CLI --help
     r = subprocess.run(
         [sys.executable, "-m", "onecite.cli", "--help"],
-        capture_output=True, text=True, timeout=10,
+        capture_output=True,
+        text=True,
+        timeout=10,
     )
     assert r.returncode == 0, r.stderr
     assert "onecite" in r.stdout.lower()
@@ -34,7 +41,10 @@ def test_pypi_version(tmp_path):
     )
     r = subprocess.run(
         [sys.executable, "-m", "onecite.cli", "process", str(refs), "--quiet"],
-        capture_output=True, text=True, timeout=60,
+        capture_output=True,
+        text=True,
+        timeout=60,
+        env={**os.environ, "ONECITE_OFFLINE_FIXTURES": "1"},
     )
     assert r.returncode == 0, r.stderr
     assert r.stdout.strip(), "expected non-empty output"
@@ -42,11 +52,12 @@ def test_pypi_version(tmp_path):
     # 4. Python API quick-check
     from onecite import process_references
 
-    result = process_references(
-        input_content="10.1038/nature14539",
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda c: 0 if c else -1,
-    )
+    with patch("onecite.pipeline.requests.get", side_effect=mock_requests_get):
+        result = process_references(
+            input_content="10.1038/nature14539",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
+            interactive_callback=lambda c: 0 if c else -1,
+        )
     assert result and result.get("results")

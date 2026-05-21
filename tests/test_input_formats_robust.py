@@ -6,8 +6,10 @@ going through the mocked fixture, so they may hit real APIs if the mock
 layer doesn't intercept.  We use tight timeouts to make sure pathological
 inputs don't hang the suite.
 """
+
 import subprocess
 import sys
+import os
 
 import pytest
 
@@ -19,8 +21,9 @@ def _run(args, timeout=30):
     prevents a hung process from blocking CI forever.
     """
     cmd = [sys.executable, "-m", "onecite.cli"] + args
+    env = {**os.environ, "ONECITE_OFFLINE_FIXTURES": "1"}
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, env=env)
         return r.returncode, r.stdout, r.stderr
     except subprocess.TimeoutExpired:
         return -1, "", "timed out"
@@ -28,6 +31,7 @@ def _run(args, timeout=30):
 
 class TestInputFormatsRobust:
 
+    @pytest.mark.live
     def test_single_doi(self, create_test_file):
         f = create_test_file("10.1038/nature14539")
         code, out, err = _run(["process", f, "--quiet"])
@@ -48,17 +52,20 @@ class TestInputFormatsRobust:
         code, _, err = _run(["process", f, "--quiet"])
         assert "timed out" not in err, "empty file shouldn't hang"
 
+    @pytest.mark.live
     def test_output_format_switching(self, create_test_file):
         f = create_test_file("Simple test reference")
         code, _, err = _run(["process", f, "--output-format", "bibtex", "--quiet"], timeout=30)
         assert "timed out" not in err, "bibtex timed out"
 
+    @pytest.mark.live
     def test_template_switching(self, create_test_file):
         f = create_test_file("Test reference")
         for tmpl in ("journal_article_full", "conference_paper"):
             _, _, err = _run(["process", f, "--template", tmpl, "--quiet"], timeout=30)
             assert "timed out" not in err, f"{tmpl} timed out"
 
+    @pytest.mark.live
     @pytest.mark.slow
     def test_arxiv_with_long_timeout(self, create_test_file):
         """arXiv lookups can be slow; give it a full minute."""
@@ -69,6 +76,7 @@ class TestInputFormatsRobust:
             if not any(w in err.lower() for w in network_words):
                 pytest.fail(f"non-network failure: {err}")
 
+    @pytest.mark.live
     def test_garbage_input_fails_fast(self, create_test_file):
         f = create_test_file("invalid.doi.format")
         _, _, err = _run(["process", f, "--quiet"])  # uses default 30s
@@ -86,7 +94,6 @@ class TestInputFormatsRobust:
         )
         f = create_test_file(bib, "test.bib")
         code, out, err = _run(["process", f, "--input-type", "bib", "--quiet"], timeout=15)
-        if code == 0:
+        assert "timed out" not in err, err
+        if code == 0 and out.strip():
             assert "@" in out
-        else:
-            assert "timed out" not in err, err

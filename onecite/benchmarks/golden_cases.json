@@ -1,0 +1,129 @@
+{
+  "suite": "onecite-golden",
+  "version": "1.2",
+  "description": "Deterministic citation-validation cases for the bundled OneCite benchmark runner.",
+  "cases": [
+    {
+      "id": "doi_crossref_nature_dqn",
+      "description": "DOI input resolves through Crossref and produces a complete journal BibTeX entry.",
+      "input": "10.1038/nature14236",
+      "input_type": "txt",
+      "template": "journal_article_full",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 1,
+        "min_succeeded": 1,
+        "required_substrings": [
+          "10.1038/nature14236",
+          "Human-level control through deep reinforcement learning",
+          "Mnih"
+        ]
+      }
+    },
+    {
+      "id": "arxiv_transformer_identifier",
+      "description": "arXiv identifier input resolves to the canonical transformer paper metadata.",
+      "input": "1706.03762",
+      "input_type": "txt",
+      "template": "conference_paper",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 1,
+        "min_succeeded": 1,
+        "required_substrings": [
+          "Attention Is All You Need",
+          "Vaswani",
+          "1706.03762"
+        ]
+      }
+    },
+    {
+      "id": "pmid_pubmed_deep_learning",
+      "description": "PMID input resolves through PubMed identification and Crossref enrichment.",
+      "input": "PMID:26017442",
+      "input_type": "txt",
+      "template": "journal_article_full",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 1,
+        "min_succeeded": 1,
+        "required_substrings": [
+          "10.1038/nature14539",
+          "Deep learning",
+          "LeCun"
+        ]
+      }
+    },
+    {
+      "id": "github_software_repository",
+      "description": "GitHub repository URL resolves to software citation metadata.",
+      "input": "https://github.com/HzaCode/OneCite",
+      "input_type": "txt",
+      "template": "software",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 1,
+        "min_succeeded": 1,
+        "required_substrings": [
+          "@software",
+          "OneCite",
+          "HzaCode",
+          "https://github.com/HzaCode/OneCite"
+        ]
+      }
+    },
+    {
+      "id": "zenodo_dataset_doi",
+      "description": "Zenodo DOI resolves through the Zenodo API path as a dataset citation.",
+      "input": "10.5281/zenodo.3233118",
+      "input_type": "txt",
+      "template": "dataset",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 1,
+        "min_succeeded": 1,
+        "required_substrings": [
+          "10.5281/zenodo.3233118",
+          "OneCite deterministic benchmark dataset",
+          "Zenodo"
+        ]
+      }
+    },
+    {
+      "id": "datacite_dataset_doi",
+      "description": "DataCite-prefix DOI resolves through DataCite as a dataset citation.",
+      "input": "10.5061/dryad.8gtht76m6",
+      "input_type": "txt",
+      "template": "dataset",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 1,
+        "min_succeeded": 1,
+        "required_substrings": [
+          "10.5061/dryad.8gtht76m6",
+          "Robust citation validation benchmark fixture",
+          "Dryad"
+        ]
+      }
+    },
+    {
+      "id": "mixed_batch_valid_and_invalid",
+      "description": "Mixed input keeps valid references and reports the invalid entry instead of crashing.",
+      "input": "10.1038/nature14236\n\ninvalid_reference_12345\n\n1706.03762",
+      "input_type": "txt",
+      "template": "journal_article_full",
+      "output_format": "bibtex",
+      "expect": {
+        "min_total": 3,
+        "min_succeeded": 2,
+        "min_failed": 1,
+        "required_substrings": [
+          "10.1038/nature14236",
+          "Human-level control through deep reinforcement learning",
+          "Mnih",
+          "Attention Is All You Need"
+        ]
+      }
+    }
+  ]
+}

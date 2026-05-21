@@ -7,9 +7,86 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ## [Unreleased]
 
 ### Added
+- Enhanced CLI modes for automated workflows: `onecite process --json`,
+  `onecite process --ndjson`, and `--fail-on-unresolved` exit code `2`
+  for unresolved-entry handling in scripts.
+- `onecite benchmark` CLI command with bundled deterministic golden
+  cases, JSON output, and a configurable success-rate regression gate for
+  covered cases, plus a repository baseline record
+  at `benchmarks/leaderboard.json`.
+- Expanded the bundled benchmark suite to cover PMID/PubMed lookup,
+  GitHub software URLs, Zenodo/DataCite dataset DOIs, and more explicit
+  benchmark-suite schema validation.
+- `onecite doctor` CLI command with stable JSON output for package,
+  template, benchmark-resource, skill-package, and offline benchmark
+  health checks.
+- CLI contract documentation for JSON/NDJSON process reports, benchmark
+  reports, doctor reports, stdout/stderr behavior, and exit codes.
+- Repository-contained OneCite Skill package at `skills/onecite/SKILL.md`
+  with metadata-lookup and validation-check operating instructions.
 - `onecite templates` CLI command for listing bundled fallback BibTeX
   templates, including machine-readable `--json` output for tools that
   need to inspect available presets.
+- Contract-level regression tests for process JSON/NDJSON, benchmark
+  JSON, doctor JSON, and template JSON envelopes used by automation and CI.
+- `build>=1.0` is now included in the development extra so the documented
+  wheel build check works after `pip install -e ".[dev]"`.
+
+### Changed
+- Default pytest runs now exclude live external-API checks;
+  live checks are explicitly marked with `pytest.mark.live` so the
+  default suite is deterministic and offline.
+- The bundled benchmark now uses the same non-interactive ambiguous
+  candidate policy as `onecite process`: skip candidates unless the
+  user explicitly opts into an interactive flow.
+- The OneCite Skill now documents local validation checks, benchmark
+  evidence, doctor checks, and release-readiness evidence reporting.
+- Bundled YAML templates are now declared as the explicit
+  `onecite.templates` package so wheel builds do not emit the implicit
+  package warning for template assets.
+- Removed the unused `setuptools_scm` build requirement; OneCite uses a
+  static project version, so wheel builds no longer warn about missing
+  SCM configuration.
+- Modernized package license metadata to the SPDX `MIT` form with
+  explicit license-file packaging, using a setuptools version that
+  supports the current pyproject license contract.
+- Reformatted the package and tests with Black, removed stale imports and
+  unused locals, aligned flake8 with Black for long lines, and made CI run
+  the same `flake8 onecite tests` check documented in the OneCite
+  Skill release checklist.
+- Aligned the OneCite Skill with the repository's actual Roadmap source
+  in the `README.md` Roadmap section and the `flake8 onecite tests`
+  validation check.
+
+### Fixed
+- Corrected the benchmark Nature DQN DOI fixture from
+  `10.1038/nature14539` to `10.1038/nature14236`, and added regression
+  coverage to catch future DOI-title-author mismatches in bundled
+  golden cases.
+- Added benchmark expectation checks for expected failed entries so
+  mixed valid/invalid cases must exercise unresolved-entry reporting.
+- Added the documented `onecite version` subcommand alongside
+  `onecite --version`.
+- Fixed LaTeX formatting for curly single and double quotes.
+- Blocked live CrossRef/Semantic Scholar calls in fuzzy-search unit
+  tests unless a test opts into a mocked source explicitly.
+- Kept machine-readable JSON/NDJSON stdout clean when `--output` is
+  used by routing the saved-file status message to stderr.
+- Included the OneCite Skill and benchmark baseline files in built
+  distribution artifacts.
+- Added benchmark and doctor checks to the GitHub Actions test
+  workflow.
+- Hardened benchmark suite validation for malformed expectation
+  contracts and impossible minimum-count combinations.
+- Added regression coverage showing the default offline benchmark check
+  overrides live HTTP calls with bundled source fixtures.
+- Fixed the benchmark success-rate gate to compare the unrounded
+  `passed / total_cases` ratio instead of the rounded display value.
+- Added machine-readable `onecite process --json` and `--ndjson` failure
+  envelopes for hard processing errors before per-entry results exist.
+- Clarified that `onecite benchmark --json` is the deterministic offline
+  health check, while `onecite process ...` may contact upstream APIs
+  unless fixtures or mocks are explicitly configured.
 
 ## [0.1.1] - 2026-04-17
 
@@ -52,7 +129,7 @@ as a deprecated alias for this release cycle.
 ### Changed
 - `_get_pubmed_abstract` now requires a DOI and no longer falls back to
   PubMed title search. The removed title-based path empirically returned
-  the abstract of an unrelated paper (e.g., the Zhang 2020 automation Review DOI
+  the abstract of an unrelated paper (e.g., a Zhang 2020 example DOI
   `10.1007/s10462-019-09792-7` pulled the abstract of a different RSI
   segmentation paper), which is strictly worse than returning `None` for
   downstream semantic cross-checks such as the `sci` skill.

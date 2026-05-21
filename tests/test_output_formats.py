@@ -3,6 +3,7 @@ Verify the BibTeX output format.
 
 Runs as a subprocess so we also exercise the ``--output`` flag and file I/O.
 """
+
 import os
 import subprocess
 import sys
@@ -10,8 +11,9 @@ import sys
 
 def _run(args, cwd=None):
     cmd = [sys.executable, "-m", "onecite.cli"] + args
+    env = {**os.environ, "ONECITE_OFFLINE_FIXTURES": "1"}
     try:
-        r = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, timeout=30)
+        r = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd, timeout=30, env=env)
         return r.returncode, r.stdout, r.stderr
     except subprocess.TimeoutExpired:
         return -1, "", "timed out"
@@ -59,7 +61,7 @@ class TestOutputFormats:
     # -- field completeness ---------------------------------------------------
 
     def test_key_fields_present(self, create_test_file, sample_references):
-        """The DQN DOI should resolve to an entry with at least these fields."""
+        """The sample DOI should resolve to an entry with at least these fields."""
         f = create_test_file(sample_references["doi_only"])
         code, out, err = _run(["process", f, "--quiet"])
         assert code == 0, err

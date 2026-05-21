@@ -22,6 +22,12 @@ from .core import (
     process_references,
 )
 
+from .benchmark import (
+    format_benchmark_text,
+    load_benchmark_suite,
+    run_benchmark,
+)
+
 from .exceptions import (
     OneCiteError,
     ValidationError,
@@ -34,20 +40,20 @@ __all__ = [
     "RawEntry",
     "IdentifiedEntry",
     "CompletedEntry",
-    
     # Core classes
     "TemplateLoader",
     "PipelineController",
-    
     # Main API
     "process_references",
-    
+    # Benchmarking
+    "format_benchmark_text",
+    "load_benchmark_suite",
+    "run_benchmark",
     # Exceptions
     "OneCiteError",
-    "ValidationError", 
+    "ValidationError",
     "ParseError",
     "ResolverError",
-    
     # Metadata
     "__version__",
     "__author__",

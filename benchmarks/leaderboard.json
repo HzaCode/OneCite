@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "suite": "onecite-golden",
+  "suite_version": "1.2",
+  "description": "Public baseline leaderboard for reproducible OneCite benchmark runs.",
+  "entries": [
+    {
+      "rank": 1,
+      "tool": "onecite",
+      "version": "0.1.1",
+      "source_mode": "offline",
+      "python": "3.12",
+      "platform": "macOS",
+      "command": "onecite benchmark --json",
+      "total_cases": 7,
+      "passed": 7,
+      "failed": 0,
+      "success_rate": 1.0,
+      "notes": "Bundled golden-case baseline using offline fixtures."
+    }
+  ]
+}

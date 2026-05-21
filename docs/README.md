@@ -68,6 +68,9 @@ docs/
 ├── quick_start.rst              # Quick start guide
 ├── basic_usage.rst              # Basic usage guide
 ├── advanced_usage.rst           # Advanced usage guide
+├── benchmarking.rst             # Benchmark suite and regression checks
+├── cli_contracts.rst            # Stable CLI JSON/NDJSON contracts
+├── onecite_skill.rst            # Workflow skill package guide
 ├── python_api.rst               # Python API guide
 ├── templates.rst                # Custom templates guide
 ├── output_formats.rst           # Output formats guide
@@ -91,6 +94,9 @@ docs/
 
 ### User Guides
 - **advanced_usage.rst** - Advanced features and techniques
+- **benchmarking.rst** - Deterministic benchmarks and regression checks
+- **cli_contracts.rst** - Stable JSON/NDJSON schemas and exit codes
+- **onecite_skill.rst** - Using the bundled OneCite skill for automation
 - **python_api.rst** - Using OneCite as a Python library
 - **templates.rst** - Creating custom citation templates
 - **output_formats.rst** - Understanding output formats
@@ -281,4 +287,3 @@ For documentation issues:
 The OneCite documentation is licensed under the MIT License. See LICENSE for details.
 
 ---
-
