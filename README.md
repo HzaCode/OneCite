@@ -2,7 +2,7 @@
 
 <div align="center">
   <p align="center">
-    <img src="https://github.com/HzaCode/OneCite/raw/master/logo_.jpg" alt="OneCite Logo" width="160" />
+    <img src="https://raw.githubusercontent.com/HzaCode/onecite/main/logo_.jpg" alt="OneCite Logo" width="160" />
   </p>
 
   <h1>OneCite</h1>
