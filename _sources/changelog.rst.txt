@@ -11,9 +11,55 @@ Unreleased
 Added
 ~~~~~
 
+- Enhanced CLI modes for automated workflows: ``onecite process --json``,
+  ``onecite process --ndjson``, and ``--fail-on-unresolved`` exit code
+  ``2`` for unresolved-entry handling in scripts.
+- ``onecite benchmark`` CLI command with bundled deterministic golden
+  cases, JSON output, and a configurable pass-rate gate for covered
+  regression cases, plus a repository baseline record
+  at ``benchmarks/leaderboard.json``.
+- Expanded the bundled benchmark suite to cover PMID/PubMed lookup,
+  GitHub software URLs, Zenodo/DataCite dataset DOIs, and more explicit
+  benchmark-suite schema validation.
+- ``onecite doctor`` CLI command with stable JSON output for package,
+  template, benchmark-resource, skill-package, and offline benchmark
+  health checks.
+- CLI contract documentation for JSON/NDJSON process reports, benchmark
+  reports, doctor reports, stdout/stderr behavior, and exit codes.
+- Repository-contained OneCite Skill package at
+  ``skills/onecite/SKILL.md`` with metadata-lookup and local verification
+  operating instructions.
 - ``onecite templates`` CLI command for listing bundled fallback BibTeX
   templates, including machine-readable ``--json`` output for tools
   that need to inspect available presets.
+
+Changed
+~~~~~~~
+
+- Default pytest runs now exclude live external-API checks;
+  live checks are explicitly marked with ``pytest.mark.live`` so the
+  default suite is deterministic and offline.
+
+Fixed
+~~~~~
+
+- Corrected the benchmark Nature DQN DOI fixture from
+  ``10.1038/nature14539`` to ``10.1038/nature14236``, and added
+  regression coverage to catch future DOI-title-author mismatches in
+  bundled golden cases.
+- Added benchmark expectation checks for expected failed entries so
+  mixed valid/invalid cases must exercise unresolved-entry reporting.
+- Added the documented ``onecite version`` subcommand alongside
+  ``onecite --version``.
+- Fixed LaTeX formatting for curly single and double quotes.
+- Blocked live CrossRef/Semantic Scholar calls in fuzzy-search unit
+  tests unless a test opts into a mocked source explicitly.
+- Kept machine-readable JSON/NDJSON stdout clean when ``--output`` is
+  used by routing the saved-file status message to stderr.
+- Included the OneCite Skill and benchmark baseline files in built
+  distribution artifacts.
+- Added benchmark and doctor checks to the GitHub Actions test
+  workflow.
 
 [0.1.1] - 2026-04-17
 ---------------------
@@ -60,7 +106,7 @@ Changed
 
 - ``_get_pubmed_abstract`` now requires a DOI and no longer falls back
   to PubMed title search.  The removed title-based path empirically
-  returned the abstract of an unrelated paper (e.g. the Zhang 2020 automation
+  returned the abstract of an unrelated paper (e.g. a Zhang 2020 example
   Review DOI ``10.1007/s10462-019-09792-7`` pulled the abstract of a
   different RSI segmentation paper), which is strictly worse than
   returning ``None`` for downstream semantic cross-checks such as the

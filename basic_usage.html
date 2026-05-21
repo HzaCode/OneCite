@@ -54,6 +54,8 @@
 <li class="toctree-l3"><a class="reference internal" href="#output-formats">Output Formats</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#command-line-options">Command-Line Options</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#template-discovery">Template Discovery</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#benchmarking">Benchmarking</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#doctor">Doctor</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#practical-examples">Practical Examples</a><ul>
@@ -72,6 +74,9 @@
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli_contracts.html">CLI Contracts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="onecite_skill.html">OneCite Skill</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
@@ -212,6 +217,22 @@ within the same block are treated as a single entry.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">quiet</span>
 </pre></div>
 </div>
+<p><strong>Automation-Friendly JSON (–json)</strong></p>
+<p>Print a stable machine-readable envelope with results, counts, options,
+and failed-entry details:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>Use a strict exit code when any entry is unresolved:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">json</span> <span class="o">--</span><span class="n">fail</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">unresolved</span>
+</pre></div>
+</div>
+<p><strong>Streaming NDJSON (–ndjson)</strong></p>
+<p>Print newline-delimited JSON events for automation that wants a summary
+line followed by result and failure events:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">ndjson</span>
+</pre></div>
+</div>
 <p><strong>Google Scholar (–google-scholar)</strong></p>
 <p>Enable Google Scholar as an additional data source (requires the optional <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">google</span><span class="o">-</span><span class="n">scholar</span>
@@ -245,6 +266,36 @@ within the same block are treated as a single entry.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">templates</span> <span class="o">--</span><span class="n">json</span>
 </pre></div>
 </div>
+</section>
+<section id="benchmarking">
+<h3>Benchmarking<a class="headerlink" href="#benchmarking" title="Link to this heading"></a></h3>
+<p>Run the bundled deterministic golden-case regression suite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">benchmark</span>
+</pre></div>
+</div>
+<p>Use JSON output for automation and regression checks:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">benchmark</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>The command exits with <code class="docutils literal notranslate"><span class="pre">0</span></code> only when the configured pass-rate gate is met.
+With the default gate, every bundled case must pass. By default it uses
+bundled offline fixtures; add <code class="docutils literal notranslate"><span class="pre">--live</span></code> only when you want to spot-check real
+external APIs. Passing the bundled suite means the covered cases passed; it is
+not a comprehensive citation-accuracy or performance score.</p>
+</section>
+<section id="doctor">
+<h3>Doctor<a class="headerlink" href="#doctor" title="Link to this heading"></a></h3>
+<p>Check the local OneCite installation and bundled regression resources:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">doctor</span>
+</pre></div>
+</div>
+<p>Use JSON output when automation or CI needs a stable health envelope:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">doctor</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>The doctor report checks package importability, templates, bundled
+benchmark resources, the OneCite Skill file, and the offline benchmark
+check.</p>
 </section>
 </section>
 <section id="practical-examples">

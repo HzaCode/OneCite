@@ -1,0 +1,253 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CLI Contracts &mdash; OneCite 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="OneCite Skill" href="onecite_skill.html" />
+    <link rel="prev" title="Benchmarking" href="benchmarking.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Contracts</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#process-json">Process JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#process-ndjson">Process NDJSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#benchmark-json">Benchmark JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#doctor-json">Doctor JSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exit-codes">Exit Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stdout-and-stderr">Stdout and Stderr</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="onecite_skill.html">OneCite Skill</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">CLI Contracts</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/cli_contracts.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="cli-contracts">
+<h1>CLI Contracts<a class="headerlink" href="#cli-contracts" title="Link to this heading"></a></h1>
+<p>OneCite exposes stable command-line envelopes for automation and CI
+workflows. Human-readable output is still available, but automation
+should prefer the JSON or NDJSON modes below.</p>
+<section id="process-json">
+<h2>Process JSON<a class="headerlink" href="#process-json" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span> <span class="pre">INPUT</span> <span class="pre">--json</span></code> writes one JSON object to stdout unless
+<code class="docutils literal notranslate"><span class="pre">--output</span></code> is used. The envelope contains:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: currently <code class="docutils literal notranslate"><span class="pre">&quot;1.0&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tool</span></code> and <code class="docutils literal notranslate"><span class="pre">command</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;onecite&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;process&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;passed&quot;</span></code> when all entries resolved, otherwise
+<code class="docutils literal notranslate"><span class="pre">&quot;failed&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: total, succeeded, failed, and success rate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: the effective CLI options that affect processing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">failed_entries</span></code>: unresolved entries with their error payloads.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">results</span></code>: formatted BibTeX strings.</p></li>
+</ul>
+<p>The current top-level contract is exactly <code class="docutils literal notranslate"><span class="pre">schema_version</span></code>, <code class="docutils literal notranslate"><span class="pre">tool</span></code>,
+<code class="docutils literal notranslate"><span class="pre">command</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">options</span></code>, <code class="docutils literal notranslate"><span class="pre">failed_entries</span></code>,
+and <code class="docutils literal notranslate"><span class="pre">results</span></code>. Additive fields should be treated as a contract change
+and covered by tests.</p>
+<p>Use <code class="docutils literal notranslate"><span class="pre">--fail-on-unresolved</span></code> when unresolved entries should make the
+process exit with code <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
+<p>If a hard processing error happens before per-entry results can be built,
+<code class="docutils literal notranslate"><span class="pre">--json</span></code> still writes the same top-level envelope with <code class="docutils literal notranslate"><span class="pre">status:</span>
+<span class="pre">&quot;failed&quot;</span></code>, a single <code class="docutils literal notranslate"><span class="pre">failed_entries</span></code> error payload, and exit code
+<code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+</section>
+<section id="process-ndjson">
+<h2>Process NDJSON<a class="headerlink" href="#process-ndjson" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span> <span class="pre">INPUT</span> <span class="pre">--ndjson</span></code> emits newline-delimited JSON events:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: one event containing status, summary, and options.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result</span></code>: one event per formatted BibTeX result.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">failure</span></code>: one event per unresolved entry.</p></li>
+</ul>
+<p>This mode is intended for streaming automation workflows that want partial
+results without parsing human text.</p>
+<p>Hard processing errors in <code class="docutils literal notranslate"><span class="pre">--ndjson</span></code> mode emit a <code class="docutils literal notranslate"><span class="pre">summary</span></code> event with
+<code class="docutils literal notranslate"><span class="pre">status:</span> <span class="pre">&quot;failed&quot;</span></code> followed by one <code class="docutils literal notranslate"><span class="pre">failure</span></code> event, then exit with
+code <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+</section>
+<section id="benchmark-json">
+<h2>Benchmark JSON<a class="headerlink" href="#benchmark-json" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">benchmark</span> <span class="pre">--json</span></code> emits a deterministic regression report for the
+configured benchmark suite:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: currently <code class="docutils literal notranslate"><span class="pre">&quot;1.0&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suite</span></code> and <code class="docutils literal notranslate"><span class="pre">suite_version</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_mode</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;offline&quot;</span></code> by default, <code class="docutils literal notranslate"><span class="pre">&quot;live&quot;</span></code> with
+<code class="docutils literal notranslate"><span class="pre">--live</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status</span></code> and <code class="docutils literal notranslate"><span class="pre">summary</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">cases</span></code> with per-case status, failures, and observed counts.</p></li>
+</ul>
+<p>The default offline mode uses bundled fixtures and patches OneCite’s HTTP
+source calls, so the deterministic benchmark does not require network
+access. Passing <code class="docutils literal notranslate"><span class="pre">--live</span></code> removes that isolation and should be reserved
+for explicit upstream-source spot checks.</p>
+<p>The default command exits <code class="docutils literal notranslate"><span class="pre">0</span></code> only when every bundled case passes. Custom
+suites can lower the gate with <code class="docutils literal notranslate"><span class="pre">--min-success-rate</span></code>. Reports should include
+the suite name, suite version, source mode, total case count, and pass counts
+so the result is not mistaken for a general citation-accuracy score. Passing
+the bundled suite means the covered cases passed. The displayed
+<code class="docutils literal notranslate"><span class="pre">success_rate</span></code> is rounded to four decimals for readability; the exit gate
+uses the unrounded <code class="docutils literal notranslate"><span class="pre">passed</span> <span class="pre">/</span> <span class="pre">total_cases</span></code> ratio, so a displayed <code class="docutils literal notranslate"><span class="pre">0.6667</span></code>
+does not satisfy <code class="docutils literal notranslate"><span class="pre">--min-success-rate</span> <span class="pre">0.6667</span></code> when the actual ratio is
+<code class="docutils literal notranslate"><span class="pre">2/3</span></code>.</p>
+</section>
+<section id="doctor-json">
+<h2>Doctor JSON<a class="headerlink" href="#doctor-json" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">doctor</span> <span class="pre">--json</span></code> emits an installation-health report:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: currently <code class="docutils literal notranslate"><span class="pre">&quot;1.0&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tool</span></code> and <code class="docutils literal notranslate"><span class="pre">command</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;onecite&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;doctor&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;passed&quot;</span></code> only when every check passed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">environment</span></code>: Python executable, Python version, platform, and
+package version.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: total, passed, and failed check counts.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">checks</span></code>: package version, templates, benchmark resources,
+skill package, and offline benchmark gate.</p></li>
+</ul>
+<p>The current doctor top-level contract is exactly <code class="docutils literal notranslate"><span class="pre">schema_version</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tool</span></code>, <code class="docutils literal notranslate"><span class="pre">command</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">environment</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">checks</span></code>. Each check contains <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">message</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">details</span></code>.</p>
+</section>
+<section id="exit-codes">
+<h2>Exit Codes<a class="headerlink" href="#exit-codes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code>: command completed and its quality gate passed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code>: command failed, benchmark/doctor gate failed, or processing
+raised an error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">2</span></code>: <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span> <span class="pre">--fail-on-unresolved</span></code> found unresolved
+entries.</p></li>
+</ul>
+</section>
+<section id="stdout-and-stderr">
+<h2>Stdout and Stderr<a class="headerlink" href="#stdout-and-stderr" title="Link to this heading"></a></h2>
+<p>Machine-readable JSON and NDJSON are written to stdout. Interactive
+prompts and saved-file status messages are routed to stderr in those
+modes so stdout stays parseable.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="benchmarking.html" class="btn btn-neutral float-left" title="Benchmarking" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="onecite_skill.html" class="btn btn-neutral float-right" title="OneCite Skill" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

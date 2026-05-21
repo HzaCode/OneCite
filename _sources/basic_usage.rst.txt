@@ -97,6 +97,24 @@ Suppress verbose output::
 
     onecite process input.txt --quiet
 
+**Automation-Friendly JSON (--json)**
+
+Print a stable machine-readable envelope with results, counts, options,
+and failed-entry details::
+
+    onecite process input.txt --json
+
+Use a strict exit code when any entry is unresolved::
+
+    onecite process input.txt --json --fail-on-unresolved
+
+**Streaming NDJSON (--ndjson)**
+
+Print newline-delimited JSON events for automation that wants a summary
+line followed by result and failure events::
+
+    onecite process input.txt --ndjson
+
 **Google Scholar (--google-scholar)**
 
 Enable Google Scholar as an additional data source (requires the optional ``scholarly`` package)::
@@ -133,6 +151,38 @@ List the bundled fallback BibTeX templates and the fields they request::
 Use JSON output when another tool needs to inspect the same metadata::
 
     onecite templates --json
+
+Benchmarking
+~~~~~~~~~~~~
+
+Run the bundled deterministic golden-case regression suite::
+
+    onecite benchmark
+
+Use JSON output for automation and regression checks::
+
+    onecite benchmark --json
+
+The command exits with ``0`` only when the configured pass-rate gate is met.
+With the default gate, every bundled case must pass. By default it uses
+bundled offline fixtures; add ``--live`` only when you want to spot-check real
+external APIs. Passing the bundled suite means the covered cases passed; it is
+not a comprehensive citation-accuracy or performance score.
+
+Doctor
+~~~~~~
+
+Check the local OneCite installation and bundled regression resources::
+
+    onecite doctor
+
+Use JSON output when automation or CI needs a stable health envelope::
+
+    onecite doctor --json
+
+The doctor report checks package importability, templates, bundled
+benchmark resources, the OneCite Skill file, and the offline benchmark
+check.
 
 Practical Examples
 ------------------

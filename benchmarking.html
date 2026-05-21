@@ -1,0 +1,247 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Benchmarking &mdash; OneCite 0.1.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="CLI Contracts" href="cli_contracts.html" />
+    <link rel="prev" title="Custom Templates" href="templates.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Benchmarking</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#exit-codes">Exit Codes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#suite-format">Suite Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#what-a-passing-run-means">What a Passing Run Means</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#bundled-coverage">Bundled Coverage</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="cli_contracts.html">CLI Contracts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="onecite_skill.html">OneCite Skill</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Benchmarking</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/benchmarking.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="benchmarking">
+<h1>Benchmarking<a class="headerlink" href="#benchmarking" title="Link to this heading"></a></h1>
+<p>OneCite includes a deterministic benchmark runner for local regression checks
+and CI workflows. The bundled suite is a small golden-case suite for covered
+DOI lookup, arXiv lookup, PMID/PubMed lookup, GitHub software URLs,
+Zenodo/DataCite dataset DOIs, and mixed valid/invalid input handling.</p>
+<p>The benchmark is intended to catch regressions in covered source-routing,
+reporting, and BibTeX-output behavior. It is not a comprehensive citation
+accuracy benchmark, a performance benchmark, or a claim that every possible
+input or upstream source path is correct.</p>
+<p>The repository also includes a baseline run record at
+<code class="docutils literal notranslate"><span class="pre">benchmarks/leaderboard.json</span></code>.</p>
+<p>Run the bundled benchmark suite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">benchmark</span>
+</pre></div>
+</div>
+<p>Use JSON output for automation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">benchmark</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>By default, the bundled suite uses offline source fixtures so local and CI
+checks are reproducible. The offline mode patches OneCite’s
+HTTP source calls to bundled fixtures and does not require external
+network access. Use live APIs only when you are explicitly checking
+upstream source behavior:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">benchmark</span> <span class="o">--</span><span class="n">live</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
+<p>Use a custom benchmark suite:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">benchmark</span> <span class="o">--</span><span class="n">cases</span> <span class="n">my_cases</span><span class="o">.</span><span class="n">json</span> <span class="o">--</span><span class="nb">min</span><span class="o">-</span><span class="n">success</span><span class="o">-</span><span class="n">rate</span> <span class="mf">1.0</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
+<section id="exit-codes">
+<h2>Exit Codes<a class="headerlink" href="#exit-codes" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> - The benchmark pass rate met the configured pass-rate gate. With
+the default <code class="docutils literal notranslate"><span class="pre">--min-success-rate</span> <span class="pre">1.0</span></code>, this means every case passed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> - The benchmark pass rate was below the configured pass-rate gate,
+or the suite could not be loaded or run.</p></li>
+</ul>
+</section>
+<section id="suite-format">
+<h2>Suite Format<a class="headerlink" href="#suite-format" title="Link to this heading"></a></h2>
+<p>Benchmark suites are JSON files with this shape:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;suite&quot;</span><span class="p">:</span> <span class="s2">&quot;my-suite&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;1.1&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;cases&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;doi-case&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;input&quot;</span><span class="p">:</span> <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;input_type&quot;</span><span class="p">:</span> <span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;template&quot;</span><span class="p">:</span> <span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;output_format&quot;</span><span class="p">:</span> <span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+      <span class="s2">&quot;expect&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s2">&quot;min_total&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;min_succeeded&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s2">&quot;min_failed&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="s2">&quot;required_substrings&quot;</span><span class="p">:</span> <span class="p">[</span>
+          <span class="s2">&quot;10.1038/nature14539&quot;</span>
+        <span class="p">]</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Each case runs through the normal OneCite pipeline with interactive
+selection disabled. Ambiguous candidates are skipped by default, matching
+<code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> without <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> rather than auto-selecting
+the first candidate. The report records per-case failures, observed entry
+counts, and the overall gate status.</p>
+</section>
+<section id="what-a-passing-run-means">
+<h2>What a Passing Run Means<a class="headerlink" href="#what-a-passing-run-means" title="Link to this heading"></a></h2>
+<p>Passing the bundled benchmark means only that the current implementation
+handled the bundled cases and met the configured pass-rate gate. It is useful
+as a regression signal because the cases exercise representative source
+routes and unresolved-entry reporting, but it should be reported with the
+suite name, suite version, source mode, total case count, and pass counts.</p>
+<p>For citation-quality assessment beyond this regression suite, use a larger
+custom suite with field-level expectations for title, DOI, authors, year,
+entry type, URL, and unresolved-entry behavior. Live checks should be treated
+as upstream-source spot checks because they can change when external services
+change their metadata, availability, or rate limits.</p>
+</section>
+<section id="bundled-coverage">
+<h2>Bundled Coverage<a class="headerlink" href="#bundled-coverage" title="Link to this heading"></a></h2>
+<p>The default suite is intentionally small enough to run in CI. It is meant to
+catch regressions in the covered paths, not to measure overall citation
+accuracy. It currently covers:</p>
+<ul class="simple">
+<li><p>Crossref DOI enrichment for journal metadata.</p></li>
+<li><p>arXiv identifier lookup for preprint/conference metadata.</p></li>
+<li><p>PMID lookup through PubMed identification and DOI enrichment.</p></li>
+<li><p>GitHub repository URLs as software citations.</p></li>
+<li><p>Zenodo and DataCite DOI paths as dataset citations.</p></li>
+<li><p>Mixed valid/invalid batches where unresolved entries must be reported.</p></li>
+</ul>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="templates.html" class="btn btn-neutral float-left" title="Custom Templates" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="cli_contracts.html" class="btn btn-neutral float-right" title="CLI Contracts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
