@@ -70,31 +70,34 @@
 <li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
 <li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#id1">[0.1.1] - 2026-04-17</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#id1">[0.1.1] - 2026-04-17</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id2">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#deprecated">Deprecated</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#removed">Removed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id2">[0.1.0] - 2026-04-17</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id3">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id4">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id5">Removed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id3">[0.1.0] - 2026-04-17</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id5">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Removed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fixed">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id6">[0.0.11] - 2024-10-19</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id7">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id9">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id7">[0.0.11] - 2024-10-19</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id10">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id10">[0.0.10] - 2024-10-01</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id11">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id12">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id13">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id11">[0.0.10] - 2024-10-01</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id12">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id14">Fixed</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#and-earlier">[0.0.9] and Earlier</a></li>
@@ -147,6 +150,14 @@
 <p>The format is based on <a class="reference external" href="https://keepachangelog.com/">Keep a Changelog</a>, and this project adheres to <a class="reference external" href="https://semver.org/">Semantic Versioning</a>.</p>
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
+<section id="added">
+<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">templates</span></code> CLI command for listing bundled fallback BibTeX
+templates, including machine-readable <code class="docutils literal notranslate"><span class="pre">--json</span></code> output for tools
+that need to inspect available presets.</p></li>
+</ul>
+</section>
 </section>
 <section id="id1">
 <h2>[0.1.1] - 2026-04-17<a class="headerlink" href="#id1" title="Link to this heading"></a></h2>
@@ -154,8 +165,8 @@
 semantics across code, templates, docs, tests, and metadata</strong>.  No
 breaking public-API changes; the one renamed kwarg keeps its old name
 as a deprecated alias for this release cycle.</p>
-<section id="added">
-<h3>Added<a class="headerlink" href="#added" title="Link to this heading"></a></h3>
+<section id="id2">
+<h3>Added<a class="headerlink" href="#id2" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Abstract retrieval now falls back through a DOI-only cascade when
 CrossRef does not return an abstract: Semantic Scholar
@@ -227,11 +238,11 @@ layer here.</p></li>
 </ul>
 </section>
 </section>
-<section id="id2">
-<h2>[0.1.0] - 2026-04-17<a class="headerlink" href="#id2" title="Link to this heading"></a></h2>
-<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.</p>
 <section id="id3">
-<h3>Added<a class="headerlink" href="#id3" title="Link to this heading"></a></h3>
+<h2>[0.1.0] - 2026-04-17<a class="headerlink" href="#id3" title="Link to this heading"></a></h2>
+<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.</p>
+<section id="id4">
+<h3>Added<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>RST documentation using Sphinx</p></li>
 <li><p>Full API reference documentation</p></li>
@@ -242,8 +253,8 @@ layer here.</p></li>
 <li><p>Auto-deploy documentation to GitHub Pages via CI</p></li>
 </ul>
 </section>
-<section id="id4">
-<h3>Changed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
+<section id="id5">
+<h3>Changed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Split monolithic pipeline.py (~3000 lines)</strong> into a proper
 <code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one module per stage</p></li>
@@ -262,8 +273,8 @@ fallback BibTeX entry type, not output formatting</p></li>
 <li><p>Added type hints to Python API</p></li>
 </ul>
 </section>
-<section id="id5">
-<h3>Removed<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<section id="id6">
+<h3>Removed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>APA and MLA output renderers; the CLI now rejects anything other than
 <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">bibtex</span></code>.  Use pandoc or citeproc-py to convert the
@@ -299,10 +310,10 @@ fabricating invented metadata</p></li>
 </ul>
 </section>
 </section>
-<section id="id6">
-<h2>[0.0.11] - 2024-10-19<a class="headerlink" href="#id6" title="Link to this heading"></a></h2>
 <section id="id7">
-<h3>Added<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<h2>[0.0.11] - 2024-10-19<a class="headerlink" href="#id7" title="Link to this heading"></a></h2>
+<section id="id8">
+<h3>Added<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Custom YAML-based template system</p></li>
 <li><p>Support for multiple output formats (BibTeX, APA, MLA)</p></li>
@@ -312,16 +323,16 @@ fabricating invented metadata</p></li>
 <li><p>Test suite</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Changed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id9">
+<h3>Changed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Refactored core processing pipeline</p></li>
 <li><p>Reordered data source priority (CrossRef first for DOI queries)</p></li>
 <li><p>Clearer error messages on failed lookups</p></li>
 </ul>
 </section>
-<section id="id9">
-<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
+<section id="id10">
+<h3>Fixed<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Encoding issues with non-ASCII characters in author names</p></li>
 <li><p>DOI parsing for URLs with trailing query strings</p></li>
@@ -329,24 +340,24 @@ fabricating invented metadata</p></li>
 </ul>
 </section>
 </section>
-<section id="id10">
-<h2>[0.0.10] - 2024-10-01<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
 <section id="id11">
-<h3>Added<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<h2>[0.0.10] - 2024-10-01<a class="headerlink" href="#id11" title="Link to this heading"></a></h2>
+<section id="id12">
+<h3>Added<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Initial Python API</p></li>
 <li><p>Basic citation processing</p></li>
 <li><p>Support for journal articles and conference papers</p></li>
 </ul>
 </section>
-<section id="id12">
-<h3>Changed<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id13">
+<h3>Changed<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Better title matching for fuzzy searches</p></li>
 </ul>
 </section>
-<section id="id13">
-<h3>Fixed<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
+<section id="id14">
+<h3>Fixed<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PubMed API response handling</p></li>
 <li><p>Semantic Scholar rate limit handling</p></li>

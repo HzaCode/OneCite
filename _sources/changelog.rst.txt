@@ -8,6 +8,13 @@ The format is based on `Keep a Changelog <https://keepachangelog.com/>`_, and th
 Unreleased
 ----------
 
+Added
+~~~~~
+
+- ``onecite templates`` CLI command for listing bundled fallback BibTeX
+  templates, including machine-readable ``--json`` output for tools
+  that need to inspect available presets.
+
 [0.1.1] - 2026-04-17
 ---------------------
 

@@ -53,6 +53,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#supported-input-formats-identifiers">Supported Input Formats (Identifiers)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#output-formats">Output Formats</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#command-line-options">Command-Line Options</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#template-discovery">Template Discovery</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#practical-examples">Practical Examples</a><ul>
@@ -231,6 +232,17 @@ within the same block are treated as a single entry.</p>
 <p>Display help information:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="o">--</span><span class="n">help</span>
 <span class="n">onecite</span> <span class="n">process</span> <span class="o">--</span><span class="n">help</span>
+</pre></div>
+</div>
+</section>
+<section id="template-discovery">
+<h3>Template Discovery<a class="headerlink" href="#template-discovery" title="Link to this heading"></a></h3>
+<p>List the bundled fallback BibTeX templates and the fields they request:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">templates</span>
+</pre></div>
+</div>
+<p>Use JSON output when another tool needs to inspect the same metadata:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">templates</span> <span class="o">--</span><span class="n">json</span>
 </pre></div>
 </div>
 </section>

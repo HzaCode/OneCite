@@ -56,6 +56,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Custom Templates</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#template-basics">Template Basics</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#default-templates-location">Default Templates Location</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inspecting-templates-from-the-cli">Inspecting Templates from the CLI</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#what-templates-actually-do">What Templates Actually Do</a></li>
@@ -170,6 +171,18 @@ as deprecated.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">software.yaml</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dataset.yaml</span></code></p></li>
 </ul>
+</section>
+<section id="inspecting-templates-from-the-cli">
+<h3>Inspecting Templates from the CLI<a class="headerlink" href="#inspecting-templates-from-the-cli" title="Link to this heading"></a></h3>
+<p>Use <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">templates</span></code> to list the bundled fallback BibTeX templates and
+their required / optional fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">templates</span>
+</pre></div>
+</div>
+<p>Use JSON output when another tool needs to inspect the same metadata:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">templates</span> <span class="o">--</span><span class="n">json</span>
+</pre></div>
+</div>
 </section>
 </section>
 <section id="what-templates-actually-do">
