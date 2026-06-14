@@ -41,6 +41,11 @@ class IdentifierModule:
         self.semantic_scholar_base = "https://api.semanticscholar.org/graph/v1"
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.datacite_base = "https://api.datacite.org"
+        self._crossref_headers = {
+            "Accept": "application/json",
+            "User-Agent": "OneCite/0.1.1 (https://github.com/HzaCode/OneCite; mailto:onecite@users.noreply.github.com)",
+        }
+        self._crossref_mailto = "onecite@users.noreply.github.com"
 
     def identify(
         self, raw_entries: List[RawEntry], interactive_callback: Callable[[List[Dict]], int]
@@ -189,7 +194,42 @@ class IdentifierModule:
 
         # Fuzzy search
         if raw_entry.get("query_string"):
-            return self._fuzzy_search(raw_entry, interactive_callback)
+            query_string = raw_entry["query_string"].strip()
+
+            pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string, re.IGNORECASE)
+            if pmid_match:
+                pmid = pmid_match.group(2)
+                pubmed_result = self._search_pubmed_by_id(pmid)
+                if pubmed_result:
+                    return {
+                        "id": raw_entry["id"],
+                        "raw_text": raw_entry["raw_text"],
+                        "doi": pubmed_result.get("doi"),
+                        "arxiv_id": None,
+                        "url": pubmed_result.get("url"),
+                        "metadata": pubmed_result,
+                        "status": "identified",
+                    }
+
+            if re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_string, re.IGNORECASE):
+                books_results = self._search_google_books(query_string)
+                if books_results:
+                    book_result = books_results[0]
+                    return {
+                        "id": raw_entry["id"],
+                        "raw_text": raw_entry["raw_text"],
+                        "doi": book_result.get("doi"),
+                        "arxiv_id": None,
+                        "url": book_result.get("url"),
+                        "metadata": book_result,
+                        "status": "identified",
+                    }
+
+            self.logger.info(
+                "Entry %s has no strong identifier; use `onecite suggest` for candidates.",
+                raw_entry["id"],
+            )
+            return identified_entry
 
         self.logger.warning(f"Entry {raw_entry['id']} identification failed")
         return identified_entry
@@ -199,31 +239,13 @@ class IdentifierModule:
         doi_pattern = r"^10\.\d{4,}/.+"
         return bool(re.match(doi_pattern, doi))
 
-    def _is_datacite_doi(self, doi: str) -> bool:
-        """Check if DOI is registered with DataCite (not CrossRef)."""
-        datacite_prefixes = [
-            "10.5281/",  # Zenodo
-            "10.6084/",  # Figshare
-            "10.5061/",  # Dryad
-            "10.6078/",  # DataONE
-            "10.7910/",  # DVN/Dataverse
-            "10.13003/",  # RePEc
-            "10.14291/",  # UBC Dataverse
-            "10.5683/",  # Scholars Portal
-            "10.20382/",  # University of Manitoba Dataverse
-            "10.5680/",  # University of Sheffield
-            "10.25739/",  # Griffith University
-        ]
-        return any(doi.startswith(prefix) for prefix in datacite_prefixes)
-
     def _verify_doi_and_get_metadata(self, doi: str) -> Optional[Dict]:
         """Verify DOI exists in Crossref or DataCite and get real metadata for comparison."""
         # Try CrossRef first (covers most academic journals/papers)
         try:
             url = f"{self.crossref_base_url}/{doi}"
-            headers = {"Accept": "application/json"}
-
-            response = requests.get(url, headers=headers, timeout=10)
+            params = {"mailto": self._crossref_mailto}
+            response = requests.get(url, headers=self._crossref_headers, params=params, timeout=10)
             response.raise_for_status()
 
             data = response.json()
@@ -255,12 +277,15 @@ class IdentifierModule:
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 self.logger.warning(f"DOI {doi} not found in CrossRef (404)")
-                # Try DataCite for dataset/software DOIs
-                if self._is_datacite_doi(doi):
-                    self.logger.info(f"DOI {doi} appears to be DataCite, trying DataCite API...")
-                    datacite_result = self._query_datacite(doi)
-                    if datacite_result:
-                        return datacite_result
+                # A CrossRef 404 only means the DOI is not registered with
+                # CrossRef. Many valid DOIs (datasets, software, theses,
+                # preprints) are DataCite-registered under prefixes far beyond
+                # any short hardcoded list, so always fall back to DataCite
+                # rather than guessing eligibility from the prefix.
+                self.logger.info(f"DOI {doi} not in CrossRef, trying DataCite API...")
+                datacite_result = self._query_datacite(doi)
+                if datacite_result:
+                    return datacite_result
                 return None
             else:
                 self.logger.error(f"HTTP error verifying DOI {doi}: {str(e)}")
@@ -279,7 +304,10 @@ class IdentifierModule:
             if match:
                 owner = match.group(1)
                 repo = match.group(2)
-                # Remove any trailing punctuation or special chars
+                # Drop a trailing ".git" (clone URLs) and any trailing
+                # punctuation so the API call targets the real repo
+                # (e.g. ".../repo.git" -> "repo").
+                repo = re.sub(r"\.git$", "", repo)
                 repo = re.sub(r"[^a-zA-Z0-9_.-].*$", "", repo)
 
                 url = f"{self.github_api_base}/repos/{owner}/{repo}"
@@ -1218,91 +1246,7 @@ class IdentifierModule:
     ) -> IdentifiedEntry:
         """Perform fuzzy search using simplified routing: always query core sources, conditionally append specialized sources."""
         query_string = raw_entry["query_string"]
-        query_lower = query_string.lower()
-
-        candidates = []
-
-        # === Core sources: always query ===
-        # CrossRef covers most academic papers; Semantic Scholar adds citation metadata
-        self.logger.info("Querying core sources: CrossRef + Semantic Scholar")
-        crossref_results = self._search_crossref(query_string)
-        candidates.extend(crossref_results)
-
-        semantic_results = self._search_semantic_scholar(query_string)
-        candidates.extend(semantic_results)
-
-        # === Conditional specialized sources ===
-
-        # 1. PMID pattern detected
-        pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string.strip())
-        if pmid_match:
-            pmid = pmid_match.group(2)
-            self.logger.info(f"Detected PubMed ID pattern: {pmid}, querying PubMed")
-            pubmed_result = self._search_pubmed_by_id(pmid)
-            if pubmed_result:
-                # For PMID-only queries (no other text), return directly
-                # This handles cases where the query is just "PMID:12345678"
-                text_without_pmid = (
-                    query_string.replace(f"PMID:{pmid}", "").replace(pmid, "").strip()
-                )
-                if len(text_without_pmid) < 3:  # Essentially just the PMID
-                    return {
-                        "id": raw_entry["id"],
-                        "raw_text": raw_entry["raw_text"],
-                        "doi": pubmed_result.get("doi"),
-                        "arxiv_id": None,
-                        "url": pubmed_result.get("url"),
-                        "metadata": pubmed_result,
-                        "status": "identified",
-                    }
-                # Otherwise, add to candidates for scoring alongside other sources
-                candidates.append(pubmed_result)
-
-        # 2. Strong biomedical cues → also query PubMed (as additive source)
-        strong_medical_cues = ["pubmed", "pmid", "clinical trial", "randomized controlled"]
-        if any(cue in query_lower for cue in strong_medical_cues):
-            self.logger.info("Strong medical cues detected, querying PubMed as additive source")
-            pubmed_results = self._search_pubmed(query_string)
-            candidates.extend(pubmed_results)
-
-        # 3. Book indicators → query Google Books
-        # Simplified detection: only check strongest signals
-        has_isbn = bool(re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_lower, re.IGNORECASE))
-        has_edition = bool(re.search(r"\b\d+(?:st|nd|rd|th)?\s+ed\.?\b", query_lower))
-        has_book_publisher = any(
-            pub in query_lower
-            for pub in ["wiley", "o'reilly", "springer", "cambridge press", "mit press"]
-        )
-
-        if has_isbn or has_edition or has_book_publisher:
-            self.logger.info(
-                f"Book indicators detected (ISBN={has_isbn}, edition={has_edition}, publisher={has_book_publisher}), querying Google Books"
-            )
-            books_results = self._search_google_books(query_string)
-            candidates.extend(books_results)
-
-        # 4. Thesis indicators → query external providerRE/BASE
-        thesis_keywords = [
-            "dissertation",
-            "phd thesis",
-            "master thesis",
-            "doctoral thesis",
-            "thesis",
-        ]
-        if any(kw in query_lower for kw in thesis_keywords):
-            self.logger.info("Thesis indicators detected, querying external providerRE/BASE")
-            thesis_results = self._search_openaire_for_thesis(
-                query_string
-            ) or self._search_base_for_thesis(query_string)
-            if thesis_results:
-                candidates.append(thesis_results)
-
-        # 5. Google Scholar as optional fallback (if enabled and core sources returned little)
-        if self.use_google_scholar:
-            if len(crossref_results) == 0 and len(semantic_results) == 0:
-                self.logger.info("Core sources returned no results, trying Google Scholar")
-                scholar_results = self._search_google_scholar(query_string)
-                candidates.extend(scholar_results)
+        candidates = self._collect_suggestion_candidates(query_string)
 
         if not candidates:
             self.logger.warning(f"Entry {raw_entry['id']}: no candidate results found")
@@ -1419,25 +1363,6 @@ class IdentifierModule:
                         "status": "identified",
                     }
 
-        # Low confidence fallback: unified threshold
-        # With two-layer scoring, match_score is purely about query relevance
-        LOW_CONFIDENCE_THRESHOLD = 50
-        if best_candidate["match_score"] >= LOW_CONFIDENCE_THRESHOLD and best_candidate.get(
-            "title"
-        ):
-            self.logger.info(
-                f"Entry {raw_entry['id']} adopting best candidate with score {best_candidate['match_score']}"
-            )
-            return {
-                "id": raw_entry["id"],
-                "raw_text": raw_entry["raw_text"],
-                "doi": best_candidate.get("doi"),
-                "arxiv_id": best_candidate.get("arxiv_id"),
-                "url": best_candidate.get("url"),
-                "metadata": best_candidate,
-                "status": "identified",
-            }
-
         # Debug: Log the best candidate score for analysis
         self.logger.info(
             f"Entry {raw_entry['id']} best candidate score: {best_candidate.get('match_score', 0)}"
@@ -1458,6 +1383,78 @@ class IdentifierModule:
             "metadata": {},
             "status": "identification_failed",
         }
+
+    def suggest(self, raw_entry: RawEntry, limit: int = 5) -> Dict:
+        """Return candidate matches for a raw entry without resolving it."""
+        query_string = (raw_entry.get("query_string") or raw_entry.get("raw_text") or "").strip()
+        suggestion = {
+            "id": raw_entry["id"],
+            "raw_text": raw_entry.get("raw_text", ""),
+            "query_string": query_string,
+            "status": "no_candidates",
+            "candidates": [],
+        }
+        if not query_string:
+            return suggestion
+
+        candidates = self._collect_suggestion_candidates(query_string)
+        scored_candidates = self._score_candidates(candidates, query_string) if candidates else []
+        suggestion["candidates"] = [
+            self._public_candidate(candidate) for candidate in scored_candidates[: max(limit, 0)]
+        ]
+        if suggestion["candidates"]:
+            suggestion["status"] = "candidates_found"
+        return suggestion
+
+    def _public_candidate(self, candidate: Dict) -> Dict:
+        """Remove private scorer fields from suggestion output."""
+        return {key: value for key, value in candidate.items() if not key.startswith("_")}
+
+    def _collect_suggestion_candidates(self, query_string: str) -> List[Dict]:
+        """Collect possible matches for suggestion-only workflows."""
+        query_lower = query_string.lower()
+        candidates = []
+
+        self.logger.info("Querying suggestion sources: CrossRef + Semantic Scholar")
+        crossref_results = self._search_crossref(query_string)
+        candidates.extend(crossref_results)
+
+        semantic_results = self._search_semantic_scholar(query_string)
+        candidates.extend(semantic_results)
+
+        pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string.strip(), re.IGNORECASE)
+        if pmid_match:
+            pubmed_result = self._search_pubmed_by_id(pmid_match.group(2))
+            if pubmed_result:
+                candidates.append(pubmed_result)
+
+        strong_medical_cues = ["pubmed", "pmid", "clinical trial", "randomized controlled"]
+        if any(cue in query_lower for cue in strong_medical_cues):
+            candidates.extend(self._search_pubmed(query_string))
+
+        has_isbn = bool(re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_lower, re.IGNORECASE))
+        has_edition = bool(re.search(r"\b\d+(?:st|nd|rd|th)?\s+ed\.?\b", query_lower))
+        has_book_publisher = any(
+            pub in query_lower
+            for pub in ["wiley", "o'reilly", "springer", "cambridge press", "mit press"]
+        )
+        if has_isbn or has_edition or has_book_publisher:
+            candidates.extend(self._search_google_books(query_string))
+
+        # Match whole words only: a bare "thesis"/"dissertation" substring
+        # check also fires on "hypothesis", "synthesis", "parenthesis", etc.,
+        # routing unrelated queries to thesis search.
+        if re.search(r"\b(thesis|dissertation)\b", query_lower):
+            thesis_results = self._search_openaire_for_thesis(
+                query_string
+            ) or self._search_base_for_thesis(query_string)
+            if thesis_results:
+                candidates.append(thesis_results)
+
+        if self.use_google_scholar and not crossref_results and not semantic_results:
+            candidates.extend(self._search_google_scholar(query_string))
+
+        return candidates
 
     def _resolve_doi_via_crossref_title(
         self, candidate_title: str, original_query: str

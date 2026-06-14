@@ -18,7 +18,7 @@ from unittest.mock import patch
 
 from .benchmark import format_benchmark_text, load_benchmark_suite, run_benchmark
 from .benchmarks.offline import offline_requests_get
-from .core import process_references, TemplateLoader
+from .core import process_references, suggest_references, TemplateLoader
 from .exceptions import OneCiteError
 from . import __version__
 
@@ -31,6 +31,8 @@ def main() -> int:
     try:
         if args.command == "process":
             return process_command(args)
+        elif args.command in ("suggest", "sugget"):
+            return suggest_command(args)
         elif args.command == "benchmark":
             return benchmark_command(args)
         elif args.command == "doctor":
@@ -65,6 +67,7 @@ Examples:
   onecite process references.txt --interactive --output results.bib
   onecite process "10.1038/nature14539"
   onecite process "attention is all you need, Vaswani et al., NIPS 2017"
+  onecite suggest "attention is all you need, Vaswani et al., NIPS 2017" --json
   onecite benchmark --json
   onecite doctor --json
   onecite templates
@@ -127,11 +130,39 @@ Examples:
         action="store_true",
         help="Return exit code 2 when one or more entries could not be resolved",
     )
-    process_parser.add_argument(
+
+    suggest_parser = subparsers.add_parser(
+        "suggest",
+        aliases=["sugget"],
+        help="Suggest candidate matches without resolving them to BibTeX",
+    )
+    suggest_parser.add_argument(
+        "input_file", help='Input file, "-" for stdin, or a reference string to search'
+    )
+    suggest_parser.add_argument(
+        "--input-type", choices=["txt", "bib"], default="txt", help="Input type (default: txt)"
+    )
+    suggest_parser.add_argument(
+        "--limit",
+        type=int,
+        default=5,
+        help="Maximum candidates per entry (default: 5)",
+    )
+    suggest_parser.add_argument("--output", "-o", help="Output file (default: stdout)")
+    suggest_parser.add_argument(
+        "--quiet", "-q", action="store_true", help="Suppress saved-file status output"
+    )
+    suggest_parser.add_argument(
+        "--json",
+        action="store_true",
+        dest="as_json",
+        help="Print a stable machine-readable JSON envelope",
+    )
+    suggest_parser.add_argument(
         "--google-scholar",
         action="store_true",
         default=False,
-        help="Enable Google Scholar as an additional data source (requires scholarly package)",
+        help="Enable Google Scholar as an additional suggestion source",
     )
 
     benchmark_parser = subparsers.add_parser(
@@ -210,7 +241,6 @@ def _build_process_report(args: "argparse.Namespace", result: Dict[str, Any]) ->
             "template": args.template,
             "output_format": args.output_format,
             "interactive": bool(args.interactive),
-            "google_scholar": bool(args.google_scholar),
             "fail_on_unresolved": bool(args.fail_on_unresolved),
         },
         "failed_entries": failed_entries,
@@ -236,12 +266,84 @@ def _build_process_error_report(args: "argparse.Namespace", error: Exception) ->
             "template": args.template,
             "output_format": args.output_format,
             "interactive": bool(args.interactive),
-            "google_scholar": bool(args.google_scholar),
             "fail_on_unresolved": bool(args.fail_on_unresolved),
         },
         "failed_entries": [{"id": None, "error": str(error)}],
         "results": [],
     }
+
+
+def _build_suggest_report(args: "argparse.Namespace", result: Dict[str, Any]) -> Dict[str, Any]:
+    """Build the stable suggest report used by JSON mode."""
+    report = result.get("report", {})
+    return {
+        "schema_version": "1.0",
+        "tool": "onecite",
+        "command": "suggest",
+        "status": "completed",
+        "summary": {
+            "total": int(report.get("total", 0)),
+            "with_candidates": int(report.get("with_candidates", 0)),
+            "without_candidates": int(report.get("without_candidates", 0)),
+        },
+        "options": {
+            "input_type": args.input_type,
+            "limit": int(args.limit),
+            "google_scholar": bool(args.google_scholar),
+        },
+        "suggestions": list(result.get("suggestions", [])),
+    }
+
+
+def _build_suggest_error_report(args: "argparse.Namespace", error: Exception) -> Dict[str, Any]:
+    """Build a machine-readable suggest report for hard failures."""
+    return {
+        "schema_version": "1.0",
+        "tool": "onecite",
+        "command": "suggest",
+        "status": "failed",
+        "summary": {
+            "total": 1,
+            "with_candidates": 0,
+            "without_candidates": 1,
+        },
+        "options": {
+            "input_type": args.input_type,
+            "limit": int(args.limit),
+            "google_scholar": bool(args.google_scholar),
+        },
+        "suggestions": [
+            {
+                "id": None,
+                "raw_text": "",
+                "query_string": "",
+                "status": "error",
+                "error": str(error),
+                "candidates": [],
+            }
+        ],
+    }
+
+
+def _format_suggest_text(report: Dict[str, Any]) -> str:
+    """Format a suggest report for humans."""
+    lines = []
+    for suggestion in report["suggestions"]:
+        heading = suggestion.get("query_string") or suggestion.get("raw_text") or "<empty>"
+        lines.append(f"Entry {suggestion.get('id')}: {heading}")
+        candidates = suggestion.get("candidates", [])
+        if not candidates:
+            lines.append("  No candidates found.")
+            continue
+        for index, candidate in enumerate(candidates, start=1):
+            score = candidate.get("match_score", "n/a")
+            source = candidate.get("source", "unknown")
+            title = candidate.get("title", "Untitled")
+            identifier = candidate.get("doi") or candidate.get("arxiv_id") or candidate.get("url") or ""
+            suffix = f" [{identifier}]" if identifier else ""
+            lines.append(f"  {index}. {title}{suffix}")
+            lines.append(f"     source={source} score={score}")
+    return "\n".join(lines)
 
 
 def _format_process_ndjson(report: Dict[str, Any]) -> str:
@@ -459,6 +561,54 @@ def templates_command(args: "argparse.Namespace") -> int:
     return 0
 
 
+def suggest_command(args: "argparse.Namespace") -> int:
+    """Run the ``onecite suggest`` subcommand."""
+    try:
+        input_content = _read_input_content(args)
+
+        if args.quiet or args.as_json:
+            import logging
+
+            logging.basicConfig(level=logging.CRITICAL)
+            for logger_name in ["onecite", "scholarly", "httpx", "fake_useragent"]:
+                logging.getLogger(logger_name).setLevel(logging.CRITICAL)
+
+        with _offline_source_context():
+            result = suggest_references(
+                input_content=input_content,
+                input_type=args.input_type,
+                limit=args.limit,
+                use_google_scholar=args.google_scholar,
+            )
+
+        suggest_report = _build_suggest_report(args, result)
+        output_content = (
+            json.dumps(suggest_report, indent=2)
+            if args.as_json
+            else _format_suggest_text(suggest_report)
+        )
+
+        if args.output:
+            with open(args.output, "w", encoding="utf-8") as f:
+                f.write(output_content)
+                if args.as_json:
+                    f.write("\n")
+            if not args.quiet:
+                status_stream = sys.stderr if args.as_json else sys.stdout
+                print(f"Suggestions saved to: {args.output}", file=status_stream)
+        else:
+            print(output_content)
+
+        return 0
+
+    except Exception as e:
+        if args.as_json:
+            print(json.dumps(_build_suggest_error_report(args, e), indent=2))
+        else:
+            print(f"Suggestion failed: {e}", file=sys.stderr)
+        return 1
+
+
 def process_command(args: "argparse.Namespace") -> int:
     """Run the ``onecite process`` subcommand.
 
@@ -522,7 +672,6 @@ def process_command(args: "argparse.Namespace") -> int:
                 template_name=args.template,
                 output_format=args.output_format,
                 interactive_callback=interactive_callback,
-                use_google_scholar=args.google_scholar,
             )
 
         process_report = _build_process_report(args, result)

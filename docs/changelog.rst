@@ -40,6 +40,15 @@ Changed
   live checks are explicitly marked with ``pytest.mark.live`` so the
   default suite is deterministic and offline.
 
+Removed
+~~~~~~~
+
+- ``onecite process`` no longer accepts ``--google-scholar``, and
+  ``process_references()`` no longer accepts the ``use_google_scholar``
+  parameter (both were no-ops on the authoritative ``process`` path).
+  Google Scholar remains an opt-in, best-effort fallback on
+  ``onecite suggest --google-scholar``.
+
 Fixed
 ~~~~~
 
@@ -60,6 +69,16 @@ Fixed
   distribution artifacts.
 - Added benchmark and doctor checks to the GitHub Actions test
   workflow.
+- DOI-backed BibTeX input keeps canonical CrossRef/DataCite fields
+  instead of letting the original entry override them; original fields
+  still fill gaps and the existing citation key is preserved.
+- A CrossRef 404 always falls back to DataCite instead of only doing so
+  for a short hardcoded prefix list.
+- ``suggest`` no longer routes queries containing words such as
+  "synthesis" or "hypothesis" to the thesis search.
+- GitHub clone URLs ending in ``.git`` resolve to the correct repository.
+- Plain-text entry ids stay contiguous across multi-blank-line gaps, and
+  a dead PLOS article-id branch was removed from the text parser.
 
 [0.1.1] - 2026-04-17
 ---------------------

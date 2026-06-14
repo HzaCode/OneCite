@@ -49,3 +49,6 @@ docs/.doctrees/
 .DS_Store
 Thumbs.db
 
+# Claude Code (personal/local config)
+.claude/settings.local.json
+

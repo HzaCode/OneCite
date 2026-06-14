@@ -147,8 +147,16 @@ class EnricherModule:
                     "bib_data": {},
                 }
 
-            # Generate BibTeX key
-            bib_key = self._generate_bibtex_key(base_record)
+            original_id = (
+                raw_entry.get("original_entry", {}).get("ID")
+                if raw_entry and raw_entry.get("original_entry")
+                else None
+            )
+            bib_key = (
+                self._reserve_bibtex_key(str(original_id).strip())
+                if original_id and str(original_id).strip()
+                else self._generate_bibtex_key(base_record)
+            )
 
             # Fill in missing fields per template. We only attempt the
             # abstract fallback cascade (Semantic Scholar by DOI, then PubMed
@@ -192,14 +200,27 @@ class EnricherModule:
                         api_value = completed_data.get(field)
                         original_value = original[field]
 
-                        # Preserve original if it exists and is not empty
-                        if original_value and str(original_value).strip():
-                            # Log when we're overriding API data
-                            if api_value and api_value != original_value:
+                        if not (original_value and str(original_value).strip()):
+                            continue
+
+                        # When the entry is DOI-backed, the resolved
+                        # CrossRef/DataCite metadata is authoritative: never let
+                        # an original field overwrite a canonical value, only
+                        # fall back to the original to fill a gap the API left
+                        # empty. Without a DOI we have no authority to override
+                        # the user's own text, so the original still wins.
+                        if raw_has_doi and api_value and str(api_value).strip():
+                            if api_value != original_value:
                                 self.logger.info(
-                                    f"Entry {identified_entry['id']}: Preserving original {field}='{original_value}' instead of API value '{api_value}'"
+                                    f"Entry {identified_entry['id']}: Using canonical {field}='{api_value}' over original '{original_value}' (DOI-backed)"
                                 )
-                            completed_data[field] = original_value
+                            continue
+
+                        if api_value and api_value != original_value:
+                            self.logger.info(
+                                f"Entry {identified_entry['id']}: Preserving original {field}='{original_value}' instead of API value '{api_value}'"
+                            )
+                        completed_data[field] = original_value
             else:
                 self.logger.warning(
                     f"Entry {identified_entry['id']}: No original_entry available in raw_entry - raw_entry={raw_entry is not None}"
@@ -246,10 +267,15 @@ class EnricherModule:
             elif is_book_type:
                 completed_data["ENTRYTYPE"] = "book"
             elif (
-                metadata.get("type") == "conference"
+                metadata.get("type") in ("conference", "proceedings-article")
+                or base_record.get("type") in ("conference", "proceedings-article")
+                or completed_data.get("type") in ("conference", "proceedings-article")
+                or completed_data.get("booktitle")
                 or "conference" in completed_data.get("journal", "").lower()
             ):
                 completed_data["ENTRYTYPE"] = "inproceedings"
+                if not completed_data.get("booktitle") and completed_data.get("journal"):
+                    completed_data["booktitle"] = completed_data.pop("journal")
             else:
                 completed_data["ENTRYTYPE"] = template.get("entry_type", "@article").lstrip("@")
 
@@ -506,7 +532,7 @@ class EnricherModule:
                 result = {
                     "title": metadata.get("title", ""),
                     "author": formatted_authors,
-                    "booktitle": journal,
+                    "booktitle": metadata.get("booktitle") or journal,
                     "year": str(metadata.get("year", "")),
                 }
             else:
@@ -596,7 +622,10 @@ class EnricherModule:
                 first_word = re.sub(r"[^\w]", "", title_words[0])
                 key_parts.append(first_word)
 
-        base_key = "".join(key_parts) or "unknown"
+        return self._reserve_bibtex_key("".join(key_parts) or "unknown")
+
+    def _reserve_bibtex_key(self, base_key: str) -> str:
+        """Reserve a BibTeX key, adding a suffix if it was already used."""
         key = base_key
         suffix = ord("a")
         while key in self._used_keys:

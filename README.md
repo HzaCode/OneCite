@@ -36,13 +36,13 @@
 ---
 
 <p align="center">
-  OneCite is a command-line tool and Python library for citation management. It accepts DOIs, paper titles, arXiv IDs, and mixed inputs, and outputs formatted bibliographic entries.
+  OneCite is a command-line tool and Python library for citation management. It resolves strong identifiers such as DOIs, PMIDs, arXiv IDs, ISBNs, GitHub URLs, and data DOIs into formatted bibliographic entries, while plain-text title searches are handled by the separate candidate-only suggest command.
 </p>
 
 ---
 
 
- Researchers frequently accumulate reference lists in ad-hoc formats—DOIs copied from browser tabs, arXiv IDs from paper PDFs, titles typed by hand, and BibTeX fragments from various sources. Cleaning these into consistent BibTeX output is tedious and error-prone. OneCite parses raw reference text and attempts metadata lookup against configured sources such as CrossRef, PubMed, arXiv, and Semantic Scholar. The result is a reproducible processing layer that reports unresolved entries and produces auditable BibTeX where metadata can be found.
+ Researchers frequently accumulate reference lists in ad-hoc formats—DOIs copied from browser tabs, arXiv IDs from paper PDFs, PMIDs, ISBNs, software URLs, data DOIs, and BibTeX fragments from various sources. Cleaning these into consistent BibTeX output is tedious and error-prone. OneCite parses raw reference text and resolves strong identifiers against configured sources such as CrossRef, PubMed, arXiv, DataCite, GitHub, and Google Books. Plain-text title searches are exposed through `onecite suggest` so candidates can be reviewed without being mistaken for verified BibTeX. The result is a reproducible processing layer that reports unresolved entries and produces auditable BibTeX where metadata can be found.
 
 
 
@@ -54,14 +54,13 @@
 
 | Feature                 | Description                                                                                             |
 | ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| **Fuzzy Matching**          | Attempt to match incomplete references against configured academic metadata sources.                 |
+| **Candidate Suggestions**   | Search incomplete plain-text references with `onecite suggest` without resolving them to BibTeX.     |
 | **Multiple Formats**        | Input `.txt`/`.bib` → Output **BibTeX**.                                                             |
 | **4-stage Pipeline**        | A 4-stage process (clean → query → validate → format) to produce consistent output.                  |
 | **Field Completion**        | Fill available fields returned by metadata sources, such as journal, volume, pages, authors, and abstract. |
 | 🎓 **7+ Citation Types**    | Handles journal articles, conference papers, books, software, datasets, theses, and preprints.        |
 | **Multi-Source Lookup**     | Uses source-specific routes for CrossRef, arXiv, PubMed, Semantic Scholar, Google Books, and others. |
-| **Many Identifier Types**   | Accepts DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, or plain text queries.                    |
-| 🎛️ **Interactive Mode**    | Manually select the correct entry when multiple potential matches are found.                          |
+| **Many Identifier Types**   | Resolves DOI, PMID, arXiv ID, ISBN, GitHub URL, Zenodo DOI, and DataCite DOI inputs.                 |
 | **Custom Templates**        | YAML-based presets that provide a fallback BibTeX entry type when auto-detection is inconclusive.    |
 
 
@@ -97,9 +96,9 @@ Create a file named `references.txt` with your mixed-format references:
 
 10.1038/nature14539
 
-Attention is all you need, Vaswani et al., NIPS 2017
+arXiv:1706.03762
 
-Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+ISBN:9780262035613
 
 https://github.com/tensorflow/tensorflow
 
@@ -157,7 +156,7 @@ Your `results.bib` file now contains entries of different types.
 
 ```bash
 onecite process "10.1038/nature14539"
-onecite process "Attention is all you need, Vaswani et al., NIPS 2017"
+onecite suggest "Attention is all you need, Vaswani et al., NIPS 2017"
 echo "10.1038/nature14539" | onecite process -
 ```
 </details>
@@ -198,16 +197,12 @@ Use OneCite directly in your Python scripts.
 ```python
 from onecite import process_references
 
-# A callback can be used for non-interactive selection (e.g., always choose the best match)
-def auto_select_callback(candidates):
-    return 0 # Index of the best candidate
-
 result = process_references(
-    input_content="Deep learning review\nLeCun, Bengio, Hinton\nNature 2015",
+    input_content="10.1038/nature14539",
     input_type="txt",
     template_name="journal_article_full",
     output_format="bibtex",
-    interactive_callback=auto_select_callback
+    interactive_callback=lambda candidates: -1
 )
 
 print('\n\n'.join(result['results']))
@@ -229,7 +224,7 @@ onecite process <input_file> [OPTIONS]
 ```
 
 **Arguments:**
-- `input_file` - Input file path, `-` for stdin, or a reference string (e.g., DOI, title)
+- `input_file` - Input file path, `-` for stdin, or a strong identifier/reference string
 
 **Options:**
 | Option | Short | Description | Default |
@@ -243,7 +238,6 @@ onecite process <input_file> [OPTIONS]
 | `--json` | | Print a stable JSON envelope instead of BibTeX text | `False` |
 | `--ndjson` | | Print newline-delimited JSON events for streaming automation workflows | `False` |
 | `--fail-on-unresolved` | | Return exit code `2` when any entry cannot be resolved | `False` |
-| `--google-scholar` | | Enable Google Scholar as an additional data source (requires scholarly package) | `False` |
 
 **Examples:**
 ```bash
@@ -252,9 +246,6 @@ onecite process references.txt -o results.bib
 
 # Process a BibTeX file with auto-detection
 onecite process references.bib
-
-# Process with interactive mode
-onecite process ambiguous.txt --interactive
 
 # Use stdin
 echo "10.1038/nature14539" | onecite process -
@@ -265,9 +256,6 @@ onecite process "10.1038/nature14539"
 # Process with custom template
 onecite process references.txt --template conference_paper
 
-# Enable Google Scholar (requires scholarly package)
-onecite process references.txt --google-scholar
-
 # Quiet mode for scripts
 onecite process references.txt -o results.bib --quiet
 
@@ -276,6 +264,28 @@ onecite process references.txt --json --fail-on-unresolved
 
 # Streaming NDJSON for automation
 onecite process references.txt --ndjson
+```
+
+### `onecite suggest`
+
+Search for candidate matches without producing BibTeX or returning a
+validation `passed` status.
+
+```bash
+onecite suggest "Attention is all you need, Vaswani et al., NIPS 2017" --json
+```
+
+**Optional Google Scholar fallback.** `suggest` accepts `--google-scholar`
+(requires the optional `scholarly` package: `pip install onecite[scholar]`).
+It is consulted only as a best-effort fallback when CrossRef and Semantic
+Scholar return nothing. Because it scrapes a service with no public API, it
+is **off by default, may be rate-limited or blocked by a CAPTCHA, and is not
+guaranteed to be reproducible** — it is exposed only on `suggest` (candidates
+for human review), never on `process` (authoritative output).
+
+```bash
+pip install onecite[scholar]
+onecite suggest "some obscure title" --google-scholar
 ```
 
 ### `onecite --version`

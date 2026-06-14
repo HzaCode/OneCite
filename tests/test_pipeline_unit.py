@@ -619,8 +619,8 @@ class TestIdentifierFuzzySearch:
             ident, "well_known_papers"
         ), "well_known_papers shortcut should have been removed (#19)"
 
-    def test_attention_query_goes_through_normal_search(self):
-        """fix #19: 'attention is all you need' must go through normal multi-source search."""
+    def test_attention_query_returns_suggestions(self):
+        """Title-only queries produce candidates, not resolved citations."""
         ident = IdentifierModule()
         entry = {
             "id": 1,
@@ -635,10 +635,11 @@ class TestIdentifierFuzzySearch:
             "url": "https://arxiv.org/abs/1706.03762",
         }
         with patch.object(ident, "_search_crossref", return_value=[arxiv_result]):
-            r = ident._fuzzy_search(entry, lambda _: -1)
-        assert r["status"] == "identified"
+            r = ident.suggest(entry)
+        assert r["status"] == "candidates_found"
+        assert r["candidates"][0]["title"] == "Attention Is All You Need"
 
-    def test_pmid_shortcut(self):
+    def test_pmid_shortcut_is_strong_identifier(self):
         ident = IdentifierModule()
         entry = {"id": 2, "raw_text": "PMID:12345678", "query_string": "PMID:12345678"}
         with patch.object(
@@ -646,11 +647,11 @@ class TestIdentifierFuzzySearch:
             "_search_pubmed_by_id",
             return_value={"source": "pubmed", "doi": "10.1234/pmid", "url": "https://example.com"},
         ):
-            r = ident._fuzzy_search(entry, lambda _: -1)
+            r = ident._identify_single_entry(entry, lambda _: -1)
         assert r["status"] == "identified"
         assert r["doi"] == "10.1234/pmid"
 
-    def test_book_prefers_google_books(self):
+    def test_book_query_returns_google_books_suggestion(self):
         ident = IdentifierModule()
         entry = {
             "id": 3,
@@ -686,10 +687,10 @@ class TestIdentifierFuzzySearch:
             patch.object(ident, "_search_google_books", return_value=[gb]),
             patch.object(ident, "_search_crossref", return_value=[cr]),
         ):
-            r = ident._fuzzy_search(entry, lambda _: -1)
+            r = ident.suggest(entry)
 
-        assert r["status"] == "identified"
-        assert r["metadata"]["source"] == "google_books"
+        assert r["status"] == "candidates_found"
+        assert any(candidate["source"] == "google_books" for candidate in r["candidates"])
 
     def test_interactive_user_picks_second(self):
         ident = IdentifierModule()

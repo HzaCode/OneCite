@@ -58,6 +58,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   in the `README.md` Roadmap section and the `flake8 onecite tests`
   validation check.
 
+### Removed
+- `onecite process` no longer accepts `--google-scholar`, and
+  `process_references()` no longer accepts the `use_google_scholar`
+  parameter. Google Scholar was never consulted from the authoritative
+  `process` path, so the flag and parameter were no-ops there. Google
+  Scholar remains available as an opt-in, best-effort fallback on
+  `onecite suggest --google-scholar` /
+  `suggest_references(use_google_scholar=True)`.
+
 ### Fixed
 - Corrected the benchmark Nature DQN DOI fixture from
   `10.1038/nature14539` to `10.1038/nature14236`, and added regression
@@ -87,6 +96,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Clarified that `onecite benchmark --json` is the deterministic offline
   health check, while `onecite process ...` may contact upstream APIs
   unless fixtures or mocks are explicitly configured.
+- DOI-backed BibTeX input now keeps the canonical CrossRef/DataCite field
+  values instead of letting the original entry override them; original
+  fields still fill gaps the API leaves empty, and the existing citation
+  key is still preserved.
+- A CrossRef 404 now always falls back to DataCite instead of only doing so
+  for a short hardcoded prefix list, so dataset/software/thesis DOIs
+  registered under other DataCite prefixes resolve.
+- `suggest` no longer routes queries containing words such as "synthesis",
+  "hypothesis", or "parenthesis" to the thesis search (whole-word match for
+  "thesis"/"dissertation").
+- GitHub clone URLs ending in `.git` now resolve to the correct repository.
+- Plain-text entry ids stay contiguous when entries are separated by more
+  than one blank line, and a dead PLOS article-id branch was removed from
+  the text parser.
 
 ## [0.1.1] - 2026-04-17
 

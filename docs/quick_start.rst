@@ -21,9 +21,9 @@ Example ``references.txt``::
 
     10.1038/nature14539
 
-    Attention is all you need, Vaswani et al., NIPS 2017
+    arXiv:1706.03762
 
-    Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+    ISBN:9780262035613
 
     https://github.com/tensorflow/tensorflow
 
@@ -99,11 +99,11 @@ You can also use OneCite directly in your Python scripts::
     from onecite import process_references
     
     result = process_references(
-        input_content="Deep learning review\nLeCun, Bengio, Hinton\nNature 2015",
+        input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0  # Auto-select first match
+        interactive_callback=lambda candidates: -1
     )
     
     # Print formatted citations

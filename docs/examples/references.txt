@@ -1,8 +1,8 @@
 10.1038/nature14539
 
-Attention is all you need, Vaswani et al., NIPS 2017
+arXiv:1706.03762
 
-Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+ISBN:9780262035613
 
 https://github.com/tensorflow/tensorflow
 

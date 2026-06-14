@@ -67,7 +67,8 @@ OneCite accepts:
 
 - **Plain text** (`.txt`) - One reference per line or separated by blank lines
 - **BibTeX** (`.bib`) - Standard BibTeX format
-- **Direct identifiers** - DOI, arXiv ID, PMID, ISBN, GitHub URLs, or plain text queries
+- **Direct identifiers** - DOI, arXiv ID, PMID, ISBN, GitHub URLs, Zenodo DOI, or DataCite DOI
+- **Candidate suggestions** - Use ``onecite suggest`` for plain-text title queries
 
 Can I use OneCite with Overleaf?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,7 +128,7 @@ OneCite integrates with:
 - Google Books (book metadata)
 - external providerRE / BASE (theses & grey literature)
 - GitHub (software repositories)
-- Google Scholar (optional, off by default)
+- Google Scholar (optional ``suggest``-only best-effort fallback, off by default)
 
 Which data source is best for my field?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
