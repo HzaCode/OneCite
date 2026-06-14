@@ -106,9 +106,8 @@ class FormatterModule:
         has_latex_commands = bool(re.search(r'\{[\\"]', result))
 
         if has_latex_commands:
-            # Text already has LaTeX formatting, don't modify it
-            # But still handle Unicode characters that aren't part of LaTeX commands
-            # by only replacing characters that aren't inside {}
+            # The value already contains LaTeX escapes (e.g. {\"u}); leave it
+            # untouched so existing commands are not corrupted or double-escaped.
             return result
 
         # Replace Unicode characters with LaTeX equivalents
@@ -203,6 +202,8 @@ class FormatterModule:
                     "series",
                     "address",
                     "howpublished",
+                    "abstract",
+                    "editor",
                 ):
                     record[key] = self._escape_latex_chars(value_str)
                 else:

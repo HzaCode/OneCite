@@ -1,43 +1,19 @@
 Advanced Usage
 ==============
 
-Interactive Disambiguation
----------------------------
+Reviewing Candidates for Ambiguous References
+---------------------------------------------
 
-When OneCite finds multiple potential matches for a reference, it can enter interactive mode to let you choose the correct one.
+``onecite process`` only resolves strong identifiers (DOI, PMID, arXiv ID,
+ISBN, URLs) and never guesses from an ambiguous plain-text reference. To
+inspect candidate matches for a messy or incomplete reference, use
+``onecite suggest``::
 
-Enabling Interactive Mode
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+    onecite suggest "deep learning hinton 2015"
 
-::
-
-    onecite process ambiguous.txt --interactive
-
-Example Session
-~~~~~~~~~~~~~~~
-
-::
-
-    Processing ambiguous.txt...
-    
-    Found 2 matches for "Deep learning Hinton":
-    
-    1. Deep Learning
-       Authors: Yann LeCun, Yoshua Bengio, Geoffrey Hinton
-       Journal: Nature
-       Year: 2015
-       Volume: 521, Pages: 436-444
-       DOI: 10.1038/nature14539
-    
-    2. Deep Belief Networks
-       Authors: Geoffrey E. Hinton, Simon Osindero, Yee-Whye Teh
-       Journal: Neural Computation
-       Year: 2006
-       Volume: 18, Pages: 1527-1554
-       DOI: 10.1162/neco.2006.18.7.1527
-    
-    Please select (1-2, 0=skip): 1
-    Selected: Deep Learning (10.1038/nature14539)
+Candidates are returned for human review (with match scores and sources) and
+are not emitted as verified BibTeX. Add ``--json`` for a machine-readable
+envelope.
 
 Batch Processing Multiple Files
 --------------------------------

@@ -198,7 +198,6 @@ def _run_case(case: Dict[str, Any], process_fn: BenchmarkProcess) -> Dict[str, A
             template_name=case["template"],
             output_format=case["output_format"],
             interactive_callback=lambda _candidates: -1,
-            use_google_scholar=False,
         )
         output = "\n\n".join(result.get("results", []))
         _check_report_expectations(case, result.get("report", {}), failures)

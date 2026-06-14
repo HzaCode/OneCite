@@ -72,48 +72,43 @@ parsing fails.
 Stage 2: Identify (``IdentifierModule``)
 ----------------------------------------
 
-**Purpose:** resolve each ``RawEntry`` against academic data sources and
-produce an ``IdentifiedEntry`` with a DOI (when possible) plus basic
-metadata.
+**Purpose:** resolve each ``RawEntry`` with strong identifiers into an
+``IdentifiedEntry`` with a DOI / arXiv ID / URL plus basic metadata.
+Plain-text title searches are not resolved by the processing pipeline; use
+the suggestion workflow for candidate search.
 
-**Input:** ``List[RawEntry]`` and an ``interactive_callback`` that picks
-from candidate lists when confidence is medium.
+**Input:** ``List[RawEntry]`` and an ``interactive_callback`` kept for API
+compatibility.
 
 **Output:** ``List[IdentifiedEntry]``.
 
 **Data sources actually queried by the code:**
 
-- CrossRef (DOI-based and fuzzy search)
-- Semantic Scholar (keyword search)
+- CrossRef (DOI-based lookup; candidate search in suggest mode)
+- Semantic Scholar (candidate search in suggest mode)
 - arXiv (via feedparser)
 - PubMed (biomedical, queried when strong cues are present)
 - DataCite / Zenodo (datasets)
 - Google Books (books — triggered by ISBN or publisher cues)
 - external providerRE / BASE (theses)
 - GitHub (software repositories)
-- Google Scholar (optional, disabled by default; opt-in via
-  ``--google-scholar`` or ``use_google_scholar=True`` and requires the
-  ``scholarly`` package)
+- Google Scholar (optional, ``suggest``-only best-effort fallback, disabled by
+  default; opt-in via ``suggest --google-scholar`` or
+  ``suggest_references(use_google_scholar=True)`` and requires the
+  ``scholarly`` package; never used by ``process``)
 
 There is **no runtime routing based on filename** and no fixed priority
-for "medical", "CS" or "general" queries.  Signal-based heuristics
-inside ``_fuzzy_search`` decide when to *additionally* query PubMed,
-Google Books, external providerRE/BASE, etc., but CrossRef and Semantic Scholar are
-always consulted for text queries.
+for "medical", "CS" or "general" queries. Signal-based heuristics in
+suggestion mode decide when to *additionally* query PubMed, Google Books,
+external providerRE/BASE, etc. Text-only entries in process mode are
+reported as unresolved instead of being guessed.
 
 **Confidence model:**
 
-After all sources have returned candidates, ``_score_candidates`` assigns
-each candidate a ``match_score`` (0–100) based on title / author /
-year / venue similarity to the query.  The decision logic in
-``_fuzzy_search`` then chooses one of three paths:
-
-- ``match_score >= 80`` and a clear best candidate → auto-adopt
-- ``70 <= match_score < 80`` → call the ``interactive_callback`` with up
-  to 5 candidates; fall back to the top candidate if the user skips and
-  the score is still ≥ 75
-- ``match_score >= 50`` and a title is present → adopt cautiously
-- otherwise → mark the entry as ``identification_failed``
+After all suggestion sources have returned candidates, ``_score_candidates``
+assigns each candidate a ``match_score`` (0–100) based on title / author /
+year / venue similarity to the query. Scores are returned for human or
+downstream review; they are not treated as validation proof.
 
 Fallback paths never fabricate data: an entry that cannot be resolved is
 marked ``identification_failed`` rather than filled with invented
@@ -219,7 +214,7 @@ high-level ``process_references`` function:
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0,  # auto-pick first
+        interactive_callback=lambda candidates: -1
     )
 
     print('\n\n'.join(result['results']))

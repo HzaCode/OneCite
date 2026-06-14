@@ -41,6 +41,11 @@ class IdentifierModule:
         self.semantic_scholar_base = "https://api.semanticscholar.org/graph/v1"
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.datacite_base = "https://api.datacite.org"
+        self._crossref_headers = {
+            "Accept": "application/json",
+            "User-Agent": "OneCite/0.1.1 (https://github.com/HzaCode/OneCite; mailto:onecite@users.noreply.github.com)",
+        }
+        self._crossref_mailto = "onecite@users.noreply.github.com"
 
     def identify(
         self, raw_entries: List[RawEntry], interactive_callback: Callable[[List[Dict]], int]
@@ -176,20 +181,46 @@ class IdentifierModule:
                     )
                     return identified_entry
 
-                # Try to extract metadata from PDF or HTML page
-                url_metadata = self._extract_metadata_from_url(raw_entry["url"])
-                if url_metadata:
-                    identified_entry["metadata"] = url_metadata
-                    identified_entry["status"] = "identified"
-                    identified_entry["url"] = raw_entry["url"]
-                    self.logger.info(f"Entry {raw_entry['id']} extracted metadata from URL")
-                    return identified_entry
-
                 identified_entry["url"] = raw_entry["url"]
 
         # Fuzzy search
         if raw_entry.get("query_string"):
-            return self._fuzzy_search(raw_entry, interactive_callback)
+            query_string = raw_entry["query_string"].strip()
+
+            pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string, re.IGNORECASE)
+            if pmid_match:
+                pmid = pmid_match.group(2)
+                pubmed_result = self._search_pubmed_by_id(pmid)
+                if pubmed_result:
+                    return {
+                        "id": raw_entry["id"],
+                        "raw_text": raw_entry["raw_text"],
+                        "doi": pubmed_result.get("doi"),
+                        "arxiv_id": None,
+                        "url": pubmed_result.get("url"),
+                        "metadata": pubmed_result,
+                        "status": "identified",
+                    }
+
+            if re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_string, re.IGNORECASE):
+                books_results = self._search_google_books(query_string)
+                if books_results:
+                    book_result = books_results[0]
+                    return {
+                        "id": raw_entry["id"],
+                        "raw_text": raw_entry["raw_text"],
+                        "doi": book_result.get("doi"),
+                        "arxiv_id": None,
+                        "url": book_result.get("url"),
+                        "metadata": book_result,
+                        "status": "identified",
+                    }
+
+            self.logger.info(
+                "Entry %s has no strong identifier; use `onecite suggest` for candidates.",
+                raw_entry["id"],
+            )
+            return identified_entry
 
         self.logger.warning(f"Entry {raw_entry['id']} identification failed")
         return identified_entry
@@ -199,31 +230,13 @@ class IdentifierModule:
         doi_pattern = r"^10\.\d{4,}/.+"
         return bool(re.match(doi_pattern, doi))
 
-    def _is_datacite_doi(self, doi: str) -> bool:
-        """Check if DOI is registered with DataCite (not CrossRef)."""
-        datacite_prefixes = [
-            "10.5281/",  # Zenodo
-            "10.6084/",  # Figshare
-            "10.5061/",  # Dryad
-            "10.6078/",  # DataONE
-            "10.7910/",  # DVN/Dataverse
-            "10.13003/",  # RePEc
-            "10.14291/",  # UBC Dataverse
-            "10.5683/",  # Scholars Portal
-            "10.20382/",  # University of Manitoba Dataverse
-            "10.5680/",  # University of Sheffield
-            "10.25739/",  # Griffith University
-        ]
-        return any(doi.startswith(prefix) for prefix in datacite_prefixes)
-
     def _verify_doi_and_get_metadata(self, doi: str) -> Optional[Dict]:
         """Verify DOI exists in Crossref or DataCite and get real metadata for comparison."""
         # Try CrossRef first (covers most academic journals/papers)
         try:
             url = f"{self.crossref_base_url}/{doi}"
-            headers = {"Accept": "application/json"}
-
-            response = requests.get(url, headers=headers, timeout=10)
+            params = {"mailto": self._crossref_mailto}
+            response = requests.get(url, headers=self._crossref_headers, params=params, timeout=10)
             response.raise_for_status()
 
             data = response.json()
@@ -255,12 +268,15 @@ class IdentifierModule:
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:
                 self.logger.warning(f"DOI {doi} not found in CrossRef (404)")
-                # Try DataCite for dataset/software DOIs
-                if self._is_datacite_doi(doi):
-                    self.logger.info(f"DOI {doi} appears to be DataCite, trying DataCite API...")
-                    datacite_result = self._query_datacite(doi)
-                    if datacite_result:
-                        return datacite_result
+                # A CrossRef 404 only means the DOI is not registered with
+                # CrossRef. Many valid DOIs (datasets, software, theses,
+                # preprints) are DataCite-registered under prefixes far beyond
+                # any short hardcoded list, so always fall back to DataCite
+                # rather than guessing eligibility from the prefix.
+                self.logger.info(f"DOI {doi} not in CrossRef, trying DataCite API...")
+                datacite_result = self._query_datacite(doi)
+                if datacite_result:
+                    return datacite_result
                 return None
             else:
                 self.logger.error(f"HTTP error verifying DOI {doi}: {str(e)}")
@@ -279,7 +295,10 @@ class IdentifierModule:
             if match:
                 owner = match.group(1)
                 repo = match.group(2)
-                # Remove any trailing punctuation or special chars
+                # Drop a trailing ".git" (clone URLs) and any trailing
+                # punctuation so the API call targets the real repo
+                # (e.g. ".../repo.git" -> "repo").
+                repo = re.sub(r"\.git$", "", repo)
                 repo = re.sub(r"[^a-zA-Z0-9_.-].*$", "", repo)
 
                 url = f"{self.github_api_base}/repos/{owner}/{repo}"
@@ -899,48 +918,11 @@ class IdentifierModule:
                 except Exception:
                     pass
 
-            # 3. Limited search in main content only (exclude reference sections)
-            # Remove known reference/citation sections to avoid false matches
-            for ref_section in soup.find_all(
-                ["div", "section", "article"],
-                attrs={"class": re.compile(r"(reference|citation|bibliography)", re.IGNORECASE)},
-            ):
-                ref_section.decompose()
-            for ref_section in soup.find_all(
-                ["div", "section", "article"],
-                id=re.compile(r"(reference|citation|bibliography)", re.IGNORECASE),
-            ):
-                ref_section.decompose()
-
-            # Also remove common reference list elements
-            for ref_list in soup.find_all(
-                ["ul", "ol"], attrs={"class": re.compile(r"(reference|citation)", re.IGNORECASE)}
-            ):
-                ref_list.decompose()
-
-            # Search in remaining main content area
-            main_content = soup.find("main") or soup.find("article") or soup.find("body")
-            if main_content:
-                # Look for DOI patterns, but be cautious
-                content_text = main_content.get_text()
-                doi_match = re.search(
-                    r'(?:doi:?\s*|https?://doi\.org/)?(10\.\d{4,}/[^\s"<>,}]+)',
-                    content_text,
-                    re.IGNORECASE,
-                )
-                if doi_match:
-                    doi = doi_match.group(1) if doi_match.lastindex >= 1 else doi_match.group(0)
-                    # Clean up the DOI
-                    doi = re.sub(r"^https?://doi\.org/", "", doi, flags=re.IGNORECASE)
-                    doi = re.sub(r"^doi:?\s*", "", doi, flags=re.IGNORECASE)
-
-                    if self._validate_doi(doi):
-                        self.logger.warning(
-                            f"Found DOI in page content (not meta tags): {doi}. May be less reliable."
-                        )
-                        return doi
-
-            # 4. If nothing found, return None (don't use full page text)
+            # Body-text DOI scraping was intentionally removed: grabbing the
+            # first "10.x/y"-looking string from arbitrary page text is
+            # unreliable and can adopt a *cited* paper's DOI. Only a
+            # publisher-declared meta tag / schema.org identifier (above) is
+            # treated as a strong, verifiable signal.
             self.logger.info(f"No reliable DOI found in URL: {url}")
             return None
 
@@ -949,575 +931,77 @@ class IdentifierModule:
 
         return None
 
-    def _extract_metadata_from_url(self, url: str) -> Optional[Dict]:
-        """Extract metadata from PDF or HTML page"""
-        try:
-            response = requests.get(
-                url, timeout=15, headers={"User-Agent": "OneCite/1.0"}, stream=True
-            )
-            content_len = response.headers.get("content-length")
-            if content_len and int(content_len) > 5 * 1024 * 1024:
-                self.logger.warning(f"Skipping URL {url}: response too large ({content_len} bytes)")
-                return None
-            response._content = response.raw.read(5 * 1024 * 1024)
-            response.raise_for_status()
+    def suggest(self, raw_entry: RawEntry, limit: int = 5) -> Dict:
+        """Return candidate matches for a raw entry without resolving it."""
+        query_string = (raw_entry.get("query_string") or raw_entry.get("raw_text") or "").strip()
+        suggestion = {
+            "id": raw_entry["id"],
+            "raw_text": raw_entry.get("raw_text", ""),
+            "query_string": query_string,
+            "status": "no_candidates",
+            "candidates": [],
+        }
+        if not query_string:
+            return suggestion
 
-            # Check if it's a PDF
-            content_type = response.headers.get("content-type", "").lower()
-            if "pdf" in content_type or url.lower().endswith(".pdf"):
-                return self._extract_from_pdf_content(response.content)
-            else:
-                return self._extract_from_html_content(response.content)
+        candidates = self._collect_suggestion_candidates(query_string)
+        scored_candidates = self._score_candidates(candidates, query_string) if candidates else []
+        suggestion["candidates"] = [
+            self._public_candidate(candidate) for candidate in scored_candidates[: max(limit, 0)]
+        ]
+        if suggestion["candidates"]:
+            suggestion["status"] = "candidates_found"
+        return suggestion
 
-        except Exception as e:
-            self.logger.warning(f"Failed to extract metadata from URL {url}: {str(e)}")
-            return None
+    def _public_candidate(self, candidate: Dict) -> Dict:
+        """Remove private scorer fields from suggestion output."""
+        return {key: value for key, value in candidate.items() if not key.startswith("_")}
 
-    def _extract_from_html_content(self, content: bytes) -> Optional[Dict]:
-        """Extract metadata from HTML content"""
-        try:
-            soup = BeautifulSoup(content, "html.parser")
-            metadata = {}
-
-            # Look for academic metadata in meta tags
-            meta_mappings = {
-                "title": ["citation_title", "dc.title", "og:title"],
-                "author": ["citation_author", "dc.creator", "author"],
-                "journal": ["citation_journal_title", "dc.source", "citation_conference_title"],
-                "year": ["citation_publication_date", "citation_date", "dc.date"],
-                "abstract": ["citation_abstract", "dc.description", "description"],
-                "volume": ["citation_volume"],
-                "pages": ["citation_firstpage", "citation_lastpage"],
-            }
-
-            authors = []
-            for field, tag_names in meta_mappings.items():
-                for tag_name in tag_names:
-                    metas = soup.find_all("meta", attrs={"name": tag_name}) + soup.find_all(
-                        "meta", attrs={"property": tag_name}
-                    )
-
-                    for meta in metas:
-                        if meta.get("content"):
-                            content_value = meta["content"].strip()
-                            if not content_value:
-                                continue
-
-                            if field == "author":
-                                authors.append(content_value)
-                            elif field == "year":
-                                year_match = re.search(r"\b(19|20)\d{2}\b", content_value)
-                                if year_match:
-                                    metadata[field] = int(year_match.group())
-                            elif field == "journal":
-                                # Don't overwrite if already found
-                                if field not in metadata:
-                                    metadata[field] = content_value
-                            else:
-                                metadata[field] = content_value
-
-                            # For non-author fields, break after finding first valid value
-                            if field != "author":
-                                break
-
-                    # For non-author fields, break after finding value from any tag
-                    if field != "author" and field in metadata:
-                        break
-
-            # Process authors
-            if authors:
-                # Clean up author names and join them
-                cleaned_authors = []
-                for author in authors:
-                    # Remove extra whitespace and common prefixes
-                    author = re.sub(r"^\s*(by\s+)?", "", author, flags=re.IGNORECASE).strip()
-                    if author and len(author) > 2:
-                        cleaned_authors.append(author)
-
-                if cleaned_authors:
-                    metadata["author"] = " and ".join(cleaned_authors)
-
-            # If no title found, try page title
-            if "title" not in metadata:
-                title_tag = soup.find("title")
-                if title_tag:
-                    title = title_tag.get_text().strip()
-                    # Clean up common title suffixes
-                    title = re.sub(
-                        r"\s*[-|]\s*(PDF|Download|Paper|Abstract).*$",
-                        "",
-                        title,
-                        flags=re.IGNORECASE,
-                    )
-                    if len(title) > 10:
-                        metadata["title"] = title
-
-            # If still no authors, try to extract from page content
-            if "author" not in metadata:
-                authors_from_content = self._extract_authors_from_content(soup)
-                if authors_from_content:
-                    metadata["author"] = authors_from_content
-
-            # Extract year from title or content if not found
-            if "year" not in metadata:
-                year_from_content = self._extract_year_from_content(soup, metadata.get("title", ""))
-                if year_from_content:
-                    metadata["year"] = year_from_content
-
-            return metadata if len(metadata) >= 1 else None
-
-        except Exception as e:
-            self.logger.warning(f"Failed to extract from HTML: {str(e)}")
-            return None
-
-    def _extract_authors_from_content(self, soup: BeautifulSoup) -> Optional[str]:
-        """Extract authors from page content when meta tags are not available"""
-        try:
-            # Look for author-related elements
-            author_selectors = [
-                '[class*="author"]',
-                '[class*="byline"]',
-                '[id*="author"]',
-                ".authors",
-                ".author-list",
-            ]
-
-            for selector in author_selectors:
-                elements = soup.select(selector)
-                for elem in elements:
-                    text = elem.get_text().strip()
-                    if text and 10 <= len(text) <= 200:
-                        # Clean up the text
-                        text = re.sub(r"^\s*(authors?|by)\s*:?\s*", "", text, flags=re.IGNORECASE)
-                        # Look for name patterns
-                        if re.search(r"[A-Z][a-z]+\s+[A-Z][a-z]+", text):
-                            return text
-
-            # Try pattern matching in the full text
-            page_text = soup.get_text()
-
-            # Pattern 1: "By Author Name"
-            by_pattern = r"[Bb]y\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+(?:\s*,\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)*)"
-            match = re.search(by_pattern, page_text)
-            if match:
-                return match.group(1)
-
-            # Pattern 2: "Authors: Name1, Name2"
-            authors_pattern = r"[Aa]uthors?\s*:\s*([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*(?:\s*,\s*[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*)*)"
-            match = re.search(authors_pattern, page_text)
-            if match:
-                return match.group(1)
-
-        except Exception as e:
-            self.logger.warning(f"Failed to extract authors from content: {str(e)}")
-
-        return None
-
-    def _extract_year_from_content(self, soup: BeautifulSoup, title: str = "") -> Optional[int]:
-        """Extract publication year from content"""
-        try:
-            # First try to find year in title
-            if title:
-                year_match = re.search(r"\b(19|20)\d{2}\b", title)
-                if year_match:
-                    return int(year_match.group())
-
-            # Look for year in specific elements
-            year_selectors = [
-                '[class*="year"]',
-                '[class*="date"]',
-                ".publication-date",
-                ".pub-date",
-            ]
-
-            for selector in year_selectors:
-                elements = soup.select(selector)
-                for elem in elements:
-                    text = elem.get_text()
-                    year_match = re.search(r"\b(19|20)\d{2}\b", text)
-                    if year_match:
-                        return int(year_match.group())
-
-            # Try to find year in the first few paragraphs
-            paragraphs = soup.find_all("p")[:5]
-            for p in paragraphs:
-                text = p.get_text()
-                year_match = re.search(r"\b(19|20)\d{2}\b", text)
-                if year_match:
-                    year = int(year_match.group())
-                    # Only accept reasonable years for academic papers
-                    if 1950 <= year <= 2030:
-                        return year
-
-        except Exception as e:
-            self.logger.warning(f"Failed to extract year from content: {str(e)}")
-
-        return None
-
-    def _extract_from_pdf_content(self, content: bytes) -> Optional[Dict]:
-        """Extract metadata from PDF content"""
-        try:
-            import PyPDF2
-            import io
-
-            pdf_file = io.BytesIO(content)
-            pdf_reader = PyPDF2.PdfReader(pdf_file)
-            metadata = {}
-
-            # Extract from PDF metadata
-            if pdf_reader.metadata:
-                pdf_meta = pdf_reader.metadata
-                if pdf_meta.get("/Title"):
-                    title = str(pdf_meta["/Title"]).strip()
-                    if len(title) > 5:
-                        metadata["title"] = title
-                if pdf_meta.get("/Author"):
-                    author = str(pdf_meta["/Author"]).strip()
-                    if len(author) > 3:
-                        metadata["author"] = author
-
-            # Extract from first page text
-            if len(pdf_reader.pages) > 0:
-                try:
-                    first_page_text = pdf_reader.pages[0].extract_text()
-                    if first_page_text:
-                        lines = [
-                            line.strip() for line in first_page_text.split("\n") if line.strip()
-                        ]
-
-                        # Try to find title (usually one of the first few lines)
-                        if "title" not in metadata:
-                            for line in lines[:5]:
-                                if 20 <= len(line) <= 200 and not line.isupper():
-                                    # Skip lines that look like headers/footers
-                                    if not re.search(
-                                        r"(page|abstract|introduction|©|\d+)", line.lower()
-                                    ):
-                                        metadata["title"] = line
-                                        break
-
-                        # Try to extract year
-                        year_match = re.search(r"\b(19|20)\d{2}\b", first_page_text)
-                        if year_match:
-                            metadata["year"] = int(year_match.group())
-
-                except Exception as e:
-                    self.logger.warning(f"Failed to extract text from PDF: {str(e)}")
-
-            return metadata if metadata else None
-
-        except ImportError:
-            self.logger.warning("PyPDF2 not available for PDF parsing")
-            return None
-        except Exception as e:
-            self.logger.warning(f"Failed to extract from PDF: {str(e)}")
-            return None
-
-    def _fuzzy_search(
-        self, raw_entry: RawEntry, interactive_callback: Callable[[List[Dict]], int]
-    ) -> IdentifiedEntry:
-        """Perform fuzzy search using simplified routing: always query core sources, conditionally append specialized sources."""
-        query_string = raw_entry["query_string"]
+    def _collect_suggestion_candidates(self, query_string: str) -> List[Dict]:
+        """Collect possible matches for suggestion-only workflows."""
         query_lower = query_string.lower()
-
         candidates = []
 
-        # === Core sources: always query ===
-        # CrossRef covers most academic papers; Semantic Scholar adds citation metadata
-        self.logger.info("Querying core sources: CrossRef + Semantic Scholar")
+        self.logger.info("Querying suggestion sources: CrossRef + Semantic Scholar")
         crossref_results = self._search_crossref(query_string)
         candidates.extend(crossref_results)
 
         semantic_results = self._search_semantic_scholar(query_string)
         candidates.extend(semantic_results)
 
-        # === Conditional specialized sources ===
-
-        # 1. PMID pattern detected
-        pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string.strip())
+        pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string.strip(), re.IGNORECASE)
         if pmid_match:
-            pmid = pmid_match.group(2)
-            self.logger.info(f"Detected PubMed ID pattern: {pmid}, querying PubMed")
-            pubmed_result = self._search_pubmed_by_id(pmid)
+            pubmed_result = self._search_pubmed_by_id(pmid_match.group(2))
             if pubmed_result:
-                # For PMID-only queries (no other text), return directly
-                # This handles cases where the query is just "PMID:12345678"
-                text_without_pmid = (
-                    query_string.replace(f"PMID:{pmid}", "").replace(pmid, "").strip()
-                )
-                if len(text_without_pmid) < 3:  # Essentially just the PMID
-                    return {
-                        "id": raw_entry["id"],
-                        "raw_text": raw_entry["raw_text"],
-                        "doi": pubmed_result.get("doi"),
-                        "arxiv_id": None,
-                        "url": pubmed_result.get("url"),
-                        "metadata": pubmed_result,
-                        "status": "identified",
-                    }
-                # Otherwise, add to candidates for scoring alongside other sources
                 candidates.append(pubmed_result)
 
-        # 2. Strong biomedical cues → also query PubMed (as additive source)
         strong_medical_cues = ["pubmed", "pmid", "clinical trial", "randomized controlled"]
         if any(cue in query_lower for cue in strong_medical_cues):
-            self.logger.info("Strong medical cues detected, querying PubMed as additive source")
-            pubmed_results = self._search_pubmed(query_string)
-            candidates.extend(pubmed_results)
+            candidates.extend(self._search_pubmed(query_string))
 
-        # 3. Book indicators → query Google Books
-        # Simplified detection: only check strongest signals
         has_isbn = bool(re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_lower, re.IGNORECASE))
         has_edition = bool(re.search(r"\b\d+(?:st|nd|rd|th)?\s+ed\.?\b", query_lower))
         has_book_publisher = any(
             pub in query_lower
             for pub in ["wiley", "o'reilly", "springer", "cambridge press", "mit press"]
         )
-
         if has_isbn or has_edition or has_book_publisher:
-            self.logger.info(
-                f"Book indicators detected (ISBN={has_isbn}, edition={has_edition}, publisher={has_book_publisher}), querying Google Books"
-            )
-            books_results = self._search_google_books(query_string)
-            candidates.extend(books_results)
+            candidates.extend(self._search_google_books(query_string))
 
-        # 4. Thesis indicators → query external providerRE/BASE
-        thesis_keywords = [
-            "dissertation",
-            "phd thesis",
-            "master thesis",
-            "doctoral thesis",
-            "thesis",
-        ]
-        if any(kw in query_lower for kw in thesis_keywords):
-            self.logger.info("Thesis indicators detected, querying external providerRE/BASE")
+        # Match whole words only: a bare "thesis"/"dissertation" substring
+        # check also fires on "hypothesis", "synthesis", "parenthesis", etc.,
+        # routing unrelated queries to thesis search.
+        if re.search(r"\b(thesis|dissertation)\b", query_lower):
             thesis_results = self._search_openaire_for_thesis(
                 query_string
             ) or self._search_base_for_thesis(query_string)
             if thesis_results:
                 candidates.append(thesis_results)
 
-        # 5. Google Scholar as optional fallback (if enabled and core sources returned little)
-        if self.use_google_scholar:
-            if len(crossref_results) == 0 and len(semantic_results) == 0:
-                self.logger.info("Core sources returned no results, trying Google Scholar")
-                scholar_results = self._search_google_scholar(query_string)
-                candidates.extend(scholar_results)
+        if self.use_google_scholar and not crossref_results and not semantic_results:
+            candidates.extend(self._search_google_scholar(query_string))
 
-        if not candidates:
-            self.logger.warning(f"Entry {raw_entry['id']}: no candidate results found")
-            return {
-                "id": raw_entry["id"],
-                "raw_text": raw_entry["raw_text"],
-                "doi": None,
-                "arxiv_id": None,
-                "url": None,
-                "metadata": {},
-                "status": "identification_failed",
-            }
-
-        scored_candidates = self._score_candidates(candidates, query_string)
-        # _score_candidates now handles tie-breaking internally
-        best_candidate = scored_candidates[0] if scored_candidates else None
-
-        if not best_candidate:
-            self.logger.warning(f"Entry {raw_entry['id']}: no scored candidates")
-            return {
-                "id": raw_entry["id"],
-                "raw_text": raw_entry["raw_text"],
-                "doi": None,
-                "arxiv_id": None,
-                "url": None,
-                "metadata": {},
-                "status": "identification_failed",
-            }
-
-        # Try to resolve DOI for strong matches without one
-        if (
-            (not best_candidate.get("doi"))
-            and best_candidate.get("title")
-            and best_candidate.get("match_score", 0) >= 85
-        ):
-            try:
-                resolved = self._resolve_doi_via_crossref_title(
-                    best_candidate["title"], query_string
-                )
-                if resolved and resolved.get("doi"):
-                    best_candidate = resolved
-            except Exception:
-                pass
-
-        # Decision logic
-        if best_candidate["match_score"] >= 80:
-            # High confidence: auto adopt
-            if (
-                len(scored_candidates) == 1
-                or best_candidate["match_score"] - scored_candidates[1]["match_score"] > 10
-            ):
-                self.logger.info(
-                    f"Entry {raw_entry['id']} high confidence match: {best_candidate.get('doi', 'no-doi')}"
-                )
-                return {
-                    "id": raw_entry["id"],
-                    "raw_text": raw_entry["raw_text"],
-                    "doi": best_candidate.get("doi"),
-                    "arxiv_id": best_candidate.get("arxiv_id"),
-                    "url": best_candidate.get("url"),
-                    "metadata": best_candidate,
-                    "status": "identified",
-                }
-
-        if 70 <= best_candidate["match_score"] < 80:
-            # Medium confidence: trigger interactive mode
-            top_candidates = scored_candidates[:5]  # Top 5 candidates
-            try:
-                user_choice = interactive_callback(top_candidates)
-                if 0 <= user_choice < len(top_candidates):
-                    chosen_candidate = top_candidates[user_choice]
-                    self.logger.info(
-                        f"Entry {raw_entry['id']} user selection: {chosen_candidate.get('doi', 'no-doi')}"
-                    )
-                    return {
-                        "id": raw_entry["id"],
-                        "raw_text": raw_entry["raw_text"],
-                        "doi": chosen_candidate.get("doi"),
-                        "arxiv_id": chosen_candidate.get("arxiv_id"),
-                        "url": chosen_candidate.get("url"),
-                        "metadata": chosen_candidate,
-                        "status": "identified",
-                    }
-                else:
-                    # Non-interactive or user skipped: fallback to best candidate if sufficiently strong
-                    if best_candidate["match_score"] >= 75:
-                        self.logger.info(
-                            f"Entry {raw_entry['id']} fallback adopt best candidate (score={best_candidate['match_score']}): {best_candidate.get('doi', 'no-doi')}"
-                        )
-                        return {
-                            "id": raw_entry["id"],
-                            "raw_text": raw_entry["raw_text"],
-                            "doi": best_candidate.get("doi"),
-                            "arxiv_id": best_candidate.get("arxiv_id"),
-                            "url": best_candidate.get("url"),
-                            "metadata": best_candidate,
-                            "status": "identified",
-                        }
-                    self.logger.info(f"Entry {raw_entry['id']} user skipped")
-            except Exception as e:
-                self.logger.error(f"Interactive callback failed: {str(e)}")
-                # Fallback in case interactive path is unavailable
-                if best_candidate["match_score"] >= 75:
-                    self.logger.info(
-                        f"Entry {raw_entry['id']} fallback adopt best candidate after interactive error (score={best_candidate['match_score']}): {best_candidate.get('doi', 'no-doi')}"
-                    )
-                    return {
-                        "id": raw_entry["id"],
-                        "raw_text": raw_entry["raw_text"],
-                        "doi": best_candidate.get("doi"),
-                        "arxiv_id": best_candidate.get("arxiv_id"),
-                        "url": best_candidate.get("url"),
-                        "metadata": best_candidate,
-                        "status": "identified",
-                    }
-
-        # Low confidence fallback: unified threshold
-        # With two-layer scoring, match_score is purely about query relevance
-        LOW_CONFIDENCE_THRESHOLD = 50
-        if best_candidate["match_score"] >= LOW_CONFIDENCE_THRESHOLD and best_candidate.get(
-            "title"
-        ):
-            self.logger.info(
-                f"Entry {raw_entry['id']} adopting best candidate with score {best_candidate['match_score']}"
-            )
-            return {
-                "id": raw_entry["id"],
-                "raw_text": raw_entry["raw_text"],
-                "doi": best_candidate.get("doi"),
-                "arxiv_id": best_candidate.get("arxiv_id"),
-                "url": best_candidate.get("url"),
-                "metadata": best_candidate,
-                "status": "identified",
-            }
-
-        # Debug: Log the best candidate score for analysis
-        self.logger.info(
-            f"Entry {raw_entry['id']} best candidate score: {best_candidate.get('match_score', 0)}"
-        )
-        if "score_breakdown" in best_candidate:
-            self.logger.info(
-                f"Entry {raw_entry['id']} score breakdown: {best_candidate['score_breakdown']}"
-            )
-
-        # Low confidence: mark as failed
-        self.logger.warning(f"Entry {raw_entry['id']} low confidence match, marking as failed")
-        return {
-            "id": raw_entry["id"],
-            "raw_text": raw_entry["raw_text"],
-            "doi": None,
-            "arxiv_id": None,
-            "url": None,
-            "metadata": {},
-            "status": "identification_failed",
-        }
-
-    def _resolve_doi_via_crossref_title(
-        self, candidate_title: str, original_query: str
-    ) -> Optional[Dict]:
-        """Try to resolve DOI by querying CrossRef with title only (plus hints). Returns a candidate dict with DOI if found and strongly matched."""
-        try:
-            url = f"{self.crossref_base_url}"
-            # Build a focused query using title and optional year tokens from original query
-            year_match = re.search(r"(19|20)\d{2}", original_query)
-            year_text = year_match.group(0) if year_match else ""
-            focused_query = candidate_title
-            if year_text:
-                focused_query = f"{candidate_title} {year_text}"
-            params = {
-                "query.title": candidate_title,
-                "query.bibliographic": focused_query,
-                "rows": 5,
-                "mailto": "onecite@users.noreply.github.com",
-            }
-            response = requests.get(url, params=params, timeout=5)
-            response.raise_for_status()
-            data = response.json()
-            items = data.get("message", {}).get("items", [])
-            best_item = None
-            best_score = -1
-            for item in items:
-                title = (item.get("title", [""])[0] or "").lower()
-                if not title:
-                    continue
-                # Fuzzy comparison against candidate title
-                base = candidate_title.lower()
-                score = max(
-                    fuzz.ratio(base, title),
-                    fuzz.partial_ratio(base, title),
-                    fuzz.token_set_ratio(base, title),
-                )
-                if score > best_score and item.get("DOI"):
-                    best_score = score
-                    best_item = item
-            if best_item and best_score >= 90:
-                return {
-                    "source": "crossref",
-                    "doi": best_item.get("DOI"),
-                    "title": (best_item.get("title", [""])[0] or ""),
-                    "authors": [
-                        f"{a.get('given', '')} {a.get('family', '')}"
-                        for a in best_item.get("author", [])
-                    ],
-                    "year": _safe_year(best_item.get("published-print"))
-                    or _safe_year(best_item.get("published-online")),
-                    "journal": (
-                        best_item.get("container-title", [""])[0]
-                        if best_item.get("container-title")
-                        else ""
-                    ),
-                    "citations": best_item.get("is-referenced-by-count", 0),
-                }
-        except Exception:
-            return None
-        return None
+        return candidates
 
     def _search_crossref(self, query: str, limit: int = 15) -> List[Dict]:
         """CrossRef search with query optimization."""
@@ -2106,40 +1590,42 @@ class IdentifierModule:
         # Sort by match score descending
         scored_candidates.sort(key=lambda x: x["match_score"], reverse=True)
 
-        # Tie-Break Layer: when top-2 scores are close (within 5 points)
+        # Tie-break layer: candidates within 5 points of the top score form a
+        # near-tie cluster whose raw scores are not meaningfully different, so
+        # order that cluster by the tie-break rank (exact title, venue hit, has
+        # DOI, source tier) instead of by raw score. Candidates outside the
+        # cluster keep their score order.
         if len(scored_candidates) >= 2:
-            best = scored_candidates[0]
-            second = scored_candidates[1]
-            if best["match_score"] - second["match_score"] <= 5:
-                # Apply tie-break criteria
-                def tie_break_rank(c):
-                    sb = c.get("score_breakdown", {})
-                    rank = 0
-                    # 1. Exact title match (highest priority)
-                    if sb.get("title", 0) >= 90:
-                        rank += 1000
-                    # 2. Venue exact hit
-                    if sb.get("venue", 0) >= 70:
-                        rank += 100
-                    # 3. Has DOI
-                    if c.get("doi"):
-                        rank += 10
-                    # 4. Source tier (lower number = better)
-                    source_tier = {
-                        "crossref": 1,
-                        "pubmed": 2,
-                        "semantic_scholar": 3,
-                        "google_books": 4,
-                        "datacite": 5,
-                        "zenodo": 6,
-                        "google_scholar": 7,
-                    }.get(c.get("source"), 8)
-                    rank -= source_tier  # Better source = lower tier number = higher rank
-                    return rank
 
-                # Re-sort with tie-break
-                scored_candidates.sort(
-                    key=lambda x: (x["match_score"], tie_break_rank(x)), reverse=True
-                )
+            def tie_break_rank(c):
+                sb = c.get("score_breakdown", {})
+                rank = 0
+                # 1. Exact title match (highest priority)
+                if sb.get("title", 0) >= 90:
+                    rank += 1000
+                # 2. Venue exact hit
+                if sb.get("venue", 0) >= 70:
+                    rank += 100
+                # 3. Has DOI
+                if c.get("doi"):
+                    rank += 10
+                # 4. Source tier (lower number = better)
+                source_tier = {
+                    "crossref": 1,
+                    "pubmed": 2,
+                    "semantic_scholar": 3,
+                    "google_books": 4,
+                    "datacite": 5,
+                    "zenodo": 6,
+                    "google_scholar": 7,
+                }.get(c.get("source"), 8)
+                rank -= source_tier  # Better source = lower tier number = higher rank
+                return rank
+
+            best_score = scored_candidates[0]["match_score"]
+            cluster = [c for c in scored_candidates if best_score - c["match_score"] <= 5]
+            rest = [c for c in scored_candidates if best_score - c["match_score"] > 5]
+            cluster.sort(key=tie_break_rank, reverse=True)
+            scored_candidates = cluster + rest
 
         return scored_candidates

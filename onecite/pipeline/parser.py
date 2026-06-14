@@ -86,13 +86,16 @@ class ParserModule:
         # Split text blocks using double newlines
         text_blocks = text_content.split("\n\n")
 
-        for i, block in enumerate(text_blocks):
+        for block in text_blocks:
             block = block.strip()
             if not block:
                 continue
 
             raw_entry: RawEntry = {
-                "id": i,
+                # Running index over non-empty blocks so ids stay contiguous
+                # even when entries are separated by more than one blank line
+                # (which yields empty splits that are skipped above).
+                "id": len(entries),
                 "raw_text": block,
                 "doi": None,
                 "url": None,
@@ -102,19 +105,6 @@ class ParserModule:
             doi_match = re.search(r"10\.\d{4,}/[^\s,}]+", block)
             if doi_match:
                 raw_entry["doi"] = doi_match.group().rstrip(".,;:)]")
-            else:
-                # Try to find article ID patterns that might be convertible to DOI
-                # Common patterns: e0000429, PMC123456, etc.
-                article_id_match = re.search(r"\b[eE]\d{7}\b", block)  # PLOS style: e0000429
-                if article_id_match:
-                    article_id = article_id_match.group()
-                    # Note potential PLOS article ID but don't assume specific journal
-                    # Let Cross resolve the actual DOI during identification
-                    self.logger.info(
-                        f"Entry {i} found potential PLOS article ID {article_id}, will attempt resolution via CrossRef"
-                    )
-                    if not raw_entry["query_string"]:
-                        raw_entry["query_string"] = block
 
             url_match = re.search(r"https?://[^\s]+", block)
             if url_match:

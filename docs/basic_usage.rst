@@ -17,9 +17,9 @@ A text file where each reference is separated by a **blank line**::
 
     10.1038/nature14539
 
-    Vaswani et al., 2017, Attention is all you need
+    arXiv:1706.03762
 
-    Smith (2020) Neural Architecture Search
+    ISBN:9780262035613
 
 .. note::
 
@@ -68,29 +68,6 @@ Command-Line Options
 
     onecite process input.txt --output-format bibtex  # only supported format
 
-**Interactive Mode (--interactive)**
-
-When multiple potential matches are found, OneCite will prompt you to select the correct one::
-
-    onecite process input.txt --interactive
-
-Example interaction::
-
-    Found multiple matches for "Deep learning Hinton":
-    
-    1. Deep learning
-       Authors: LeCun, Yann; Bengio, Yoshua; Hinton, Geoffrey
-       Journal: Nature, 2015
-       DOI: 10.1038/nature14539
-    
-    2. Deep belief networks
-       Authors: Hinton, Geoffrey E.
-       Journal: Scholarpedia, 2009
-       DOI: 10.4249/scholarpedia.5947
-    
-    Please select (1-2, 0=skip): 1
-    Selected: Deep learning
-
 **Quiet Mode (--quiet)**
 
 Suppress verbose output::
@@ -115,18 +92,23 @@ line followed by result and failure events::
 
     onecite process input.txt --ndjson
 
-**Google Scholar (--google-scholar)**
+**Google Scholar (suggest only, --google-scholar)**
 
-Enable Google Scholar as an additional data source (requires the optional ``scholarly`` package)::
+A best-effort fallback for the ``suggest`` command only (requires the optional
+``scholarly`` package: ``pip install onecite[scholar]``). It is consulted only
+when CrossRef and Semantic Scholar return nothing. Because it scrapes a service
+with no public API, it is off by default, may be blocked by a CAPTCHA, and is
+not guaranteed to be reproducible. It is never used by ``process``, whose output
+is authoritative::
 
-    onecite process input.txt --google-scholar
+    onecite suggest input.txt --google-scholar
 
 **Direct String Input**
 
 Pass a reference string directly instead of a file::
 
     onecite process "10.1038/nature14539"
-    onecite process "Attention is all you need, Vaswani et al., NIPS 2017"
+    onecite suggest "Attention is all you need, Vaswani et al., NIPS 2017"
 
 **Stdin Input**
 
@@ -197,14 +179,14 @@ Example 1: Process a BibTeX File
 This will read ``my_references.bib``, enhance the entries, and save to ``clean_references.bib``.
 The ``--input-type`` flag is optional for ``.bib`` files — OneCite detects the format automatically.
 
-Example 2: Interactive Processing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Example 2: Suggesting Candidates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ::
 
-    onecite process ambiguous.txt --interactive
+    onecite suggest "deep learning hinton 2015"
 
-This will allow you to manually verify and select the correct match for each reference.
+This returns candidate matches for human review without emitting verified BibTeX.
 
 Example 3: Quick Check Without Saving
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

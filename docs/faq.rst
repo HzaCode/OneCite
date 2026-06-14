@@ -67,7 +67,8 @@ OneCite accepts:
 
 - **Plain text** (`.txt`) - One reference per line or separated by blank lines
 - **BibTeX** (`.bib`) - Standard BibTeX format
-- **Direct identifiers** - DOI, arXiv ID, PMID, ISBN, GitHub URLs, or plain text queries
+- **Direct identifiers** - DOI, arXiv ID, PMID, ISBN, GitHub URLs, Zenodo DOI, or DataCite DOI
+- **Candidate suggestions** - Use ``onecite suggest`` for plain-text title queries
 
 Can I use OneCite with Overleaf?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -89,11 +90,13 @@ Yes! Here's how:
 How do I handle ambiguous references?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use interactive mode to manually select the correct match::
+``onecite process`` only resolves strong identifiers and never guesses from an
+ambiguous plain-text reference. Use ``onecite suggest`` to get candidate matches
+and review them yourself::
 
-    onecite process references.txt --interactive
+    onecite suggest "deep learning hinton 2015"
 
-When multiple matches are found, you'll be prompted to select the correct one.
+Candidates are returned for human review, not emitted as verified BibTeX.
 
 Can I process multiple files at once?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -127,7 +130,7 @@ OneCite integrates with:
 - Google Books (book metadata)
 - external providerRE / BASE (theses & grey literature)
 - GitHub (software repositories)
-- Google Scholar (optional, off by default)
+- Google Scholar (optional ``suggest``-only best-effort fallback, off by default)
 
 Which data source is best for my field?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

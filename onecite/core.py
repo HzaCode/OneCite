@@ -233,6 +233,21 @@ class PipelineController:
             self.logger.error(f"Processing pipeline execution failed: {str(e)}")
             raise
 
+    def suggest(self, input_content: str, input_type: str, limit: int = 5) -> Dict[str, Any]:
+        """Return candidate matches without producing resolved BibTeX."""
+        self.logger.info("Starting OneCite suggestion pipeline")
+        raw_entries = self.parser.parse(input_content, input_type)
+        suggestions = [self.identifier.suggest(entry, limit=limit) for entry in raw_entries]
+        with_candidates = sum(1 for item in suggestions if item["candidates"])
+        return {
+            "suggestions": suggestions,
+            "report": {
+                "total": len(suggestions),
+                "with_candidates": with_candidates,
+                "without_candidates": len(suggestions) - with_candidates,
+            },
+        }
+
 
 def process_references(
     input_content: str,
@@ -240,7 +255,6 @@ def process_references(
     template_name: str,
     output_format: str,
     interactive_callback: Callable[[List[Dict]], int],
-    use_google_scholar: bool = False,
 ) -> Dict[str, Any]:
     """Process references and return formatted citations with a report.
 
@@ -272,7 +286,20 @@ def process_references(
     """
     if not input_content or not input_content.strip():
         raise ValidationError("input_content must not be empty.")
-    pipeline = PipelineController(use_google_scholar=use_google_scholar)
+    pipeline = PipelineController()
     return pipeline.process(
         input_content, input_type, template_name, output_format, interactive_callback
     )
+
+
+def suggest_references(
+    input_content: str,
+    input_type: str = "txt",
+    limit: int = 5,
+    use_google_scholar: bool = False,
+) -> Dict[str, Any]:
+    """Return candidate citation matches without resolving to BibTeX."""
+    if not input_content or not input_content.strip():
+        raise ValidationError("input_content must not be empty.")
+    pipeline = PipelineController(use_google_scholar=use_google_scholar)
+    return pipeline.suggest(input_content, input_type, limit=limit)
