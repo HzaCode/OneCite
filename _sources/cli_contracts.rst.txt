@@ -49,6 +49,31 @@ Hard processing errors in ``--ndjson`` mode emit a ``summary`` event with
 ``status: "failed"`` followed by one ``failure`` event, then exit with
 code ``1``.
 
+Suggest JSON
+------------
+
+``onecite suggest INPUT --json`` writes one JSON object to stdout unless
+``--output`` is used. This command searches candidate metadata sources but
+does not resolve candidates into BibTeX. Its successful status is
+``"completed"``, not ``"passed"``, so suggestion output is not confused with
+validated citation output.
+
+The envelope contains:
+
+- ``schema_version``: currently ``"1.0"``.
+- ``tool`` and ``command``: ``"onecite"`` and ``"suggest"``.
+- ``status``: ``"completed"`` when candidate search ran, ``"failed"`` on a
+  hard command error.
+- ``summary``: total entries, entries with candidates, and entries without
+  candidates.
+- ``options``: input type, per-entry limit, and whether Google Scholar was
+  enabled.
+- ``suggestions``: one item per input entry with raw text, query string,
+  status, and a candidate list.
+
+The current top-level contract is exactly ``schema_version``, ``tool``,
+``command``, ``status``, ``summary``, ``options``, and ``suggestions``.
+
 Benchmark JSON
 --------------
 

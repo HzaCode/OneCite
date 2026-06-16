@@ -52,11 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#interactive-disambiguation">Interactive Disambiguation</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#enabling-interactive-mode">Enabling Interactive Mode</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-session">Example Session</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#reviewing-candidates-for-ambiguous-references">Reviewing Candidates for Ambiguous References</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#batch-processing-multiple-files">Batch Processing Multiple Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#working-with-different-data-sources">Working with Different Data Sources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#custom-templates">Custom Templates</a></li>
@@ -130,40 +126,18 @@
              
   <section id="advanced-usage">
 <h1>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h1>
-<section id="interactive-disambiguation">
-<h2>Interactive Disambiguation<a class="headerlink" href="#interactive-disambiguation" title="Link to this heading"></a></h2>
-<p>When OneCite finds multiple potential matches for a reference, it can enter interactive mode to let you choose the correct one.</p>
-<section id="enabling-interactive-mode">
-<h3>Enabling Interactive Mode<a class="headerlink" href="#enabling-interactive-mode" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">ambiguous</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">interactive</span>
+<section id="reviewing-candidates-for-ambiguous-references">
+<h2>Reviewing Candidates for Ambiguous References<a class="headerlink" href="#reviewing-candidates-for-ambiguous-references" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> only resolves strong identifiers (DOI, PMID, arXiv ID,
+ISBN, URLs) and never guesses from an ambiguous plain-text reference. To
+inspect candidate matches for a messy or incomplete reference, use
+<code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">suggest</span> <span class="s2">&quot;deep learning hinton 2015&quot;</span>
 </pre></div>
 </div>
-</section>
-<section id="example-session">
-<h3>Example Session<a class="headerlink" href="#example-session" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Processing</span> <span class="n">ambiguous</span><span class="o">.</span><span class="n">txt</span><span class="o">...</span>
-
-<span class="n">Found</span> <span class="mi">2</span> <span class="n">matches</span> <span class="k">for</span> <span class="s2">&quot;Deep learning Hinton&quot;</span><span class="p">:</span>
-
-<span class="mf">1.</span> <span class="n">Deep</span> <span class="n">Learning</span>
-   <span class="n">Authors</span><span class="p">:</span> <span class="n">Yann</span> <span class="n">LeCun</span><span class="p">,</span> <span class="n">Yoshua</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Geoffrey</span> <span class="n">Hinton</span>
-   <span class="n">Journal</span><span class="p">:</span> <span class="n">Nature</span>
-   <span class="n">Year</span><span class="p">:</span> <span class="mi">2015</span>
-   <span class="n">Volume</span><span class="p">:</span> <span class="mi">521</span><span class="p">,</span> <span class="n">Pages</span><span class="p">:</span> <span class="mi">436</span><span class="o">-</span><span class="mi">444</span>
-   <span class="n">DOI</span><span class="p">:</span> <span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
-
-<span class="mf">2.</span> <span class="n">Deep</span> <span class="n">Belief</span> <span class="n">Networks</span>
-   <span class="n">Authors</span><span class="p">:</span> <span class="n">Geoffrey</span> <span class="n">E</span><span class="o">.</span> <span class="n">Hinton</span><span class="p">,</span> <span class="n">Simon</span> <span class="n">Osindero</span><span class="p">,</span> <span class="n">Yee</span><span class="o">-</span><span class="n">Whye</span> <span class="n">Teh</span>
-   <span class="n">Journal</span><span class="p">:</span> <span class="n">Neural</span> <span class="n">Computation</span>
-   <span class="n">Year</span><span class="p">:</span> <span class="mi">2006</span>
-   <span class="n">Volume</span><span class="p">:</span> <span class="mi">18</span><span class="p">,</span> <span class="n">Pages</span><span class="p">:</span> <span class="mi">1527</span><span class="o">-</span><span class="mi">1554</span>
-   <span class="n">DOI</span><span class="p">:</span> <span class="mf">10.1162</span><span class="o">/</span><span class="n">neco</span><span class="mf">.2006.18.7.1527</span>
-
-<span class="n">Please</span> <span class="n">select</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="o">=</span><span class="n">skip</span><span class="p">):</span> <span class="mi">1</span>
-<span class="n">Selected</span><span class="p">:</span> <span class="n">Deep</span> <span class="n">Learning</span> <span class="p">(</span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
+<p>Candidates are returned for human review (with match scores and sources) and
+are not emitted as verified BibTeX. Add <code class="docutils literal notranslate"><span class="pre">--json</span></code> for a machine-readable
+envelope.</p>
 </section>
 <section id="batch-processing-multiple-files">
 <h2>Batch Processing Multiple Files<a class="headerlink" href="#batch-processing-multiple-files" title="Link to this heading"></a></h2>

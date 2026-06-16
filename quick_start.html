@@ -131,9 +131,9 @@
 <p>Example <code class="docutils literal notranslate"><span class="pre">references.txt</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
 
-<span class="n">Attention</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">you</span> <span class="n">need</span><span class="p">,</span> <span class="n">Vaswani</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="n">NIPS</span> <span class="mi">2017</span>
+<span class="n">arXiv</span><span class="p">:</span><span class="mf">1706.03762</span>
 
-<span class="n">Goodfellow</span><span class="p">,</span> <span class="n">I</span><span class="o">.</span><span class="p">,</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Courville</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span><span class="o">.</span> <span class="n">Deep</span> <span class="n">Learning</span><span class="o">.</span> <span class="n">MIT</span> <span class="n">Press</span><span class="o">.</span>
+<span class="n">ISBN</span><span class="p">:</span><span class="mi">9780262035613</span>
 
 <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span>
 
@@ -189,11 +189,6 @@
 <span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
 </pre></div>
 </div>
-<p><strong>Interactive Mode</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Use interactive mode for ambiguous entries</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">interactive</span>
-</pre></div>
-</div>
 <p><strong>Batch Processing</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Process BibTeX file</span>
 <span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">bib</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
@@ -207,11 +202,11 @@
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span>
 
 <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;Deep learning review</span><span class="se">\n</span><span class="s2">LeCun, Bengio, Hinton</span><span class="se">\n</span><span class="s2">Nature 2015&quot;</span><span class="p">,</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>  <span class="c1"># Auto-select first match</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
 <span class="p">)</span>
 
 <span class="c1"># Print formatted citations</span>

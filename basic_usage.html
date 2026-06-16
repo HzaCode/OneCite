@@ -60,7 +60,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#practical-examples">Practical Examples</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#example-1-process-a-bibtex-file">Example 1: Process a BibTeX File</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#example-2-interactive-processing">Example 2: Interactive Processing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#example-2-suggesting-candidates">Example 2: Suggesting Candidates</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#example-3-quick-check-without-saving">Example 3: Quick Check Without Saving</a></li>
 </ul>
 </li>
@@ -139,9 +139,9 @@
 <p>A text file where each reference is separated by a <strong>blank line</strong>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
 
-<span class="n">Vaswani</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="mi">2017</span><span class="p">,</span> <span class="n">Attention</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">you</span> <span class="n">need</span>
+<span class="n">arXiv</span><span class="p">:</span><span class="mf">1706.03762</span>
 
-<span class="n">Smith</span> <span class="p">(</span><span class="mi">2020</span><span class="p">)</span> <span class="n">Neural</span> <span class="n">Architecture</span> <span class="n">Search</span>
+<span class="n">ISBN</span><span class="p">:</span><span class="mi">9780262035613</span>
 </pre></div>
 </div>
 <div class="admonition note">
@@ -190,28 +190,6 @@ within the same block are treated as a single entry.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>  <span class="c1"># only supported format</span>
 </pre></div>
 </div>
-<p><strong>Interactive Mode (–interactive)</strong></p>
-<p>When multiple potential matches are found, OneCite will prompt you to select the correct one:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">interactive</span>
-</pre></div>
-</div>
-<p>Example interaction:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Found</span> <span class="n">multiple</span> <span class="n">matches</span> <span class="k">for</span> <span class="s2">&quot;Deep learning Hinton&quot;</span><span class="p">:</span>
-
-<span class="mf">1.</span> <span class="n">Deep</span> <span class="n">learning</span>
-   <span class="n">Authors</span><span class="p">:</span> <span class="n">LeCun</span><span class="p">,</span> <span class="n">Yann</span><span class="p">;</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Yoshua</span><span class="p">;</span> <span class="n">Hinton</span><span class="p">,</span> <span class="n">Geoffrey</span>
-   <span class="n">Journal</span><span class="p">:</span> <span class="n">Nature</span><span class="p">,</span> <span class="mi">2015</span>
-   <span class="n">DOI</span><span class="p">:</span> <span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
-
-<span class="mf">2.</span> <span class="n">Deep</span> <span class="n">belief</span> <span class="n">networks</span>
-   <span class="n">Authors</span><span class="p">:</span> <span class="n">Hinton</span><span class="p">,</span> <span class="n">Geoffrey</span> <span class="n">E</span><span class="o">.</span>
-   <span class="n">Journal</span><span class="p">:</span> <span class="n">Scholarpedia</span><span class="p">,</span> <span class="mi">2009</span>
-   <span class="n">DOI</span><span class="p">:</span> <span class="mf">10.4249</span><span class="o">/</span><span class="n">scholarpedia</span><span class="mf">.5947</span>
-
-<span class="n">Please</span> <span class="n">select</span> <span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="o">=</span><span class="n">skip</span><span class="p">):</span> <span class="mi">1</span>
-<span class="n">Selected</span><span class="p">:</span> <span class="n">Deep</span> <span class="n">learning</span>
-</pre></div>
-</div>
 <p><strong>Quiet Mode (–quiet)</strong></p>
 <p>Suppress verbose output:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">quiet</span>
@@ -233,15 +211,20 @@ line followed by result and failure events:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">ndjson</span>
 </pre></div>
 </div>
-<p><strong>Google Scholar (–google-scholar)</strong></p>
-<p>Enable Google Scholar as an additional data source (requires the optional <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">google</span><span class="o">-</span><span class="n">scholar</span>
+<p><strong>Google Scholar (suggest only, –google-scholar)</strong></p>
+<p>A best-effort fallback for the <code class="docutils literal notranslate"><span class="pre">suggest</span></code> command only (requires the optional
+<code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">onecite[scholar]</span></code>). It is consulted only
+when CrossRef and Semantic Scholar return nothing. Because it scrapes a service
+with no public API, it is off by default, may be blocked by a CAPTCHA, and is
+not guaranteed to be reproducible. It is never used by <code class="docutils literal notranslate"><span class="pre">process</span></code>, whose output
+is authoritative:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">suggest</span> <span class="nb">input</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">google</span><span class="o">-</span><span class="n">scholar</span>
 </pre></div>
 </div>
 <p><strong>Direct String Input</strong></p>
 <p>Pass a reference string directly instead of a file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="s2">&quot;10.1038/nature14539&quot;</span>
-<span class="n">onecite</span> <span class="n">process</span> <span class="s2">&quot;Attention is all you need, Vaswani et al., NIPS 2017&quot;</span>
+<span class="n">onecite</span> <span class="n">suggest</span> <span class="s2">&quot;Attention is all you need, Vaswani et al., NIPS 2017&quot;</span>
 </pre></div>
 </div>
 <p><strong>Stdin Input</strong></p>
@@ -308,12 +291,12 @@ check.</p>
 <p>This will read <code class="docutils literal notranslate"><span class="pre">my_references.bib</span></code>, enhance the entries, and save to <code class="docutils literal notranslate"><span class="pre">clean_references.bib</span></code>.
 The <code class="docutils literal notranslate"><span class="pre">--input-type</span></code> flag is optional for <code class="docutils literal notranslate"><span class="pre">.bib</span></code> files — OneCite detects the format automatically.</p>
 </section>
-<section id="example-2-interactive-processing">
-<h3>Example 2: Interactive Processing<a class="headerlink" href="#example-2-interactive-processing" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">ambiguous</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">interactive</span>
+<section id="example-2-suggesting-candidates">
+<h3>Example 2: Suggesting Candidates<a class="headerlink" href="#example-2-suggesting-candidates" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">suggest</span> <span class="s2">&quot;deep learning hinton 2015&quot;</span>
 </pre></div>
 </div>
-<p>This will allow you to manually verify and select the correct match for each reference.</p>
+<p>This returns candidate matches for human review without emitting verified BibTeX.</p>
 </section>
 <section id="example-3-quick-check-without-saving">
 <h3>Example 3: Quick Check Without Saving<a class="headerlink" href="#example-3-quick-check-without-saving" title="Link to this heading"></a></h3>

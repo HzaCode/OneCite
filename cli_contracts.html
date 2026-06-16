@@ -58,6 +58,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">CLI Contracts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#process-json">Process JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#process-ndjson">Process NDJSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#suggest-json">Suggest JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#benchmark-json">Benchmark JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#doctor-json">Doctor JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#exit-codes">Exit Codes</a></li>
@@ -156,6 +157,29 @@ results without parsing human text.</p>
 <p>Hard processing errors in <code class="docutils literal notranslate"><span class="pre">--ndjson</span></code> mode emit a <code class="docutils literal notranslate"><span class="pre">summary</span></code> event with
 <code class="docutils literal notranslate"><span class="pre">status:</span> <span class="pre">&quot;failed&quot;</span></code> followed by one <code class="docutils literal notranslate"><span class="pre">failure</span></code> event, then exit with
 code <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p>
+</section>
+<section id="suggest-json">
+<h2>Suggest JSON<a class="headerlink" href="#suggest-json" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span> <span class="pre">INPUT</span> <span class="pre">--json</span></code> writes one JSON object to stdout unless
+<code class="docutils literal notranslate"><span class="pre">--output</span></code> is used. This command searches candidate metadata sources but
+does not resolve candidates into BibTeX. Its successful status is
+<code class="docutils literal notranslate"><span class="pre">&quot;completed&quot;</span></code>, not <code class="docutils literal notranslate"><span class="pre">&quot;passed&quot;</span></code>, so suggestion output is not confused with
+validated citation output.</p>
+<p>The envelope contains:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">schema_version</span></code>: currently <code class="docutils literal notranslate"><span class="pre">&quot;1.0&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">tool</span></code> and <code class="docutils literal notranslate"><span class="pre">command</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;onecite&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;suggest&quot;</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">status</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;completed&quot;</span></code> when candidate search ran, <code class="docutils literal notranslate"><span class="pre">&quot;failed&quot;</span></code> on a
+hard command error.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: total entries, entries with candidates, and entries without
+candidates.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: input type, per-entry limit, and whether Google Scholar was
+enabled.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggestions</span></code>: one item per input entry with raw text, query string,
+status, and a candidate list.</p></li>
+</ul>
+<p>The current top-level contract is exactly <code class="docutils literal notranslate"><span class="pre">schema_version</span></code>, <code class="docutils literal notranslate"><span class="pre">tool</span></code>,
+<code class="docutils literal notranslate"><span class="pre">command</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">options</span></code>, and <code class="docutils literal notranslate"><span class="pre">suggestions</span></code>.</p>
 </section>
 <section id="benchmark-json">
 <h2>Benchmark JSON<a class="headerlink" href="#benchmark-json" title="Link to this heading"></a></h2>

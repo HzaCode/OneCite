@@ -19,7 +19,6 @@ The primary function for processing citations.
         template_name: str,
         output_format: str,
         interactive_callback: Callable[[List[Dict]], int],
-        use_google_scholar: bool = False,
     ) -> Dict[str, Any]
 
 **Parameters:**
@@ -28,8 +27,7 @@ The primary function for processing citations.
 - ``input_type`` (str): Type of input - ``"txt"`` or ``"bib"`` (required)
 - ``template_name`` (str): Template name to use (e.g., ``"journal_article_full"``) (required)
 - ``output_format`` (str): Output format - currently only ``"bibtex"`` is supported (required)
-- ``interactive_callback`` (Callable): Function to handle ambiguous matches. Takes a list of candidate dicts and returns the selected index (0-based), or -1 to skip (required)
-- ``use_google_scholar`` (bool): Enable Google Scholar as an additional data source. Requires the optional ``scholarly`` package. Default is ``False``.
+- ``interactive_callback`` (Callable): Compatibility callback; plain-text candidate search is handled by ``suggest_references`` (required)
 
 **Returns:**
 
@@ -53,7 +51,7 @@ A dictionary with keys:
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0  # Auto-select first match
+        interactive_callback=lambda candidates: -1
     )
     
     # Access results
@@ -216,7 +214,7 @@ For typical usage, ``process_references()`` is simpler. PipelineController expos
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        interactive_callback=lambda candidates: -1
     )
     
     print(result['results'])

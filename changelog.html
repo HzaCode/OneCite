@@ -76,6 +76,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#unreleased">Unreleased</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#added">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#changed">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#removed">Removed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#fixed">Fixed</a></li>
 </ul>
 </li>
@@ -83,26 +84,26 @@
 <li class="toctree-l3"><a class="reference internal" href="#id2">Added</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id3">Changed</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#deprecated">Deprecated</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#removed">Removed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id4">Removed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id4">[0.1.0] - 2026-04-17</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id5">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id6">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id7">Removed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id8">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id5">[0.1.0] - 2026-04-17</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id6">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id7">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id8">Removed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id9">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id9">[0.0.11] - 2024-10-19</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id10">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id11">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id12">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id10">[0.0.11] - 2024-10-19</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id11">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id12">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id13">Fixed</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#id13">[0.0.10] - 2024-10-01</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#id14">Added</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id15">Changed</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id16">Fixed</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#id14">[0.0.10] - 2024-10-01</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#id15">Added</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id16">Changed</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id17">Fixed</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#and-earlier">[0.0.9] and Earlier</a></li>
@@ -189,6 +190,22 @@ live checks are explicitly marked with <code class="docutils literal notranslate
 default suite is deterministic and offline.</p></li>
 </ul>
 </section>
+<section id="removed">
+<h3>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> no longer accepts <code class="docutils literal notranslate"><span class="pre">--google-scholar</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">process_references()</span></code> no longer accepts the <code class="docutils literal notranslate"><span class="pre">use_google_scholar</span></code>
+parameter (both were no-ops on the authoritative <code class="docutils literal notranslate"><span class="pre">process</span></code> path).
+Google Scholar remains an opt-in, best-effort fallback on
+<code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span> <span class="pre">--google-scholar</span></code>.</p></li>
+<li><p>Removed the non-functional <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> flag from <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code>
+and the dead interactive/fuzzy-adoption code. Plain-text disambiguation is
+handled by <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>; <code class="docutils literal notranslate"><span class="pre">process</span></code> resolves only strong identifiers.</p></li>
+<li><p>Removed best-effort HTML/PDF metadata scraping of arbitrary URLs (and the
+undeclared PyPDF2 dependency) plus the body-text DOI fallback; URL resolution
+now trusts only publisher-declared meta-tag / schema.org identifiers.</p></li>
+</ul>
+</section>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
 <ul class="simple">
@@ -209,6 +226,20 @@ used by routing the saved-file status message to stderr.</p></li>
 distribution artifacts.</p></li>
 <li><p>Added benchmark and doctor checks to the GitHub Actions test
 workflow.</p></li>
+<li><p>DOI-backed BibTeX input keeps canonical CrossRef/DataCite fields
+instead of letting the original entry override them; original fields
+still fill gaps and the existing citation key is preserved.</p></li>
+<li><p>A CrossRef 404 always falls back to DataCite instead of only doing so
+for a short hardcoded prefix list.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggest</span></code> no longer routes queries containing words such as
+“synthesis” or “hypothesis” to the thesis search.</p></li>
+<li><p>GitHub clone URLs ending in <code class="docutils literal notranslate"><span class="pre">.git</span></code> resolve to the correct repository.</p></li>
+<li><p>Plain-text entry ids stay contiguous across multi-blank-line gaps, and
+a dead PLOS article-id branch was removed from the text parser.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggest</span></code> ranking now applies the tie-break within the near-tie cluster
+(scores within 5 points of the top) instead of letting a fractionally higher
+raw score always win.</p></li>
+<li><p>BibTeX output now LaTeX-escapes the <code class="docutils literal notranslate"><span class="pre">abstract</span></code> and <code class="docutils literal notranslate"><span class="pre">editor</span></code> fields.</p></li>
 </ul>
 </section>
 </section>
@@ -277,8 +308,8 @@ because the flag actually gates the entire Semantic-Scholar + PubMed
 cascade, not PubMed alone.</p></li>
 </ul>
 </section>
-<section id="removed">
-<h3>Removed<a class="headerlink" href="#removed" title="Link to this heading"></a></h3>
+<section id="id4">
+<h3>Removed<a class="headerlink" href="#id4" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">IdentifierModule._check_doi_content_consistency</span></code> and the
 <code class="docutils literal notranslate"><span class="pre">consistency_score</span></code> / <code class="docutils literal notranslate"><span class="pre">low_consistency</span></code> warning path.  A fuzzy
@@ -291,11 +322,11 @@ layer here.</p></li>
 </ul>
 </section>
 </section>
-<section id="id4">
-<h2>[0.1.0] - 2026-04-17<a class="headerlink" href="#id4" title="Link to this heading"></a></h2>
-<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.</p>
 <section id="id5">
-<h3>Added<a class="headerlink" href="#id5" title="Link to this heading"></a></h3>
+<h2>[0.1.0] - 2026-04-17<a class="headerlink" href="#id5" title="Link to this heading"></a></h2>
+<p>First formal PyPI release since <code class="docutils literal notranslate"><span class="pre">0.0.12</span></code>.</p>
+<section id="id6">
+<h3>Added<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>RST documentation using Sphinx</p></li>
 <li><p>Full API reference documentation</p></li>
@@ -306,8 +337,8 @@ layer here.</p></li>
 <li><p>Auto-deploy documentation to GitHub Pages via CI</p></li>
 </ul>
 </section>
-<section id="id6">
-<h3>Changed<a class="headerlink" href="#id6" title="Link to this heading"></a></h3>
+<section id="id7">
+<h3>Changed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><strong>Split monolithic pipeline.py (~3000 lines)</strong> into a proper
 <code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one module per stage</p></li>
@@ -326,8 +357,8 @@ fallback BibTeX entry type, not output formatting</p></li>
 <li><p>Added type hints to Python API</p></li>
 </ul>
 </section>
-<section id="id7">
-<h3>Removed<a class="headerlink" href="#id7" title="Link to this heading"></a></h3>
+<section id="id8">
+<h3>Removed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>APA and MLA output renderers; the CLI now rejects anything other than
 <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">bibtex</span></code>.  Use pandoc or citeproc-py to convert the
@@ -339,8 +370,8 @@ main example input</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">docs/_build/</span></code> build artifacts from repository</p></li>
 </ul>
 </section>
-<section id="id8">
-<h3>Fixed<a class="headerlink" href="#id8" title="Link to this heading"></a></h3>
+<section id="id9">
+<h3>Fixed<a class="headerlink" href="#id9" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>OpenAlex and dblp no longer listed as data sources — they were never
 wired into the code</p></li>
@@ -363,10 +394,10 @@ fabricating invented metadata</p></li>
 </ul>
 </section>
 </section>
-<section id="id9">
-<h2>[0.0.11] - 2024-10-19<a class="headerlink" href="#id9" title="Link to this heading"></a></h2>
 <section id="id10">
-<h3>Added<a class="headerlink" href="#id10" title="Link to this heading"></a></h3>
+<h2>[0.0.11] - 2024-10-19<a class="headerlink" href="#id10" title="Link to this heading"></a></h2>
+<section id="id11">
+<h3>Added<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Custom YAML-based template system</p></li>
 <li><p>Support for multiple output formats (BibTeX, APA, MLA)</p></li>
@@ -376,16 +407,16 @@ fabricating invented metadata</p></li>
 <li><p>Test suite</p></li>
 </ul>
 </section>
-<section id="id11">
-<h3>Changed<a class="headerlink" href="#id11" title="Link to this heading"></a></h3>
+<section id="id12">
+<h3>Changed<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Refactored core processing pipeline</p></li>
 <li><p>Reordered data source priority (CrossRef first for DOI queries)</p></li>
 <li><p>Clearer error messages on failed lookups</p></li>
 </ul>
 </section>
-<section id="id12">
-<h3>Fixed<a class="headerlink" href="#id12" title="Link to this heading"></a></h3>
+<section id="id13">
+<h3>Fixed<a class="headerlink" href="#id13" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Encoding issues with non-ASCII characters in author names</p></li>
 <li><p>DOI parsing for URLs with trailing query strings</p></li>
@@ -393,24 +424,24 @@ fabricating invented metadata</p></li>
 </ul>
 </section>
 </section>
-<section id="id13">
-<h2>[0.0.10] - 2024-10-01<a class="headerlink" href="#id13" title="Link to this heading"></a></h2>
 <section id="id14">
-<h3>Added<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<h2>[0.0.10] - 2024-10-01<a class="headerlink" href="#id14" title="Link to this heading"></a></h2>
+<section id="id15">
+<h3>Added<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Initial Python API</p></li>
 <li><p>Basic citation processing</p></li>
 <li><p>Support for journal articles and conference papers</p></li>
 </ul>
 </section>
-<section id="id15">
-<h3>Changed<a class="headerlink" href="#id15" title="Link to this heading"></a></h3>
+<section id="id16">
+<h3>Changed<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>Better title matching for fuzzy searches</p></li>
 </ul>
 </section>
-<section id="id16">
-<h3>Fixed<a class="headerlink" href="#id16" title="Link to this heading"></a></h3>
+<section id="id17">
+<h3>Fixed<a class="headerlink" href="#id17" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p>PubMed API response handling</p></li>
 <li><p>Semantic Scholar rate limit handling</p></li>

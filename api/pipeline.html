@@ -184,44 +184,38 @@ parsing fails.</p>
 </section>
 <section id="stage-2-identify-identifiermodule">
 <h2>Stage 2: Identify (<code class="docutils literal notranslate"><span class="pre">IdentifierModule</span></code>)<a class="headerlink" href="#stage-2-identify-identifiermodule" title="Link to this heading"></a></h2>
-<p><strong>Purpose:</strong> resolve each <code class="docutils literal notranslate"><span class="pre">RawEntry</span></code> against academic data sources and
-produce an <code class="docutils literal notranslate"><span class="pre">IdentifiedEntry</span></code> with a DOI (when possible) plus basic
-metadata.</p>
-<p><strong>Input:</strong> <code class="docutils literal notranslate"><span class="pre">List[RawEntry]</span></code> and an <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> that picks
-from candidate lists when confidence is medium.</p>
+<p><strong>Purpose:</strong> resolve each <code class="docutils literal notranslate"><span class="pre">RawEntry</span></code> with strong identifiers into an
+<code class="docutils literal notranslate"><span class="pre">IdentifiedEntry</span></code> with a DOI / arXiv ID / URL plus basic metadata.
+Plain-text title searches are not resolved by the processing pipeline; use
+the suggestion workflow for candidate search.</p>
+<p><strong>Input:</strong> <code class="docutils literal notranslate"><span class="pre">List[RawEntry]</span></code> and an <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> kept for API
+compatibility.</p>
 <p><strong>Output:</strong> <code class="docutils literal notranslate"><span class="pre">List[IdentifiedEntry]</span></code>.</p>
 <p><strong>Data sources actually queried by the code:</strong></p>
 <ul class="simple">
-<li><p>CrossRef (DOI-based and fuzzy search)</p></li>
-<li><p>Semantic Scholar (keyword search)</p></li>
+<li><p>CrossRef (DOI-based lookup; candidate search in suggest mode)</p></li>
+<li><p>Semantic Scholar (candidate search in suggest mode)</p></li>
 <li><p>arXiv (via feedparser)</p></li>
 <li><p>PubMed (biomedical, queried when strong cues are present)</p></li>
 <li><p>DataCite / Zenodo (datasets)</p></li>
 <li><p>Google Books (books — triggered by ISBN or publisher cues)</p></li>
 <li><p>external providerRE / BASE (theses)</p></li>
 <li><p>GitHub (software repositories)</p></li>
-<li><p>Google Scholar (optional, disabled by default; opt-in via
-<code class="docutils literal notranslate"><span class="pre">--google-scholar</span></code> or <code class="docutils literal notranslate"><span class="pre">use_google_scholar=True</span></code> and requires the
-<code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package)</p></li>
+<li><p>Google Scholar (optional, <code class="docutils literal notranslate"><span class="pre">suggest</span></code>-only best-effort fallback, disabled by
+default; opt-in via <code class="docutils literal notranslate"><span class="pre">suggest</span> <span class="pre">--google-scholar</span></code> or
+<code class="docutils literal notranslate"><span class="pre">suggest_references(use_google_scholar=True)</span></code> and requires the
+<code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package; never used by <code class="docutils literal notranslate"><span class="pre">process</span></code>)</p></li>
 </ul>
 <p>There is <strong>no runtime routing based on filename</strong> and no fixed priority
-for “medical”, “CS” or “general” queries.  Signal-based heuristics
-inside <code class="docutils literal notranslate"><span class="pre">_fuzzy_search</span></code> decide when to <em>additionally</em> query PubMed,
-Google Books, external providerRE/BASE, etc., but CrossRef and Semantic Scholar are
-always consulted for text queries.</p>
+for “medical”, “CS” or “general” queries. Signal-based heuristics in
+suggestion mode decide when to <em>additionally</em> query PubMed, Google Books,
+external providerRE/BASE, etc. Text-only entries in process mode are
+reported as unresolved instead of being guessed.</p>
 <p><strong>Confidence model:</strong></p>
-<p>After all sources have returned candidates, <code class="docutils literal notranslate"><span class="pre">_score_candidates</span></code> assigns
-each candidate a <code class="docutils literal notranslate"><span class="pre">match_score</span></code> (0–100) based on title / author /
-year / venue similarity to the query.  The decision logic in
-<code class="docutils literal notranslate"><span class="pre">_fuzzy_search</span></code> then chooses one of three paths:</p>
-<ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">match_score</span> <span class="pre">&gt;=</span> <span class="pre">80</span></code> and a clear best candidate → auto-adopt</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">70</span> <span class="pre">&lt;=</span> <span class="pre">match_score</span> <span class="pre">&lt;</span> <span class="pre">80</span></code> → call the <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> with up
-to 5 candidates; fall back to the top candidate if the user skips and
-the score is still ≥ 75</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">match_score</span> <span class="pre">&gt;=</span> <span class="pre">50</span></code> and a title is present → adopt cautiously</p></li>
-<li><p>otherwise → mark the entry as <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code></p></li>
-</ul>
+<p>After all suggestion sources have returned candidates, <code class="docutils literal notranslate"><span class="pre">_score_candidates</span></code>
+assigns each candidate a <code class="docutils literal notranslate"><span class="pre">match_score</span></code> (0–100) based on title / author /
+year / venue similarity to the query. Scores are returned for human or
+downstream review; they are not treated as validation proof.</p>
 <p>Fallback paths never fabricate data: an entry that cannot be resolved is
 marked <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> rather than filled with invented
 metadata.</p>
@@ -308,7 +302,7 @@ high-level <code class="docutils literal notranslate"><span class="pre">process_
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>  <span class="c1"># auto-pick first</span>
+    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>

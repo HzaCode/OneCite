@@ -71,7 +71,7 @@ Benchmark suites are JSON files with this shape::
 
 Each case runs through the normal OneCite pipeline with interactive
 selection disabled. Ambiguous candidates are skipped by default, matching
-``onecite process`` without ``--interactive`` rather than auto-selecting
+the non-interactive ``onecite process`` default rather than auto-selecting
 the first candidate. The report records per-case failures, observed entry
 counts, and the overall gate status.
 

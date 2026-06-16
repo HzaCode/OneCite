@@ -112,7 +112,7 @@
 </a>
 <a class="reference external image-reference" href="https://github.com/HzaCode/OneCite/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" />
 </a>
-<p><strong>OneCite</strong> is a command-line tool and Python library for citation management. It accepts DOIs, paper titles, arXiv IDs, and mixed inputs, and outputs formatted bibliographic entries.</p>
+<p><strong>OneCite</strong> is a command-line tool and Python library for citation management. It resolves strong identifiers such as DOIs, PMIDs, arXiv IDs, ISBNs, GitHub URLs, and data DOIs into formatted bibliographic entries. Plain-text title searches are handled by <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> as candidate suggestions.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
@@ -151,7 +151,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#interactive-disambiguation">Interactive Disambiguation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#reviewing-candidates-for-ambiguous-references">Reviewing Candidates for Ambiguous References</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#batch-processing-multiple-files">Batch Processing Multiple Files</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#working-with-different-data-sources">Working with Different Data Sources</a></li>
 <li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#custom-templates">Custom Templates</a></li>
@@ -203,6 +203,7 @@
 <li class="toctree-l1"><a class="reference internal" href="cli_contracts.html">CLI Contracts</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="cli_contracts.html#process-json">Process JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli_contracts.html#process-ndjson">Process NDJSON</a></li>
+<li class="toctree-l2"><a class="reference internal" href="cli_contracts.html#suggest-json">Suggest JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli_contracts.html#benchmark-json">Benchmark JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli_contracts.html#doctor-json">Doctor JSON</a></li>
 <li class="toctree-l2"><a class="reference internal" href="cli_contracts.html#exit-codes">Exit Codes</a></li>
@@ -297,9 +298,9 @@
 <li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#unreleased">Unreleased</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#id1">[0.1.1] - 2026-04-17</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id4">[0.1.0] - 2026-04-17</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id9">[0.0.11] - 2024-10-19</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#id13">[0.0.10] - 2024-10-01</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id5">[0.1.0] - 2026-04-17</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id10">[0.0.11] - 2024-10-19</a></li>
+<li class="toctree-l2"><a class="reference internal" href="changelog.html#id14">[0.0.10] - 2024-10-01</a></li>
 <li class="toctree-l2"><a class="reference internal" href="changelog.html#and-earlier">[0.0.9] and Earlier</a></li>
 </ul>
 </li>
@@ -324,12 +325,12 @@
 <section id="key-features">
 <h1>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h1>
 <ul class="simple">
-<li><p><strong>Fuzzy Matching</strong> - Match references against multiple academic databases</p></li>
+<li><p><strong>Candidate Suggestions</strong> - Search incomplete references with <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> without resolving them to BibTeX</p></li>
 <li><p><strong>BibTeX Output</strong> - Standards-compliant <code class="docutils literal notranslate"><span class="pre">.bib</span></code> files rendered with <code class="docutils literal notranslate"><span class="pre">bibtexparser</span></code></p></li>
 <li><p><strong>4-stage Pipeline</strong> - 4-stage process for consistent output</p></li>
 <li><p><strong>Field Completion</strong> - Enrich entries with missing metadata</p></li>
 <li><p>🎓 <strong>7+ Citation Types</strong> - Handles journal articles, conference papers, books, software, datasets, theses, and preprints</p></li>
-<li><p><strong>Many Identifier Types</strong> - DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, or plain text queries</p></li>
+<li><p><strong>Many Identifier Types</strong> - DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, and DataCite DOI</p></li>
 </ul>
 </section>
 <section id="data-sources">
@@ -345,7 +346,7 @@
 <li><p><a class="reference external" href="https://books.google.com/">Google Books</a> - Book metadata</p></li>
 <li><p><a class="reference external" href="https://www.openaire.eu/">external providerRE</a> / <a class="reference external" href="https://www.base-search.net/">BASE</a> - Theses &amp; grey literature</p></li>
 <li><p><a class="reference external" href="https://github.com/">GitHub</a> - Software repositories</p></li>
-<li><p>Google Scholar (optional, via the <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package)</p></li>
+<li><p>Google Scholar (optional <code class="docutils literal notranslate"><span class="pre">suggest</span></code>-only best-effort fallback, via the <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package)</p></li>
 </ul>
 </section>
 <section id="quick-start">
@@ -357,9 +358,9 @@
 <p>Create a <code class="docutils literal notranslate"><span class="pre">references.txt</span></code> file:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="mf">10.1038</span><span class="o">/</span><span class="n">nature14539</span>
 
-<span class="n">Attention</span> <span class="ow">is</span> <span class="nb">all</span> <span class="n">you</span> <span class="n">need</span><span class="p">,</span> <span class="n">Vaswani</span> <span class="n">et</span> <span class="n">al</span><span class="o">.</span><span class="p">,</span> <span class="n">NIPS</span> <span class="mi">2017</span>
+<span class="n">arXiv</span><span class="p">:</span><span class="mf">1706.03762</span>
 
-<span class="n">Goodfellow</span><span class="p">,</span> <span class="n">I</span><span class="o">.</span><span class="p">,</span> <span class="n">Bengio</span><span class="p">,</span> <span class="n">Y</span><span class="o">.</span><span class="p">,</span> <span class="o">&amp;</span> <span class="n">Courville</span><span class="p">,</span> <span class="n">A</span><span class="o">.</span> <span class="p">(</span><span class="mi">2016</span><span class="p">)</span><span class="o">.</span> <span class="n">Deep</span> <span class="n">Learning</span><span class="o">.</span> <span class="n">MIT</span> <span class="n">Press</span><span class="o">.</span>
+<span class="n">ISBN</span><span class="p">:</span><span class="mi">9780262035613</span>
 </pre></div>
 </div>
 <p>Run OneCite:</p>
