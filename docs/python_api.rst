@@ -19,7 +19,7 @@ Simple Citation Processing
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0  # Auto-select first match
+        interactive_callback=lambda candidates: -1
     )
     
     # Print results
@@ -65,9 +65,9 @@ Plain Text Input
     txt_content = """
     10.1038/nature14539
     
-    Vaswani et al., 2017, Attention is all you need
+    arXiv:1706.03762
     
-    Smith (2020) Neural Architecture Search
+    ISBN:9780262035613
     """
     
     result = process_references(
@@ -128,22 +128,17 @@ BibTeX-to-APA/MLA tools like pandoc or citeproc-py.
 Interactive Selection with Callbacks
 -------------------------------------
 
-For handling ambiguous references programmatically, use a callback function:
+For plain-text title searches, use the suggestion API instead of resolving
+directly to BibTeX:
 
 ::
 
-    from onecite import process_references
+    from onecite import suggest_references
     
-    def pick_first(candidates):
-        """Select the first candidate."""
-        return 0
-    
-    result = process_references(
+    result = suggest_references(
         input_content="Deep learning Hinton",
         input_type="txt",
-        template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=pick_first
+        limit=5,
     )
     
     print('\n\n'.join(result['results']))
@@ -341,7 +336,7 @@ Complete Example
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0  # Auto-select first match
+        interactive_callback=lambda candidates: -1
     )
     
     # Check results

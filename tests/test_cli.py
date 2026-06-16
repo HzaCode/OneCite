@@ -47,6 +47,7 @@ class TestCLI:
         assert "process" in out
         assert "benchmark" in out
         assert "doctor" in out
+        assert "suggest" in out
         assert "templates" in out
 
     def test_version(self):
@@ -68,7 +69,6 @@ class TestCLI:
             "--input-type",
             "--output-format",
             "--template",
-            "--interactive",
             "--quiet",
             "--output",
             "--json",
@@ -76,6 +76,15 @@ class TestCLI:
             "--fail-on-unresolved",
         ):
             assert opt in out, f"{opt} missing from process --help"
+
+    def test_suggest_help_lists_options(self):
+        code, out, err = self._run(["suggest", "--help"])
+        assert code == 0
+        assert err == ""
+        assert "--input-type" in out
+        assert "--limit" in out
+        assert "--json" in out
+        assert "--google-scholar" in out
 
     def test_input_type_and_output_format_choices(self):
         """Verify the argparse ``choices`` show up."""
@@ -265,6 +274,24 @@ class TestCLI:
         assert lines[0]["status"] == "failed"
         assert lines[1]["entry"]["error"]
 
+    def test_suggest_json_subprocess_envelope_has_no_passed_status(self):
+        code, out, err = self._run(
+            [
+                "suggest",
+                "Attention is all you need, Vaswani et al., NIPS 2017",
+                "--json",
+            ]
+        )
+
+        data = json.loads(out)
+        assert code == 0
+        assert err == ""
+        assert data["command"] == "suggest"
+        assert data["status"] == "completed"
+        assert "passed" not in out
+        assert data["summary"]["total"] == 1
+        assert data["suggestions"][0]["candidates"]
+
 
 # ---------------------------------------------------------------------------
 # Unit-level (no subprocess, just call process_command / main directly)
@@ -283,7 +310,6 @@ class TestCLIUnit:
             template="journal_article_full",
             output_format="bibtex",
             output=None,
-            interactive=False,
             quiet=False,
             as_json=False,
             as_ndjson=False,
@@ -309,19 +335,6 @@ class TestCLIUnit:
             cli.process_command(self._ns(input_file=str(inf), quiet=True))
 
         assert captured["input_type"] == "bib"
-
-    def test_google_scholar_flag_passed_through(self, capsys):
-        """fix #10: --google-scholar flag must be forwarded to process_references."""
-        captured = {}
-
-        def _fake(*, use_google_scholar, **kw):
-            captured["gs"] = use_google_scholar
-            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
-
-        with patch("onecite.cli.process_references", side_effect=_fake):
-            cli.process_command(self._ns(input_file="10.1/x", quiet=True, google_scholar=True))
-
-        assert captured["gs"] is True
 
     def test_string_input_passed_directly(self, capsys):
         """fix #36: non-file argument is treated as inline reference content."""
@@ -386,104 +399,6 @@ class TestCLIUnit:
         assert capsys.readouterr().out == ""
         assert outf.read_text(encoding="utf-8") == "OK"
 
-    # -- interactive branch ---------------------------------------------------
-
-    def test_interactive_selects_first(self, tmp_path, capsys):
-        inf = tmp_path / "in.txt"
-        inf.write_text("query", encoding="utf-8")
-
-        def _fake(
-            *, input_content, input_type, template_name, output_format, interactive_callback, **kw
-        ):
-            choice = interactive_callback(
-                [
-                    {
-                        "title": "A",
-                        "authors": ["X"],
-                        "journal": "J",
-                        "year": 2020,
-                        "match_score": 75,
-                    },
-                    {
-                        "title": "B",
-                        "authors": ["Y"],
-                        "journal": "J",
-                        "year": 2021,
-                        "match_score": 74,
-                    },
-                ]
-            )
-            assert choice == 0
-            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
-
-        with (
-            patch("builtins.input", return_value="1"),
-            patch("onecite.cli.process_references", side_effect=_fake),
-        ):
-            code = cli.process_command(self._ns(input_file=str(inf), interactive=True))
-
-        out = capsys.readouterr().out
-        assert code == 0
-        assert "Found multiple possible matches" in out
-        assert "Processing Report" in out
-
-    def test_interactive_invalid_then_skip(self, tmp_path, capsys):
-        """User types an out-of-range number, then 0 to skip."""
-        inf = tmp_path / "in.txt"
-        inf.write_text("query", encoding="utf-8")
-
-        def _fake(
-            *, input_content, input_type, template_name, output_format, interactive_callback, **kw
-        ):
-            choice = interactive_callback(
-                [
-                    {"title": "A", "authors": [], "journal": "", "year": 2020, "match_score": 75},
-                ]
-            )
-            assert choice == -1
-            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
-
-        with (
-            patch("builtins.input", side_effect=["99", "0"]),
-            patch("onecite.cli.process_references", side_effect=_fake),
-        ):
-            code = cli.process_command(self._ns(input_file=str(inf), interactive=True))
-
-        assert code == 0
-        assert "Invalid selection" in capsys.readouterr().out
-
-    def test_interactive_ctrl_c(self, tmp_path, capsys):
-        inf = tmp_path / "in.txt"
-        inf.write_text("query", encoding="utf-8")
-
-        def _fake(
-            *, input_content, input_type, template_name, output_format, interactive_callback, **kw
-        ):
-            assert (
-                interactive_callback(
-                    [
-                        {
-                            "title": "A",
-                            "authors": [],
-                            "journal": "",
-                            "year": 2020,
-                            "match_score": 75,
-                        },
-                    ]
-                )
-                == -1
-            )
-            return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
-
-        with (
-            patch("builtins.input", side_effect=KeyboardInterrupt),
-            patch("onecite.cli.process_references", side_effect=_fake),
-        ):
-            code = cli.process_command(self._ns(input_file=str(inf), interactive=True))
-
-        assert code == 0
-        assert "Operation cancelled" in capsys.readouterr().out
-
     # -- error branches -------------------------------------------------------
 
     def test_process_references_raises(self, tmp_path, capsys):
@@ -537,8 +452,6 @@ class TestCLIUnit:
                 "input_type",
                 "template",
                 "output_format",
-                "interactive",
-                "google_scholar",
                 "fail_on_unresolved",
             },
         )
@@ -604,6 +517,63 @@ class TestCLIUnit:
 
         assert code == 2
         assert json.loads(capsys.readouterr().out)["summary"]["failed"] == 1
+
+    def test_suggest_json_output(self, tmp_path, capsys):
+        inf = tmp_path / "in.txt"
+        inf.write_text("query", encoding="utf-8")
+
+        def _fake(**_kw):
+            return {
+                "suggestions": [
+                    {
+                        "id": 0,
+                        "raw_text": "query",
+                        "query_string": "query",
+                        "status": "candidates_found",
+                        "candidates": [
+                            {
+                                "source": "crossref",
+                                "title": "Candidate",
+                                "doi": "10.1/candidate",
+                                "match_score": 91,
+                            }
+                        ],
+                    }
+                ],
+                "report": {
+                    "total": 1,
+                    "with_candidates": 1,
+                    "without_candidates": 0,
+                },
+            }
+
+        with patch("onecite.cli.suggest_references", side_effect=_fake):
+            code = cli.suggest_command(
+                self._ns(
+                    command="suggest",
+                    input_file=str(inf),
+                    as_json=True,
+                    limit=5,
+                )
+            )
+
+        data = json.loads(capsys.readouterr().out)
+        assert code == 0
+        _assert_keys(
+            data,
+            {
+                "schema_version",
+                "tool",
+                "command",
+                "status",
+                "summary",
+                "options",
+                "suggestions",
+            },
+        )
+        assert data["status"] == "completed"
+        assert data["summary"]["with_candidates"] == 1
+        assert data["suggestions"][0]["candidates"][0]["doi"] == "10.1/candidate"
 
     def test_process_json_output_file_status_uses_stderr(self, tmp_path, capsys):
         inf = tmp_path / "in.txt"

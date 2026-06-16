@@ -51,15 +51,17 @@ class TestIntegration:
         assert code == 0, err
         self._check(result)
 
-    def test_conference_paper(self, run_onecite_process):
+    def test_title_only_conference_paper_is_unresolved_by_process(self, run_onecite_process):
         code, out, err, result = run_onecite_process(
             "Attention is all you need\nVaswani et al.\nNIPS 2017",
             template="conference_paper",
         )
         assert code == 0, err
         self._check(result)
-        assert "Attention" in out or "attention" in out, "title must appear in output"
-        assert "Vaswani" in out or "vaswani" in out.lower(), "author must appear in output"
+        assert out == ""
+        assert result["report"]["total"] == 1
+        assert result["report"]["succeeded"] == 0
+        assert result["report"]["failed_entries"]
 
     def test_arxiv(self, run_onecite_process):
         code, _, err, result = run_onecite_process("1706.03762\n\narxiv:1512.03385")

@@ -58,6 +58,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   in the `README.md` Roadmap section and the `flake8 onecite tests`
   validation check.
 
+### Removed
+- `onecite process` no longer accepts `--google-scholar`, and
+  `process_references()` no longer accepts the `use_google_scholar`
+  parameter. Google Scholar was never consulted from the authoritative
+  `process` path, so the flag and parameter were no-ops there. Google
+  Scholar remains available as an opt-in, best-effort fallback on
+  `onecite suggest --google-scholar` /
+  `suggest_references(use_google_scholar=True)`.
+- Removed the non-functional `--interactive` flag from `onecite process` and the
+  dead interactive/fuzzy-adoption code (`_fuzzy_search`,
+  `_resolve_doi_via_crossref_title`). Plain-text disambiguation is handled by
+  `onecite suggest`; `process` resolves only strong identifiers. The
+  `interactive_callback` parameter remains as a no-op compatibility shim.
+- Removed best-effort metadata scraping of arbitrary HTML/PDF pages
+  (`_extract_metadata_from_url` and helpers, which also relied on an undeclared
+  PyPDF2 dependency) and the body-text DOI fallback in `_extract_doi_from_url`.
+  URL resolution now trusts only a publisher-declared `citation_doi` /
+  schema.org identifier (verified downstream), consistent with the
+  strong-identifier-only contract of `process`.
+
 ### Fixed
 - Corrected the benchmark Nature DQN DOI fixture from
   `10.1038/nature14539` to `10.1038/nature14236`, and added regression
@@ -87,6 +107,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 - Clarified that `onecite benchmark --json` is the deterministic offline
   health check, while `onecite process ...` may contact upstream APIs
   unless fixtures or mocks are explicitly configured.
+- DOI-backed BibTeX input now keeps the canonical CrossRef/DataCite field
+  values instead of letting the original entry override them; original
+  fields still fill gaps the API leaves empty, and the existing citation
+  key is still preserved.
+- A CrossRef 404 now always falls back to DataCite instead of only doing so
+  for a short hardcoded prefix list, so dataset/software/thesis DOIs
+  registered under other DataCite prefixes resolve.
+- `suggest` no longer routes queries containing words such as "synthesis",
+  "hypothesis", or "parenthesis" to the thesis search (whole-word match for
+  "thesis"/"dissertation").
+- GitHub clone URLs ending in `.git` now resolve to the correct repository.
+- Plain-text entry ids stay contiguous when entries are separated by more
+  than one blank line, and a dead PLOS article-id branch was removed from
+  the text parser.
+- `suggest` candidate ranking now applies the tie-break (exact title, venue,
+  DOI, source tier) within the cluster of candidates scoring within 5 points of
+  the top, instead of letting a fractionally higher raw score always win.
+- BibTeX output now LaTeX-escapes the `abstract` and `editor` fields (not just
+  author/title/journal/...), so Unicode in those fields no longer leaks raw
+  into the `.bib` output.
 
 ## [0.1.1] - 2026-04-17
 

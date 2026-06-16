@@ -20,6 +20,7 @@ from .core import (
     TemplateLoader,
     PipelineController,
     process_references,
+    suggest_references,
 )
 
 from .benchmark import (
@@ -45,6 +46,7 @@ __all__ = [
     "PipelineController",
     # Main API
     "process_references",
+    "suggest_references",
     # Benchmarking
     "format_benchmark_text",
     "load_benchmark_suite",

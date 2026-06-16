@@ -13,7 +13,7 @@ OneCite - Citation & Academic Reference Toolkit
    :target: https://github.com/HzaCode/OneCite/blob/main/LICENSE
    :alt: License
 
-**OneCite** is a command-line tool and Python library for citation management. It accepts DOIs, paper titles, arXiv IDs, and mixed inputs, and outputs formatted bibliographic entries.
+**OneCite** is a command-line tool and Python library for citation management. It resolves strong identifiers such as DOIs, PMIDs, arXiv IDs, ISBNs, GitHub URLs, and data DOIs into formatted bibliographic entries. Plain-text title searches are handled by ``onecite suggest`` as candidate suggestions.
 
 .. toctree::
    :maxdepth: 2
@@ -54,12 +54,12 @@ OneCite - Citation & Academic Reference Toolkit
 Key Features
 ============
 
-- **Fuzzy Matching** - Match references against multiple academic databases
+- **Candidate Suggestions** - Search incomplete references with ``onecite suggest`` without resolving them to BibTeX
 - **BibTeX Output** - Standards-compliant ``.bib`` files rendered with ``bibtexparser``
 - **4-stage Pipeline** - 4-stage process for consistent output
 - **Field Completion** - Enrich entries with missing metadata
 - 🎓 **7+ Citation Types** - Handles journal articles, conference papers, books, software, datasets, theses, and preprints
-- **Many Identifier Types** - DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, or plain text queries
+- **Many Identifier Types** - DOI, PMID, arXiv ID, ISBN, GitHub URLs, Zenodo DOI, and DataCite DOI
 
 Data Sources
 ============
@@ -75,7 +75,7 @@ OneCite integrates with multiple authoritative academic data sources:
 - `Google Books <https://books.google.com/>`_ - Book metadata
 - `external providerRE <https://www.openaire.eu/>`_ / `BASE <https://www.base-search.net/>`_ - Theses & grey literature
 - `GitHub <https://github.com/>`_ - Software repositories
-- Google Scholar (optional, via the ``scholarly`` package)
+- Google Scholar (optional ``suggest``-only best-effort fallback, via the ``scholarly`` package)
 
 Quick Start
 ===========
@@ -88,9 +88,9 @@ Create a ``references.txt`` file::
 
     10.1038/nature14539
     
-    Attention is all you need, Vaswani et al., NIPS 2017
+    arXiv:1706.03762
     
-    Goodfellow, I., Bengio, Y., & Courville, A. (2016). Deep Learning. MIT Press.
+    ISBN:9780262035613
 
 Run OneCite::
 

@@ -12,7 +12,7 @@ def test_escape_latex_chars_maps_curly_quotes():
 def test_escape_latex_chars_preserves_existing_latex_commands():
     formatter = FormatterModule()
 
-    assert formatter._escape_latex_chars(r'K{\"u}nsch') == r'K{\"u}nsch'
+    assert formatter._escape_latex_chars(r"K{\"u}nsch") == r"K{\"u}nsch"
 
 
 def test_bibtex_formatter_escapes_unicode_quotes_in_text_fields():

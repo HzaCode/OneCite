@@ -9,9 +9,7 @@ Note: synthetic DOIs like 10.1234/xyz are used intentionally – they don't
 exist on Crossref, which makes it obvious when a mock is missing.
 """
 
-import builtins
 import io
-import types
 
 import pytest
 import requests
@@ -277,157 +275,8 @@ class TestIdentifierDOIExtraction:
         ):
             assert ident._extract_doi_from_url("https://example.com/paper") == "10.2345/abc"
 
-    def test_from_body_text(self):
-        ident = IdentifierModule()
-        html = "<html><body><main>doi:10.3456/def</main></body></html>"
-
-        with patch(
-            "onecite.pipeline.requests.get",
-            return_value=DummyResponse(content=html.encode()),
-        ):
-            assert ident._extract_doi_from_url("https://example.com/paper") == "10.3456/def"
-
-
-class TestIdentifierHTMLMetadata:
-
-    def test_citation_meta_tags(self):
-        ident = IdentifierModule()
-        html = """
-        <html><head>
-          <meta name="citation_title" content="Title" />
-          <meta name="citation_author" content="By Alice Smith" />
-          <meta name="citation_author" content="Bob Jones" />
-          <meta name="citation_publication_date" content="2019-01-01" />
-        </head><body><div class="byline">By Alice Smith</div></body></html>
-        """
-        meta = ident._extract_from_html_content(html.encode("utf-8"))
-        assert meta["title"] == "Title"
-        assert meta["year"] == 2019
-        assert "author" in meta
-
-
-class TestIdentifierPDF:
-
-    def test_importerror_branch(self):
-        """If PyPDF2 isn't installed we should return None, not crash."""
-        ident = IdentifierModule()
-        real_import = builtins.__import__
-
-        def _no_pypdf2(name, *a, **kw):
-            if name == "PyPDF2":
-                raise ImportError
-            return real_import(name, *a, **kw)
-
-        with patch("builtins.__import__", side_effect=_no_pypdf2):
-            assert ident._extract_from_pdf_content(b"%PDF") is None
-
-    def test_success_with_fake_reader(self):
-        ident = IdentifierModule()
-
-        class FakePage:
-            def extract_text(self):
-                return "Some content 2019\n"
-
-        class FakeReader:
-            def __init__(self, _):
-                self.metadata = {"/Title": "Meta Title", "/Author": "John Doe"}
-                self.pages = [FakePage()]
-
-        fake_mod = types.SimpleNamespace(PdfReader=FakeReader)
-        real_import = builtins.__import__
-
-        def _inject(name, *a, **kw):
-            return fake_mod if name == "PyPDF2" else real_import(name, *a, **kw)
-
-        with patch("builtins.__import__", side_effect=_inject):
-            meta = ident._extract_from_pdf_content(b"%PDF")
-
-        assert meta["title"] == "Meta Title"
-        assert meta["author"] == "John Doe"
-        assert meta["year"] == 2019
-
-
-class TestIdentifierURLMetadata:
-
-    def test_html_page(self):
-        ident = IdentifierModule()
-        html = """
-        <html>
-          <head><title>My Very Long Paper Title - PDF Download</title></head>
-          <body>
-            <div class="authors">By Alice Smith, Bob Jones</div>
-            <p>Published 2021.</p>
-          </body>
-        </html>
-        """
-        with patch(
-            "onecite.pipeline.requests.get",
-            return_value=DummyResponse(
-                content=html.encode(),
-                headers={"content-type": "text/html"},
-            ),
-        ):
-            meta = ident._extract_metadata_from_url("https://example.com/page")
-
-        assert meta["title"] == "My Very Long Paper Title"
-        assert meta["year"] == 2021
-        assert "Alice Smith" in meta["author"]
-
-    def test_pdf_delegates_to_extractor(self):
-        ident = IdentifierModule()
-
-        with patch(
-            "onecite.pipeline.requests.get",
-            return_value=DummyResponse(
-                content=b"%PDF",
-                headers={"content-type": "application/pdf"},
-            ),
-        ):
-            with patch.object(
-                ident,
-                "_extract_from_pdf_content",
-                return_value={"title": "T"},
-            ) as m:
-                meta = ident._extract_metadata_from_url("https://example.com/file.pdf")
-
-        assert meta == {"title": "T"}
-        assert m.called
-
-
-# ===================================================================
-# Crossref searches
-# ===================================================================
-
 
 class TestIdentifierCrossref:
-
-    def test_resolve_doi_via_title(self):
-        ident = IdentifierModule()
-
-        def fake_get(url, *a, **kw):
-            return DummyResponse(
-                json_data={
-                    "message": {
-                        "items": [
-                            {
-                                "title": ["Deep Learning"],
-                                "DOI": "10.1000/abc",
-                                "author": [{"given": "Ian", "family": "Goodfellow"}],
-                                "container-title": ["Nature"],
-                                "published-print": {"date-parts": [[2016]]},
-                                "is-referenced-by-count": 10,
-                            },
-                            {"title": ["Other"], "DOI": "10.1000/def"},
-                        ]
-                    }
-                }
-            )
-
-        with patch("onecite.pipeline.requests.get", side_effect=fake_get):
-            r = ident._resolve_doi_via_crossref_title("Deep Learning", "Deep Learning 2016")
-
-        assert r["doi"] == "10.1000/abc"
-        assert r["source"] == "crossref"
 
     def test_dedup_and_event_and_book(self):
         """Two Crossref pages: first returns a proceedings-article, second adds
@@ -619,8 +468,8 @@ class TestIdentifierFuzzySearch:
             ident, "well_known_papers"
         ), "well_known_papers shortcut should have been removed (#19)"
 
-    def test_attention_query_goes_through_normal_search(self):
-        """fix #19: 'attention is all you need' must go through normal multi-source search."""
+    def test_attention_query_returns_suggestions(self):
+        """Title-only queries produce candidates, not resolved citations."""
         ident = IdentifierModule()
         entry = {
             "id": 1,
@@ -635,10 +484,11 @@ class TestIdentifierFuzzySearch:
             "url": "https://arxiv.org/abs/1706.03762",
         }
         with patch.object(ident, "_search_crossref", return_value=[arxiv_result]):
-            r = ident._fuzzy_search(entry, lambda _: -1)
-        assert r["status"] == "identified"
+            r = ident.suggest(entry)
+        assert r["status"] == "candidates_found"
+        assert r["candidates"][0]["title"] == "Attention Is All You Need"
 
-    def test_pmid_shortcut(self):
+    def test_pmid_shortcut_is_strong_identifier(self):
         ident = IdentifierModule()
         entry = {"id": 2, "raw_text": "PMID:12345678", "query_string": "PMID:12345678"}
         with patch.object(
@@ -646,11 +496,11 @@ class TestIdentifierFuzzySearch:
             "_search_pubmed_by_id",
             return_value={"source": "pubmed", "doi": "10.1234/pmid", "url": "https://example.com"},
         ):
-            r = ident._fuzzy_search(entry, lambda _: -1)
+            r = ident._identify_single_entry(entry, lambda _: -1)
         assert r["status"] == "identified"
         assert r["doi"] == "10.1234/pmid"
 
-    def test_book_prefers_google_books(self):
+    def test_book_query_returns_google_books_suggestion(self):
         ident = IdentifierModule()
         entry = {
             "id": 3,
@@ -686,39 +536,10 @@ class TestIdentifierFuzzySearch:
             patch.object(ident, "_search_google_books", return_value=[gb]),
             patch.object(ident, "_search_crossref", return_value=[cr]),
         ):
-            r = ident._fuzzy_search(entry, lambda _: -1)
+            r = ident.suggest(entry)
 
-        assert r["status"] == "identified"
-        assert r["metadata"]["source"] == "google_books"
-
-    def test_interactive_user_picks_second(self):
-        ident = IdentifierModule()
-        entry = {"id": 4, "raw_text": "Some query", "query_string": "Some query"}
-        scored = [
-            {
-                "source": "crossref",
-                "doi": "10.1/a",
-                "title": "A",
-                "match_score": 75,
-                "url": "https://doi.org/10.1/a",
-            },
-            {
-                "source": "crossref",
-                "doi": "10.1/b",
-                "title": "B",
-                "match_score": 74,
-                "url": "https://doi.org/10.1/b",
-            },
-        ]
-
-        with (
-            patch.object(ident, "_search_crossref", return_value=[{"doi": "10.1/a"}]),
-            patch.object(ident, "_score_candidates", return_value=scored),
-        ):
-            r = ident._fuzzy_search(entry, lambda c: 1)  # pick index 1
-
-        assert r["status"] == "identified"
-        assert r["doi"] == "10.1/b"
+        assert r["status"] == "candidates_found"
+        assert any(candidate["source"] == "google_books" for candidate in r["candidates"])
 
 
 # ===================================================================
@@ -771,7 +592,9 @@ class TestIdentifierThesis:
                                                 "title": {"$": "external providerRE Thesis"},
                                                 "creator": [{"$": "Doe, John"}],
                                                 "dateofacceptance": {"$": "2021-01-01"},
-                                                "publisher": {"$": "external providerRE University"},
+                                                "publisher": {
+                                                    "$": "external providerRE University"
+                                                },
                                                 "children": {
                                                     "instance": [
                                                         {
