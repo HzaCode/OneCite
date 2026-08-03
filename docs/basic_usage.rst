@@ -48,14 +48,21 @@ OneCite can process various academic identifiers:
 - **ISBN** - International Standard Book Number (e.g., ``978-0-262-03384-8``)
 - **GitHub URL** - Software repository (e.g., ``https://github.com/user/repo``)
 - **Zenodo DOI** - Open research data (e.g., ``10.5281/zenodo.3233118``)
-- **Plain Text** - Author name, title, or mixed reference (e.g., ``Deep learning, LeCun, 2015``)
+- **Plain Text** - Use ordinary author/title text with ``suggest``; ``process``
+  leaves it unresolved unless it matches a separately documented route such
+  as an explicit thesis citation
 
 Output Formats
 ~~~~~~~~~~~~~~
 
-**BibTeX (.bib)** - The output format::
+**BibTeX (.bib)** - The default output format::
 
     onecite process refs.txt -o output.bib
+
+**CSL-JSON (.json)** - Structured output for pandoc, Quarto, citeproc, and
+reference-manager interchange::
+
+    onecite process refs.txt --output-format csl-json -o output.json
 
 Command-Line Options
 ~~~~~~~~~~~~~~~~~~~~~
@@ -66,7 +73,8 @@ Command-Line Options
 
 **Output Format (--output-format)**::
 
-    onecite process input.txt --output-format bibtex  # only supported format
+    onecite process input.txt --output-format bibtex
+    onecite process input.txt --output-format csl-json
 
 **Quiet Mode (--quiet)**
 
@@ -98,10 +106,14 @@ A best-effort fallback for the ``suggest`` command only (requires the optional
 ``scholarly`` package: ``pip install onecite[scholar]``). It is consulted only
 when CrossRef and Semantic Scholar return nothing. Because it scrapes a service
 with no public API, it is off by default, may be blocked by a CAPTCHA, and is
-not guaranteed to be reproducible. It is never used by ``process``, whose output
-is authoritative::
+not guaranteed to be reproducible. It is never used by ``process``; ordinary
+ambiguous references remain unresolved there, and the explicit thesis route is
+documented separately::
 
     onecite suggest input.txt --google-scholar
+
+See :doc:`external_services` for the query data sent, CAPTCHA/rate-limit
+boundary, and which source-health signals are available.
 
 **Direct String Input**
 
@@ -186,7 +198,8 @@ Example 2: Suggesting Candidates
 
     onecite suggest "deep learning hinton 2015"
 
-This returns candidate matches for human review without emitting verified BibTeX.
+This returns candidate matches for human review without promoting them to
+source-resolved bibliography output.
 
 Example 3: Quick Check Without Saving
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -214,5 +227,6 @@ Next Steps
 ----------
 
 - See :doc:`advanced_usage` for more complex scenarios
-- Learn about :doc:`templates` to customize output format
+- Review :doc:`external_services` before using sensitive or embargoed input
+- Learn about :doc:`templates` to customize field declarations and fallback entry types
 - Check :doc:`python_api` to use OneCite in your Python code

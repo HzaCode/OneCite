@@ -394,6 +394,8 @@ def test_randomized_bibtex_formatter_outputs_parseable_records():
         "total": len(completed_entries),
         "succeeded": len(completed_entries),
         "failed_entries": [],
+        "warnings": [],
+        "duplicates": [],
     }
     assert len(parsed.entries) == len(completed_entries)
     assert {entry["ID"] for entry in parsed.entries} == {
@@ -456,4 +458,9 @@ def test_parser_bibtex_round_trip_integrity():
             else:
                 assert field not in original_entry
         assert parsed_entry["doi"] == expected["doi"]
-        assert parsed_entry["query_string"] is None
+        # The query string is always built from structured fields (title,
+        # author, year) so suggest-style flows never fall back to sending a
+        # Python dict repr to the scholarly indexes as a search query.
+        assert parsed_entry["query_string"] == " ".join(
+            expected[field] for field in ("title", "author", "year")
+        )

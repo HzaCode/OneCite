@@ -8,7 +8,6 @@ deterministic and fast.
 """
 
 import os
-import sys
 import shutil
 import tempfile
 
@@ -17,9 +16,35 @@ from unittest.mock import patch
 
 from .mock_responses import mock_requests_get
 
-# Make sure the repo root is importable even when pytest is invoked
-# from an unexpected working directory.
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+# ---------------------------------------------------------------------------
+# Network guard: unit tests must never hit live APIs
+# ---------------------------------------------------------------------------
+
+
+@pytest.fixture(autouse=True)
+def _no_unmocked_network(request, monkeypatch):
+    """Fail loudly on any unmocked in-process network call.
+
+    A test that silently reaches a live API is nondeterministic and slow —
+    exactly what this suite promises not to be. Tests either mock/patch
+    ``requests.get`` themselves (the patch simply overrides this guard) or
+    carry the ``live`` marker to opt out. Subprocess-level CLI tests are
+    unaffected (the guard lives in this process only); they run with
+    ``ONECITE_OFFLINE_FIXTURES=1``.
+    """
+    if request.node.get_closest_marker("live"):
+        yield
+        return
+
+    def _blocked_get(url, *args, **kwargs):
+        raise AssertionError(
+            f"Unmocked network call from a non-live test: GET {url}. "
+            "Patch onecite.pipeline.requests.get (e.g. with the offline "
+            "fixtures) or mark the test with @pytest.mark.live."
+        )
+
+    monkeypatch.setattr("onecite.pipeline.requests.get", _blocked_get)
+    yield
 
 
 # ---------------------------------------------------------------------------

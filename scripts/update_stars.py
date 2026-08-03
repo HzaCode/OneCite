@@ -13,7 +13,9 @@ REPO_NAME = "awesome-cli-apps"
 GITHUB_API_URL = f"https://api.github.com/repos/{REPO_OWNER}/{REPO_NAME}"
 
 # Badge pattern to update the "Featured-Awesome CLI Apps XXk" badge
-BADGE_PATTERN = r'(https://img\.shields\.io/badge/Featured-Awesome%20CLI%20Apps%20)([\d.]+k)(%E2%AD%90)'
+BADGE_PATTERN = (
+    r"(https://img\.shields\.io/badge/Featured-Awesome%20CLI%20Apps%20)([\d.]+k)(%E2%AD%90)"
+)
 
 
 def format_stars(count: int) -> str:
@@ -44,7 +46,9 @@ def update_readme_stars_badge(filepath: Path, stars: int) -> bool:
 
     # Pattern for the awesome-cli-apps featured badge
     # Matches: https://img.shields.io/badge/Featured-Awesome%20CLI%20Apps%20XXk%E2%AD%90-...
-    badge_pattern = r'(https://img\.shields\.io/badge/Featured-Awesome%20CLI%20Apps%20)([\d.]+k)(%E2%AD%90)'
+    badge_pattern = (
+        r"(https://img\.shields\.io/badge/Featured-Awesome%20CLI%20Apps%20)([\d.]+k)(%E2%AD%90)"
+    )
 
     def replace_stars(match):
         return match.group(1) + formatted + match.group(3)

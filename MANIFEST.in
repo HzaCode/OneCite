@@ -4,9 +4,12 @@ include CITATION.cff
 include pyproject.toml
 include benchmarks/README.md
 include benchmarks/leaderboard.json
+include benchmarks/anti_hallucination_baseline.json
 include skills/onecite/SKILL.md
-recursive-include onecite/templates *.yaml
-recursive-include onecite/benchmarks *.json *.py
+recursive-include src/onecite/templates *.yaml
+recursive-include src/onecite/benchmarks *.json *.py
 recursive-include docs *.rst *.txt Makefile
 recursive-include docs/api *.rst
 recursive-include docs/examples *.txt *.bib
+
+prune tests

@@ -1,0 +1,51 @@
+{
+  "schema_version": "1.1",
+  "suite": "onecite-anti-hallucination",
+  "suite_version": "1.1",
+  "description": "Baseline record for the labelled anti-hallucination (non-fabrication) evaluation. Reproduce with `onecite benchmark --anti-hallucination --json`.",
+  "entries": [
+    {
+      "tool": "onecite",
+      "version": "0.2.0",
+      "source_mode": "offline",
+      "python": "3.12",
+      "platform": "macOS",
+      "command": "onecite benchmark --anti-hallucination --json",
+      "status": "passed",
+      "metrics": {
+        "resolution_rate": 1.0,
+        "non_fabrication_rate": 1.0,
+        "mismatch_detection_rate": 1.0,
+        "resolved_correct": 6,
+        "resolution_total": 6,
+        "non_fabrication_correct": 4,
+        "non_fabrication_total": 4,
+        "mismatch_correct": 1,
+        "mismatch_total": 1
+      },
+      "notes": "Fully-offline labelled evaluation using bundled fixtures."
+    },
+    {
+      "tool": "onecite",
+      "version": "0.2.0",
+      "source_mode": "live",
+      "python": "3.12",
+      "platform": "macOS",
+      "command": "onecite benchmark --anti-hallucination --live --json",
+      "verified": "2026-07-03",
+      "status": "passed",
+      "metrics": {
+        "resolution_rate": 1.0,
+        "non_fabrication_rate": 1.0,
+        "mismatch_detection_rate": 1.0,
+        "resolved_correct": 6,
+        "resolution_total": 6,
+        "non_fabrication_correct": 4,
+        "non_fabrication_total": 4,
+        "mismatch_correct": 1,
+        "mismatch_total": 1
+      },
+      "notes": "Live evaluation against the real Crossref/arXiv/PubMed/DataCite/Zenodo APIs; every bundled identifier verified to still resolve upstream."
+    }
+  ]
+}

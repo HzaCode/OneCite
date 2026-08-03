@@ -2,14 +2,17 @@
 # -*- coding: utf-8 -*-
 
 """
-OneCite: Citation Management and Academic Reference Toolkit
+OneCite: Auditable citation normalization for research workflows.
 
-A Python package for managing bibliographic data and generating
-citations in multiple formats.
+A command-line and Python toolkit that normalizes messy, mixed-format
+scholarly references (DOIs, PMIDs, arXiv IDs, ISBNs, URLs, BibTeX fragments)
+into auditable, source-resolved BibTeX and CSL-JSON. Strong identifiers follow
+documented metadata-service routes via ``process``; ambiguous plain-text
+references are returned as candidates via ``suggest`` and are not auto-promoted.
 """
 
-__version__ = "0.1.1"
-__author__ = "OneCite Team"
+__version__ = "0.2.0"
+__author__ = "He Zhiang"
 __email__ = "ang@hezhiang.com"
 __license__ = "MIT"
 
@@ -27,6 +30,11 @@ from .benchmark import (
     format_benchmark_text,
     load_benchmark_suite,
     run_benchmark,
+)
+
+from .benchmarks.anti_hallucination import (
+    format_anti_hallucination_text,
+    run_anti_hallucination_eval,
 )
 
 from .exceptions import (
@@ -51,6 +59,9 @@ __all__ = [
     "format_benchmark_text",
     "load_benchmark_suite",
     "run_benchmark",
+    # Anti-hallucination evaluation
+    "run_anti_hallucination_eval",
+    "format_anti_hallucination_text",
     # Exceptions
     "OneCiteError",
     "ValidationError",
@@ -65,5 +76,5 @@ __all__ = [
 
 # Package metadata
 __title__ = "onecite"
-__description__ = "Citation management and academic reference toolkit"
+__description__ = "Auditable normalization into source-resolved BibTeX and CSL-JSON"
 __url__ = "https://github.com/HzaCode/OneCite"

@@ -6,7 +6,10 @@
 import re
 import logging
 import time
-from typing import List, Dict, Optional, Callable
+from datetime import datetime, timezone
+from email.utils import parsedate_to_datetime
+from typing import Any, List, Dict, Optional, Callable
+from urllib.parse import unquote
 
 import requests
 from bs4 import BeautifulSoup
@@ -17,8 +20,65 @@ try:
 except ImportError:
     scholarly = None
 
+from .. import __email__, __version__
 from ..core import RawEntry, IdentifiedEntry
 from ._utils import _safe_year
+
+RETRYABLE_HTTP_STATUSES = (429, 500, 502, 503, 504)
+MAX_RETRY_WAIT_SECONDS = 600.0
+SUGGESTION_MAX_ATTEMPTS = 4
+SUGGESTION_FALLBACK_BACKOFF_SECONDS = (10.0, 60.0, 300.0)
+
+_SOURCE_STATUS_PRIORITY = {"ok": 0, "rate_limited": 1, "error": 2}
+
+# Zenodo minted nine incorrect DOI numeric IDs during a short 2013 legacy
+# interval. Its current official implementation still maps these record IDs
+# before generating a DOI:
+# https://github.com/zenodo/zenodo/blob/2d0bd3527dcb851613a00391d674be1d004c9459/zenodo/modules/records/config.py#L115-L130
+_ZENODO_RECORD_ID_TO_LEGACY_DOI_ID = {
+    7468: 7448,
+    7458: 7457,
+    7467: 7447,
+    7466: 7446,
+    7465: 7464,
+    7469: 7449,
+    7487: 7486,
+    7482: 7481,
+    7484: 7483,
+}
+_ZENODO_LEGACY_DOI_ID_TO_RECORD_ID = {
+    doi_id: record_id for record_id, doi_id in _ZENODO_RECORD_ID_TO_LEGACY_DOI_ID.items()
+}
+
+
+def _retry_after_delay(response: Any, fallback_seconds: float) -> tuple[float, str | None, bool]:
+    """Prefer a valid Retry-After delay, with a bounded deterministic fallback."""
+    headers = getattr(response, "headers", None)
+    raw: str | None = None
+    if headers:
+        for key, value in headers.items():
+            if str(key).lower() == "retry-after":
+                raw = str(value).strip()
+                break
+
+    parsed: float | None = None
+    if raw:
+        try:
+            parsed = float(int(raw))
+            if parsed < 0:
+                parsed = None
+        except ValueError:
+            try:
+                retry_at = parsedate_to_datetime(raw)
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=timezone.utc)
+                parsed = max(0.0, (retry_at - datetime.now(timezone.utc)).total_seconds())
+            except (TypeError, ValueError, OverflowError):
+                parsed = None
+
+    used_retry_after = parsed is not None
+    delay: float = parsed if parsed is not None else float(fallback_seconds)
+    return min(max(0.0, delay), MAX_RETRY_WAIT_SECONDS), raw, used_retry_after
 
 
 class IdentifierModule:
@@ -41,23 +101,92 @@ class IdentifierModule:
         self.semantic_scholar_base = "https://api.semanticscholar.org/graph/v1"
         self.pubmed_base = "https://eutils.ncbi.nlm.nih.gov/entrez/eutils"
         self.datacite_base = "https://api.datacite.org"
+        # Per-suggest-call health of every source actually consulted, reset by
+        # suggest(). A rate-limited or errored source must be disclosed in the
+        # output — silently returning fewer candidates misrepresents how
+        # complete the suggestion list is.
+        self._source_status: Dict[str, str] = {}
+        self._user_agent = (
+            f"OneCite/{__version__} " f"(https://github.com/HzaCode/OneCite; mailto:{__email__})"
+        )
         self._crossref_headers = {
             "Accept": "application/json",
-            "User-Agent": "OneCite/0.1.1 (https://github.com/HzaCode/OneCite; mailto:onecite@users.noreply.github.com)",
+            "User-Agent": self._user_agent,
         }
-        self._crossref_mailto = "onecite@users.noreply.github.com"
+        self._crossref_mailto = __email__
+
+    def _record_source_status(self, source_name: str, status: str) -> None:
+        """Record the least healthy terminal state observed for one source.
+
+        A source can require several HTTP requests (for example, PubMed's
+        search-then-summary flow).  A later successful request must not hide
+        an earlier terminal failure that made the returned candidate set
+        incomplete.  Transient failures recovered inside ``_get_with_retry``
+        never reach this method and therefore correctly finish as ``ok``.
+        """
+        if status not in _SOURCE_STATUS_PRIORITY:
+            raise ValueError(f"Unsupported source status: {status}")
+        current = self._source_status.get(source_name)
+        if current is None or _SOURCE_STATUS_PRIORITY[status] > _SOURCE_STATUS_PRIORITY[current]:
+            self._source_status[source_name] = status
+
+    def _get_with_retry(
+        self,
+        url: str,
+        *,
+        source_name: str,
+        max_attempts: int,
+        fallback_backoff_seconds: tuple[float, ...],
+        **request_kwargs: Any,
+    ) -> Any:
+        """Issue a GET with a frozen, source-specific transient-error policy."""
+        response = None
+        last_error: Exception | None = None
+        for attempt in range(max_attempts):
+            try:
+                response = requests.get(url, **request_kwargs)
+                last_error = None
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as exc:
+                last_error = exc
+                if attempt >= max_attempts - 1:
+                    raise
+                wait_seconds = fallback_backoff_seconds[
+                    min(attempt, len(fallback_backoff_seconds) - 1)
+                ]
+                self.logger.warning(
+                    f"{source_name} raised {type(exc).__name__}; retrying in "
+                    f"{wait_seconds:g}s using frozen fallback"
+                )
+                time.sleep(wait_seconds)
+                continue
+            if response.status_code not in RETRYABLE_HTTP_STATUSES or attempt >= max_attempts - 1:
+                break
+            fallback = fallback_backoff_seconds[min(attempt, len(fallback_backoff_seconds) - 1)]
+            wait_seconds, retry_after, used_retry_after = _retry_after_delay(response, fallback)
+            source = "Retry-After" if used_retry_after else "frozen fallback"
+            detail = f" ({retry_after!r})" if retry_after is not None else ""
+            self.logger.warning(
+                f"{source_name} returned {response.status_code}; retrying in "
+                f"{wait_seconds:g}s using {source}{detail}"
+            )
+            time.sleep(wait_seconds)
+        if response is None and last_error is not None:
+            raise last_error
+        return response
 
     def identify(
-        self, raw_entries: List[RawEntry], interactive_callback: Callable[[List[Dict]], int]
+        self,
+        raw_entries: List[RawEntry],
+        interactive_callback: Optional[Callable[[List[Dict]], int]] = None,
     ) -> List[IdentifiedEntry]:
         """Identify and standardize entries, finding a DOI for each.
 
         Args:
             raw_entries: List of raw entries produced by
                 :meth:`ParserModule.parse`.
-            interactive_callback: A callable that receives a list of
-                candidate dictionaries and returns the index of the
-                selected candidate.
+            interactive_callback: Accepted for backward compatibility and
+                never invoked — identification is strictly identifier-based
+                and fail-closed; candidate search lives in :meth:`suggest`.
 
         Returns:
             A list of :class:`IdentifiedEntry` dictionaries.
@@ -77,7 +206,9 @@ class IdentifierModule:
         return identified_entries
 
     def _identify_single_entry(
-        self, raw_entry: RawEntry, interactive_callback: Callable[[List[Dict]], int]
+        self,
+        raw_entry: RawEntry,
+        interactive_callback: Optional[Callable[[List[Dict]], int]] = None,
     ) -> IdentifiedEntry:
         """Identify a single entry"""
         identified_entry: IdentifiedEntry = {
@@ -91,27 +222,58 @@ class IdentifierModule:
         }
 
         # If valid DOI already exists, verify it against Crossref / DataCite
-        if raw_entry.get("doi"):
-            if self._validate_doi(raw_entry["doi"]):
-                real_metadata = self._verify_doi_and_get_metadata(raw_entry["doi"])
+        raw_doi = raw_entry.get("doi")
+        if raw_doi:
+            if self._validate_doi(raw_doi):
+                real_metadata, verify_failure = self._verify_doi_and_get_metadata(raw_doi)
                 if real_metadata:
-                    # DOI resolved. We deliberately do NOT perform a fuzzy
-                    # string comparison between the user's raw text and the
-                    # canonical metadata here. Downstream semantic workflows
-                    # (e.g. the `sci` skill) perform a semantic abstract-vs-
-                    # claim check on the enriched record, which is strictly
-                    # stronger than any bibliographic-string similarity score
-                    # OneCite could produce and would create false reassurance
-                    # for those downstream tools.
-                    identified_entry["doi"] = raw_entry["doi"]
+                    # The supplied DOI remains the resolved identifier: resolution is never blocked
+                    # by how the surrounding text reads, and no fuzzy score
+                    # replaces identifier-based verification. But when that
+                    # text clearly describes a *different* work (the classic
+                    # hallucinated title+DOI pairing), staying silent would
+                    # present a wrong citation as clean source-resolved output, so the
+                    # mismatch is surfaced as a review warning on the entry.
+                    identified_entry["doi"] = raw_doi
                     identified_entry["metadata"] = real_metadata
                     identified_entry["status"] = "identified"
+                    mismatch = self._check_text_metadata_mismatch(
+                        raw_entry["raw_text"], raw_doi, real_metadata
+                    )
+                    if mismatch:
+                        identified_entry["warnings"] = [mismatch]
                     return identified_entry
                 else:
+                    identified_entry["failure_reason"] = verify_failure or "doi_not_found"
                     self.logger.warning(
                         f"Entry {raw_entry['id']} has valid DOI format but DOI does not exist: {raw_entry['doi']}"
                     )
-                    # Continue to fuzzy search as fallback
+                    # Zenodo is an explicit provider route and is also used by
+                    # the deterministic offline suite.  Accept it only when
+                    # the *entire* claimed DOI has the exact Zenodo record
+                    # shape and the Zenodo API returns that same DOI.  A
+                    # prefix match is unsafe because a fabricated suffix could
+                    # otherwise be truncated back to a real parent record.
+                    if re.fullmatch(r"10\.5281/zenodo\.\d+", raw_doi, re.IGNORECASE):
+                        zenodo_info = self._extract_zenodo_info(raw_doi)
+                        returned_doi = (zenodo_info or {}).get("doi", "")
+                        if returned_doi.lower() == raw_doi.lower():
+                            identified_entry["doi"] = raw_doi
+                            identified_entry["metadata"] = zenodo_info or {}
+                            identified_entry["status"] = "identified"
+                            identified_entry.pop("failure_reason", None)
+                            mismatch = self._check_text_metadata_mismatch(
+                                raw_entry["raw_text"], raw_doi, zenodo_info or {}
+                            )
+                            if mismatch:
+                                identified_entry["warnings"] = [mismatch]
+                            return identified_entry
+                    # An explicit DOI is an identifier claim, not ambiguous
+                    # text. If that exact identifier cannot be source-resolved, fail
+                    # closed.  Falling through lets DOI suffixes that resemble
+                    # other identifiers (for example ``2001.01084`` as an
+                    # arXiv-shaped substring) resolve to an unrelated work.
+                    return identified_entry
 
         github_info = self._extract_github_info(raw_entry["raw_text"])
         if github_info:
@@ -146,23 +308,24 @@ class IdentifierModule:
             return identified_entry
 
         # Try to extract DOI or arXiv ID from URL
-        if raw_entry.get("url"):
-            if "github.com" in raw_entry["url"]:
-                github_info = self._extract_github_info(raw_entry["url"])
+        raw_url = raw_entry.get("url")
+        if raw_url:
+            if "github.com" in raw_url:
+                github_info = self._extract_github_info(raw_url)
                 if github_info:
                     identified_entry["metadata"] = github_info
-                    identified_entry["url"] = raw_entry["url"]
+                    identified_entry["url"] = raw_url
                     identified_entry["status"] = "identified"
                     self.logger.info(
                         f"Entry {raw_entry['id']} identified as GitHub repository from URL: {github_info.get('repo')}"
                     )
                     return identified_entry
 
-            if "arxiv.org" in raw_entry["url"]:
-                arxiv_id = self._extract_arxiv_id_from_url(raw_entry["url"])
+            if "arxiv.org" in raw_url:
+                arxiv_id = self._extract_arxiv_id_from_url(raw_url)
                 if arxiv_id:
                     identified_entry["arxiv_id"] = arxiv_id
-                    identified_entry["url"] = raw_entry["url"]
+                    identified_entry["url"] = raw_url
                     identified_entry["status"] = "identified"
                     self.logger.info(
                         f"Entry {raw_entry['id']} extracted arXiv ID from URL: {arxiv_id}"
@@ -170,9 +333,9 @@ class IdentifierModule:
                     return identified_entry
 
             # For other URLs
-            if "github.com" not in raw_entry["url"] and "arxiv.org" not in raw_entry["url"]:
+            if "github.com" not in raw_url and "arxiv.org" not in raw_url:
                 # Try to extract DOI
-                extracted_doi = self._extract_doi_from_url(raw_entry["url"])
+                extracted_doi = self._extract_doi_from_url(raw_url)
                 if extracted_doi:
                     identified_entry["doi"] = extracted_doi
                     identified_entry["status"] = "identified"
@@ -181,15 +344,26 @@ class IdentifierModule:
                     )
                     return identified_entry
 
-                identified_entry["url"] = raw_entry["url"]
+                identified_entry["url"] = raw_url
 
         # Fuzzy search
-        if raw_entry.get("query_string"):
-            query_string = raw_entry["query_string"].strip()
+        raw_query = raw_entry.get("query_string")
+        if raw_query:
+            query_string = raw_query.strip()
 
-            pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string, re.IGNORECASE)
-            if pmid_match:
-                pmid = pmid_match.group(2)
+            # A bare 7-8 digit block is treated as a PMID; an explicitly
+            # labelled "PMID:12345678" is also honoured when embedded in
+            # citation text — the label makes it as unambiguous as a DOI
+            # embedded in text, which has always been extracted.
+            pmid = None
+            bare_match = re.match(r"^(?:PMID:?\s*)?(\d{7,8})$", query_string, re.IGNORECASE)
+            if bare_match:
+                pmid = bare_match.group(1)
+            else:
+                labelled_match = re.search(r"\bPMID:?\s*(\d{7,8})\b", query_string, re.IGNORECASE)
+                if labelled_match:
+                    pmid = labelled_match.group(1)
+            if pmid:
                 pubmed_result = self._search_pubmed_by_id(pmid)
                 if pubmed_result:
                     return {
@@ -201,6 +375,12 @@ class IdentifierModule:
                         "metadata": pubmed_result,
                         "status": "identified",
                     }
+                # A PMID is an identifier claim, not ambiguous text: the
+                # lookup returning nothing means a nonexistent PMID or an
+                # unavailable source, not a case for `onecite suggest`.
+                identified_entry["failure_reason"] = "pmid_unresolved"
+                self.logger.warning(f"Entry {raw_entry['id']}: PMID {pmid} lookup found nothing")
+                return identified_entry
 
             if re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_string, re.IGNORECASE):
                 books_results = self._search_google_books(query_string)
@@ -215,13 +395,21 @@ class IdentifierModule:
                         "metadata": book_result,
                         "status": "identified",
                     }
+                identified_entry["failure_reason"] = "isbn_unresolved"
+                self.logger.warning(f"Entry {raw_entry['id']}: ISBN lookup found nothing")
+                return identified_entry
 
+            identified_entry.setdefault("failure_reason", "no_strong_identifier")
             self.logger.info(
                 "Entry %s has no strong identifier; use `onecite suggest` for candidates.",
                 raw_entry["id"],
             )
             return identified_entry
 
+        identified_entry.setdefault(
+            "failure_reason",
+            "url_unresolved" if identified_entry.get("url") else "no_strong_identifier",
+        )
         self.logger.warning(f"Entry {raw_entry['id']} identification failed")
         return identified_entry
 
@@ -230,21 +418,229 @@ class IdentifierModule:
         doi_pattern = r"^10\.\d{4,}/.+"
         return bool(re.match(doi_pattern, doi))
 
-    def _verify_doi_and_get_metadata(self, doi: str) -> Optional[Dict]:
-        """Verify DOI exists in Crossref or DataCite and get real metadata for comparison."""
+    @staticmethod
+    def _normalize_doi_identity(value: Any) -> Optional[str]:
+        """Return a DOI identity suitable for exact registry-response checks.
+
+        DOI names are case-insensitive.  Registry metadata may also express
+        the same name with the conventional ``doi:`` label or DOI resolver
+        URL, so those presentation wrappers are removed before comparison.
+        """
+        if not isinstance(value, str):
+            return None
+
+        normalized = unquote(value.strip())
+        previous = None
+        while normalized and normalized != previous:
+            previous = normalized
+            normalized = re.sub(r"^doi\s*:\s*", "", normalized, count=1, flags=re.I)
+            normalized = re.sub(
+                r"^https?://(?:dx\.)?doi\.org/", "", normalized, count=1, flags=re.I
+            )
+            normalized = normalized.strip()
+
+        return normalized.casefold() or None
+
+    @classmethod
+    def _doi_response_matches(cls, requested: Any, *returned: Any) -> bool:
+        """Whether every DOI identity present in a response matches the request."""
+        requested_identity = cls._normalize_doi_identity(requested)
+        returned_identities = [
+            identity
+            for identity in (cls._normalize_doi_identity(value) for value in returned)
+            if identity is not None
+        ]
+        return bool(
+            requested_identity
+            and returned_identities
+            and all(identity == requested_identity for identity in returned_identities)
+        )
+
+    def _validated_zenodo_response_identity(
+        self,
+        requested_doi: str,
+        requested_record_id: str,
+        data: Any,
+    ) -> Optional[tuple[str, str, Optional[str], str, Optional[str]]]:
+        """Validate the allowed Zenodo version/concept DOI relationship.
+
+        A published-record response is accepted only when its version ``doi``
+        suffix equals the official DOI ID derived from its numeric ``id``,
+        including Zenodo's pinned nine-record 2013 legacy map.  When concept
+        identity is present, ``conceptdoi`` and ``conceptrecid`` must both be
+        present and obey the same rule.  The requested DOI must then match
+        exactly one of those two response-derived identities.  Missing,
+        malformed, mismatched, or ambiguous identities fail closed.
+
+        The returned tuple keeps the matched DOI, version DOI, concept DOI,
+        version-record ID, and concept-record ID separate.
+        """
+        if not isinstance(data, dict):
+            self.logger.warning("Zenodo returned a non-object record response; rejecting response")
+            return None
+
+        returned_record_id = data.get("id")
+        if (
+            isinstance(returned_record_id, bool)
+            or not isinstance(returned_record_id, (int, str))
+            or not re.fullmatch(r"\d+", str(returned_record_id).strip())
+        ):
+            self.logger.warning(
+                "Zenodo returned invalid record ID %r for requested DOI record ID %r; "
+                "rejecting response",
+                returned_record_id,
+                requested_record_id,
+            )
+            return None
+        returned_record_identity = str(int(str(returned_record_id).strip()))
+        expected_version_doi_id = _ZENODO_RECORD_ID_TO_LEGACY_DOI_ID.get(
+            int(returned_record_identity),
+            int(returned_record_identity),
+        )
+
+        requested_identity = self._normalize_doi_identity(requested_doi)
+        version_doi = self._normalize_doi_identity(data.get("doi"))
+        concept_raw = data.get("conceptdoi")
+        concept_doi = self._normalize_doi_identity(concept_raw)
+        concept_record_raw = data.get("conceptrecid")
+        zenodo_doi_pattern = r"10\.5281/zenodo\.(\d+)"
+
+        version_match = (
+            re.fullmatch(zenodo_doi_pattern, version_doi, re.IGNORECASE) if version_doi else None
+        )
+        if not version_match or int(version_match.group(1)) != expected_version_doi_id:
+            self.logger.warning(
+                "Zenodo response record ID %r and version DOI %r do not identify the same "
+                "record; rejecting response",
+                returned_record_identity,
+                version_doi,
+            )
+            return None
+        assert version_doi is not None
+
+        has_concept_doi = concept_raw not in (None, "")
+        has_concept_record_id = concept_record_raw not in (None, "")
+        if has_concept_doi != has_concept_record_id:
+            self.logger.warning(
+                "Zenodo response for record %s has only one of conceptdoi/conceptrecid; "
+                "rejecting response",
+                returned_record_identity,
+            )
+            return None
+
+        concept_record_identity: Optional[str] = None
+        if has_concept_doi:
+            concept_match = (
+                re.fullmatch(zenodo_doi_pattern, concept_doi, re.IGNORECASE)
+                if concept_doi
+                else None
+            )
+            if (
+                isinstance(concept_record_raw, bool)
+                or not isinstance(concept_record_raw, (int, str))
+                or not re.fullmatch(r"\d+", str(concept_record_raw).strip())
+            ):
+                self.logger.warning(
+                    "Zenodo response for record %s has invalid conceptrecid %r; "
+                    "rejecting response",
+                    returned_record_identity,
+                    concept_record_raw,
+                )
+                return None
+            concept_record_identity = str(int(str(concept_record_raw).strip()))
+            expected_concept_doi_id = _ZENODO_RECORD_ID_TO_LEGACY_DOI_ID.get(
+                int(concept_record_identity),
+                int(concept_record_identity),
+            )
+            if not concept_match or int(concept_match.group(1)) != expected_concept_doi_id:
+                self.logger.warning(
+                    "Zenodo response conceptrecid %r and concept DOI %r do not identify the "
+                    "same concept; rejecting response",
+                    concept_record_identity,
+                    concept_doi,
+                )
+                return None
+        elif concept_doi is not None:
+            self.logger.warning(
+                "Zenodo response for record %s has malformed concept DOI %r; rejecting response",
+                returned_record_identity,
+                concept_raw,
+            )
+            return None
+
+        matches_version = requested_identity == version_doi
+        matches_concept = requested_identity == concept_doi
+        if matches_version == matches_concept:
+            self.logger.warning(
+                "Zenodo returned version/concept DOI identities %r/%r for requested DOI %r; "
+                "rejecting response",
+                version_doi,
+                concept_doi,
+                requested_doi,
+            )
+            return None
+
+        requested_numeric_identity = str(int(requested_record_id))
+        expected_doi_identity = (
+            str(expected_version_doi_id)
+            if matches_version
+            else str(
+                _ZENODO_RECORD_ID_TO_LEGACY_DOI_ID.get(
+                    int(concept_record_identity or ""),
+                    int(concept_record_identity or ""),
+                )
+            )
+        )
+        if expected_doi_identity != requested_numeric_identity:
+            self.logger.warning(
+                "Zenodo requested DOI record ID %r does not match the response-derived "
+                "version/concept DOI record ID %r; rejecting response",
+                requested_numeric_identity,
+                expected_doi_identity,
+            )
+            return None
+
+        matched_doi = version_doi if matches_version else concept_doi
+        if matched_doi is None:  # Defensive: the exclusive match above proves this cannot occur.
+            return None
+        return (
+            matched_doi,
+            version_doi,
+            concept_doi,
+            returned_record_identity,
+            concept_record_identity,
+        )
+
+    def _verify_doi_and_get_metadata(self, doi: str) -> "tuple[Optional[Dict], Optional[str]]":
+        """Verify DOI exists in Crossref or DataCite and get real metadata.
+
+        Returns:
+            ``(metadata, None)`` on success, or ``(None, failure_reason)``
+            where ``failure_reason`` distinguishes a DOI that both registries
+            report as unknown (``"doi_not_found"`` — fabricated or mistyped)
+            from a lookup that errored (``"source_error"`` — retryable).
+        """
         # Try CrossRef first (covers most academic journals/papers)
         try:
             url = f"{self.crossref_base_url}/{doi}"
-            params = {"mailto": self._crossref_mailto}
+            params: Dict[str, Any] = {"mailto": self._crossref_mailto}
             response = requests.get(url, headers=self._crossref_headers, params=params, timeout=10)
             response.raise_for_status()
 
             data = response.json()
             work = data.get("message", {})
+            returned_doi = work.get("DOI")
+            if not self._doi_response_matches(doi, returned_doi):
+                self.logger.error(
+                    "CrossRef returned DOI %r for requested DOI %r; rejecting response",
+                    returned_doi,
+                    doi,
+                )
+                return None, "source_error"
 
             real_metadata = {
                 "source": "crossref_verification",
-                "doi": work.get("DOI"),
+                "doi": self._normalize_doi_identity(returned_doi),
                 "title": work.get("title", [""])[0] if work.get("title") else "",
                 "authors": [
                     f"{a.get('given', '')} {a.get('family', '')}" for a in work.get("author", [])
@@ -260,13 +656,17 @@ class IdentifierModule:
                 "publisher": work.get("publisher"),
                 "citations": work.get("is-referenced-by-count", 0),
                 "url": work.get("URL"),
+                # The raw work object lets the enricher reuse this response
+                # instead of fetching the same DOI from CrossRef again.
+                # Underscore-prefixed fields are stripped from public output.
+                "_crossref_work": work,
             }
 
-            self.logger.info(f"DOI {doi} verified successfully in CrossRef")
-            return real_metadata
+            self.logger.info(f"DOI {doi} resolved successfully in Crossref")
+            return real_metadata, None
 
         except requests.exceptions.HTTPError as e:
-            if e.response.status_code == 404:
+            if e.response is not None and e.response.status_code == 404:
                 self.logger.warning(f"DOI {doi} not found in CrossRef (404)")
                 # A CrossRef 404 only means the DOI is not registered with
                 # CrossRef. Many valid DOIs (datasets, software, theses,
@@ -276,14 +676,140 @@ class IdentifierModule:
                 self.logger.info(f"DOI {doi} not in CrossRef, trying DataCite API...")
                 datacite_result = self._query_datacite(doi)
                 if datacite_result:
-                    return datacite_result
-                return None
+                    return datacite_result, None
+                return None, "doi_not_found"
             else:
                 self.logger.error(f"HTTP error verifying DOI {doi}: {str(e)}")
-                return None
+                return None, "source_error"
         except Exception as e:
             self.logger.error(f"Failed to verify DOI {doi}: {str(e)}")
+            return None, "source_error"
+
+    # Below this similarity score, the descriptive text around a resolved DOI
+    # is considered to describe a different work than the DOI's metadata.
+    TEXT_METADATA_MISMATCH_THRESHOLD = 45
+
+    def _check_text_metadata_mismatch(
+        self, raw_text: str, doi: str, metadata: Dict
+    ) -> Optional[Dict]:
+        """Detect input text that describes a different work than its DOI.
+
+        This never blocks resolution — the DOI remains the authority. It only
+        flags entries where the descriptive text accompanying a resolved DOI
+        (title words, authors) clearly disagrees with the canonical metadata,
+        which is the typical shape of a hallucinated citation: a real DOI
+        paired with the wrong paper.
+
+        Returns:
+            A warning dict for the entry report, or ``None`` when the text is
+            consistent with the metadata or carries too little descriptive
+            signal to compare (e.g. a bare DOI).
+        """
+        title = (metadata.get("title") or "").strip()
+        if not title:
             return None
+
+        residual = raw_text.replace(doi, " ")
+        residual = re.sub(r"https?://\S+", " ", residual)
+        residual = re.sub(r"\b(?:doi|pmid|arxiv|isbn)\b\s*[:=]?", " ", residual, flags=re.I)
+        residual = " ".join(re.sub(r"[^\w\s]", " ", residual).split())
+
+        # A year cited far from the resolved metadata's year is independent
+        # contradictory evidence.  Compute it before the short-text gate so a
+        # concise author/journal/year citation cannot silently pass merely
+        # because it lacks a title.
+        year_conflict = False
+        input_year_match = re.search(r"\b(19|20)\d{2}\b", residual)
+        input_year = input_year_match.group(0) if input_year_match else None
+        metadata_year = metadata.get("year")
+        if input_year and metadata_year:
+            try:
+                year_conflict = abs(int(input_year) - int(metadata_year)) > 5
+            except (ValueError, TypeError):
+                pass
+
+        # Journal names, volume/page numbers, and years carry no title signal;
+        # require enough descriptive words for a meaningful comparison unless
+        # the independently observed year is already contradictory.
+        descriptive_words = [w for w in residual.split() if len(w) >= 3 and not w.isdigit()]
+        if len(descriptive_words) < 4 and not year_conflict:
+            return None
+
+        residual_lower = residual.lower()
+        authors = " ".join(metadata.get("authors") or [])
+        canonical = f"{title} {authors} {metadata.get('journal') or ''}".lower()
+        score = max(
+            fuzz.token_set_ratio(residual_lower, title.lower()),
+            fuzz.partial_ratio(residual_lower, title.lower()),
+            fuzz.token_set_ratio(residual_lower, canonical),
+        )
+
+        # Character-level fuzz alone is not evidence that the text describes
+        # this work — short titles ("Deep learning") let a single generic
+        # word inflate the ratios. Require *positive* overlap: the text must
+        # contain most of the title's words, or most of the authors' family
+        # names. The independently computed year conflict raises the bar.
+
+        residual_tokens = {token.lower() for token in residual.split()}
+        title_tokens = {
+            token for token in re.sub(r"[^\w\s]", " ", title.lower()).split() if len(token) >= 3
+        }
+        title_coverage = (
+            len(title_tokens & residual_tokens) / len(title_tokens) if title_tokens else 0.0
+        )
+        family_names = {
+            name.split()[-1].lower()
+            for name in (metadata.get("authors") or [])
+            if name.split() and len(name.split()[-1]) >= 3
+        }
+        author_coverage = (
+            len(family_names & residual_tokens) / len(family_names) if family_names else 0.0
+        )
+        evidence = max(title_coverage, author_coverage)
+
+        # Sparse references often omit the title and abbreviate the journal.
+        # In that shape, exact bibliographic coordinates plus substantial
+        # author agreement are stronger positive evidence than title fuzz.
+        # Requiring year, volume, first page, and at least half of the family
+        # names keeps this exception narrow enough not to mask a wrong-work
+        # pairing that merely shares a publication year.
+        metadata_volume = str(metadata.get("volume") or "").lower()
+        metadata_pages = str(metadata.get("pages") or "")
+        first_page_match = re.search(r"\d+", metadata_pages)
+        first_page = first_page_match.group(0) if first_page_match else None
+        coordinate_consistent = (
+            bool(input_year)
+            and bool(metadata_year)
+            and input_year == str(metadata_year)
+            and bool(metadata_volume)
+            and metadata_volume in residual_tokens
+            and first_page is not None
+            and first_page in residual_tokens
+            and author_coverage >= 0.5
+        )
+        if coordinate_consistent:
+            return None
+
+        required_evidence = 0.8 if year_conflict else 0.6
+        consistent = score >= self.TEXT_METADATA_MISMATCH_THRESHOLD and (
+            evidence >= required_evidence
+        )
+        if consistent:
+            return None
+
+        return {
+            "type": "text_metadata_mismatch",
+            "message": (
+                "Input text does not appear to describe the work this DOI "
+                "resolves to; the entry was resolved from the DOI, but the "
+                "original text may cite a different work — review it."
+            ),
+            "similarity": score,
+            "year_conflict": year_conflict,
+            "input_text": raw_text.strip()[:200],
+            "resolved_title": title,
+            "resolved_doi": metadata.get("doi") or doi,
+        }
 
     def _extract_github_info(self, text: str) -> Optional[Dict]:
         """Extract GitHub repository information"""
@@ -302,7 +828,10 @@ class IdentifierModule:
                 repo = re.sub(r"[^a-zA-Z0-9_.-].*$", "", repo)
 
                 url = f"{self.github_api_base}/repos/{owner}/{repo}"
-                headers = {"Accept": "application/vnd.github.v3+json", "User-Agent": "OneCite/1.0"}
+                headers = {
+                    "Accept": "application/vnd.github.v3+json",
+                    "User-Agent": self._user_agent,
+                }
 
                 response = requests.get(url, headers=headers, timeout=10)
 
@@ -345,24 +874,56 @@ class IdentifierModule:
         """Extract Zenodo/Figshare dataset information"""
         try:
             zenodo_pattern = r"10\.5281/zenodo\.(\d+)"
-            match = re.search(zenodo_pattern, text)
+            match = re.search(zenodo_pattern, text, re.IGNORECASE)
 
             if match:
                 zenodo_id = match.group(1)
-                doi = f"10.5281/zenodo.{zenodo_id}"
+                requested_doi = match.group(0)
+                zenodo_record_id = _ZENODO_LEGACY_DOI_ID_TO_RECORD_ID.get(
+                    int(zenodo_id),
+                    int(zenodo_id),
+                )
 
-                url = f"https://zenodo.org/api/records/{zenodo_id}"
+                url = f"{self.zenodo_api_base}/{zenodo_record_id}"
                 response = requests.get(url, timeout=10)
 
                 if response.status_code == 200:
                     data = response.json()
+                    response_identity = self._validated_zenodo_response_identity(
+                        requested_doi,
+                        zenodo_id,
+                        data,
+                    )
+                    if response_identity is None:
+                        return None
+                    (
+                        matched_doi,
+                        version_doi,
+                        concept_doi,
+                        returned_record_id,
+                        concept_record_id,
+                    ) = response_identity
                     metadata = data.get("metadata", {})
+                    resource_type = metadata.get("resource_type", {}).get("type", "dataset")
+                    normalized_resource_type = str(resource_type).strip().casefold()
+                    is_software = normalized_resource_type == "software"
+                    is_dataset = normalized_resource_type == "dataset"
+                    output_type = (
+                        "software"
+                        if is_software
+                        else "dataset" if is_dataset else normalized_resource_type or "misc"
+                    )
 
                     return {
                         "source": "zenodo",
-                        "type": "dataset",
-                        "is_dataset": True,
-                        "doi": doi,
+                        "type": output_type,
+                        "is_software": is_software,
+                        "is_dataset": is_dataset,
+                        "doi": matched_doi,
+                        "version_doi": version_doi,
+                        "concept_doi": concept_doi,
+                        "record_id": returned_record_id,
+                        "concept_record_id": concept_record_id,
                         "title": metadata.get("title", ""),
                         "authors": [
                             creator.get("name", "") for creator in metadata.get("creators", [])
@@ -373,9 +934,9 @@ class IdentifierModule:
                             else None
                         ),
                         "publisher": "Zenodo",
-                        "url": f"https://zenodo.org/record/{zenodo_id}",
+                        "url": f"https://zenodo.org/record/{returned_record_id}",
                         "version": metadata.get("version", ""),
-                        "resource_type": metadata.get("resource_type", {}).get("type", "dataset"),
+                        "resource_type": resource_type,
                     }
 
             figshare_pattern = r"10\.6084/m9\.figshare\.(\d+)"
@@ -420,7 +981,19 @@ class IdentifierModule:
 
             if response.status_code == 200:
                 data = response.json()
-                attributes = data.get("data", {}).get("attributes", {})
+                data_record = data.get("data", {})
+                attributes = data_record.get("attributes", {})
+                returned_id = data_record.get("id")
+                returned_attribute_doi = attributes.get("doi")
+                if not self._doi_response_matches(doi, returned_id, returned_attribute_doi):
+                    self.logger.warning(
+                        "DataCite returned DOI identities %r/%r for requested DOI %r; "
+                        "rejecting response",
+                        returned_id,
+                        returned_attribute_doi,
+                        doi,
+                    )
+                    return None
 
                 creators = attributes.get("creators", [])
                 authors = [c.get("name", "") for c in creators if c.get("name")]
@@ -431,7 +1004,7 @@ class IdentifierModule:
                     "source": "datacite",
                     "type": "dataset",
                     "is_dataset": True,
-                    "doi": doi,
+                    "doi": self._normalize_doi_identity(doi),
                     "title": (
                         attributes.get("titles", [{}])[0].get("title", "")
                         if attributes.get("titles")
@@ -570,13 +1143,31 @@ class IdentifierModule:
             if year:
                 base_query += f" dcyear:{year}"
 
-            params = {"func": "PerformSearch", "query": base_query, "hits": 3, "format": "json"}
+            params: Dict[str, Any] = {
+                "func": "PerformSearch",
+                "query": base_query,
+                "hits": 3,
+                "format": "json",
+            }
 
-            response = requests.get(self.base_search_url, params=params, timeout=10)
+            response = self._get_with_retry(
+                self.base_search_url,
+                source_name="BASE",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
+
+            if response.status_code == 429:
+                self._record_source_status("base_search", "rate_limited")
+                return None
+            response.raise_for_status()
 
             if response.status_code == 200:
                 data = response.json()
                 docs = data.get("response", {}).get("docs", [])
+                self._record_source_status("base_search", "ok")
 
                 if docs:
                     doc = docs[0]
@@ -613,6 +1204,7 @@ class IdentifierModule:
 
         except Exception as e:
             self.logger.warning(f"BASE search for thesis failed: {str(e)}")
+            self._record_source_status("base_search", "error")
 
         return None
 
@@ -623,7 +1215,7 @@ class IdentifierModule:
             if year:
                 query += f' AND yearofacceptance exact "{year}"'
 
-            params = {
+            params: Dict[str, Any] = {
                 "title": title,
                 "format": "json",
                 "size": 3,
@@ -631,11 +1223,24 @@ class IdentifierModule:
                 "publicationtype": "Bachelor thesis OR Master thesis OR Doctoral thesis",
             }
 
-            response = requests.get(self.openaire_api_base, params=params, timeout=10)
+            response = self._get_with_retry(
+                self.openaire_api_base,
+                source_name="OpenAIRE",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
+
+            if response.status_code == 429:
+                self._record_source_status("openaire", "rate_limited")
+                return None
+            response.raise_for_status()
 
             if response.status_code == 200:
                 data = response.json()
                 results = data.get("response", {}).get("results", {}).get("result", [])
+                self._record_source_status("openaire", "ok")
 
                 if results:
                     # Take first result
@@ -705,6 +1310,7 @@ class IdentifierModule:
 
         except Exception as e:
             self.logger.warning(f"external providerRE search for thesis failed: {str(e)}")
+            self._record_source_status("openaire", "error")
 
         return None
 
@@ -712,13 +1318,24 @@ class IdentifierModule:
         """Search PubMed by PMID"""
         try:
             url = f"{self.pubmed_base}/esummary.fcgi"
-            params = {"db": "pubmed", "id": pmid, "retmode": "json"}
+            params: Dict[str, Any] = {"db": "pubmed", "id": pmid, "retmode": "json"}
 
-            response = requests.get(url, params=params, timeout=10)
+            response = self._get_with_retry(
+                url,
+                source_name="PubMed summary",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
+            if response.status_code == 429:
+                self._record_source_status("pubmed", "rate_limited")
+                return None
             response.raise_for_status()
 
             data = response.json()
             result = data.get("result", {}).get(pmid, {})
+            self._record_source_status("pubmed", "ok")
 
             if result and result.get("title"):
                 doi = None
@@ -751,6 +1368,7 @@ class IdentifierModule:
 
         except Exception as e:
             self.logger.warning(f"PubMed ID search failed: {str(e)}")
+            self._record_source_status("pubmed", "error")
 
         return None
 
@@ -759,13 +1377,29 @@ class IdentifierModule:
         try:
             # First, search for PMIDs
             search_url = f"{self.pubmed_base}/esearch.fcgi"
-            params = {"db": "pubmed", "term": query, "retmax": limit, "retmode": "json"}
+            params: Dict[str, Any] = {
+                "db": "pubmed",
+                "term": query,
+                "retmax": limit,
+                "retmode": "json",
+            }
 
-            response = requests.get(search_url, params=params, timeout=10)
+            response = self._get_with_retry(
+                search_url,
+                source_name="PubMed search",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
+            if response.status_code == 429:
+                self._record_source_status("pubmed", "rate_limited")
+                return []
             response.raise_for_status()
 
             data = response.json()
             pmids = data.get("esearchresult", {}).get("idlist", [])
+            self._record_source_status("pubmed", "ok")
 
             if not pmids:
                 return []
@@ -781,22 +1415,128 @@ class IdentifierModule:
 
         except Exception as e:
             self.logger.warning(f"PubMed search failed: {str(e)}")
+            self._record_source_status("pubmed", "error")
+            return []
+
+    def _search_arxiv_candidates(self, query: str, limit: int = 5) -> List[Dict]:
+        """Search the arXiv API for suggestion candidates.
+
+        arXiv covers the CS/ML venues that CrossRef does not index (e.g.
+        NeurIPS/ICML papers), so it fills a real coverage gap in suggest.
+        """
+        try:
+            import feedparser
+
+            # Citations usually lead with the title ("Title, Authors, Venue
+            # Year"), so search the title field on the segment before the
+            # first comma — requiring author/venue words in the full text is
+            # what makes naive queries miss the paper. Years, punctuation,
+            # and short noise words ("et", "al") carry no title signal.
+            title_guess = query.split(",")[0]
+            terms = [
+                word
+                for word in re.sub(r"[^\w\s]", " ", title_guess).split()
+                if len(word) >= 3 and not re.fullmatch(r"(19|20)\d{2}", word)
+            ]
+            if not terms:
+                self._record_source_status("arxiv", "ok")
+                return []
+            params: Dict[str, Any] = {
+                "search_query": " AND ".join(f"ti:{term}" for term in terms[:6]),
+                "max_results": limit,
+            }
+            # https directly — the http endpoint 301-redirects, wasting a
+            # round-trip per query. arXiv rate-limits aggressively but the
+            # 429s are short-lived, so back off briefly instead of failing
+            # the source outright.
+            response = self._get_with_retry(
+                "https://export.arxiv.org/api/query",
+                source_name="arXiv",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
+            if response is None:
+                self._record_source_status("arxiv", "error")
+                return []
+            if response.status_code == 429:
+                # Still throttled after backoff: disclose the truth — the
+                # source was rate-limited, not broken.
+                self.logger.warning("arXiv still rate-limited after retries")
+                self._record_source_status("arxiv", "rate_limited")
+                return []
+            response.raise_for_status()
+            feed = feedparser.parse(response.content)
+
+            results = []
+            for entry in feed.entries:
+                arxiv_url = entry.get("id", "")
+                arxiv_match = re.search(r"abs/(\d{4}\.\d{4,5})", arxiv_url)
+                arxiv_id = arxiv_match.group(1) if arxiv_match else None
+                published = entry.get("published", "")
+                year = None
+                if len(published) >= 4 and published[:4].isdigit():
+                    year = int(published[:4])
+                authors = [
+                    author.get("name", "")
+                    for author in entry.get("authors", [])
+                    if author.get("name")
+                ]
+                doi = entry.get("arxiv_doi") or None
+                title = entry.get("title", "").replace("\n", " ").strip()
+                if not title or not authors:
+                    continue
+                results.append(
+                    {
+                        "source": "arxiv",
+                        "doi": doi,
+                        "arxiv_id": arxiv_id,
+                        "title": title,
+                        "authors": authors,
+                        "year": year,
+                        "journal": "arXiv",
+                        "citations": 0,
+                        "type": "article",
+                        "url": f"https://arxiv.org/abs/{arxiv_id}" if arxiv_id else arxiv_url,
+                    }
+                )
+
+            self.logger.info(f"arXiv search returned {len(results)} results")
+            self._record_source_status("arxiv", "ok")
+            return results
+        except Exception as e:
+            self.logger.warning(f"arXiv search failed: {str(e)}")
+            self._record_source_status("arxiv", "error")
             return []
 
     def _search_semantic_scholar(self, query: str, limit: int = 5) -> List[Dict]:
         """Search Semantic Scholar for academic papers"""
         try:
             url = f"{self.semantic_scholar_base}/paper/search"
-            params = {
+            params: Dict[str, Any] = {
                 "query": query,
                 "limit": limit,
                 "fields": "title,authors,year,venue,citationCount,publicationDate,externalIds,journal,url,abstract",
             }
 
-            response = requests.get(url, params=params, timeout=10)
+            # Unauthenticated Semantic Scholar shares an aggressive global
+            # rate limit; apply the frozen suggestion-source retry policy.
+            response = self._get_with_retry(
+                url,
+                source_name="Semantic Scholar",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
 
             if response.status_code == 429:
-                self.logger.debug("Semantic Scholar rate-limited (429); skipping for this query.")
+                self.logger.warning(
+                    "Semantic Scholar rate-limited (429); candidates from this "
+                    "source are missing for this query."
+                )
+                self._record_source_status("semantic_scholar", "rate_limited")
                 return []
 
             if response.status_code == 200:
@@ -845,13 +1585,16 @@ class IdentifierModule:
                         results.append(result)
 
                 self.logger.info(f"Semantic Scholar search returned {len(results)} results")
+                self._record_source_status("semantic_scholar", "ok")
                 return results
             else:
                 self.logger.warning(f"Semantic Scholar returned status code {response.status_code}")
+                self._record_source_status("semantic_scholar", "error")
                 return []
 
         except Exception as e:
             self.logger.warning(f"Semantic Scholar search failed: {str(e)}")
+            self._record_source_status("semantic_scholar", "error")
             return []
 
     def _extract_arxiv_id(self, text: str) -> Optional[str]:
@@ -881,7 +1624,7 @@ class IdentifierModule:
         """Extract DOI from URL page. Prioritize meta tags and avoid extracting DOIs from reference sections."""
         try:
             response = requests.get(
-                url, timeout=10, headers={"User-Agent": "OneCite/1.0"}, stream=True
+                url, timeout=10, headers={"User-Agent": self._user_agent}, stream=True
             )
             content_len = response.headers.get("content-length")
             if content_len and int(content_len) > 5 * 1024 * 1024:
@@ -898,7 +1641,7 @@ class IdentifierModule:
             )
 
             if doi_meta and "content" in doi_meta.attrs:
-                doi = doi_meta["content"]
+                doi = str(doi_meta["content"])
                 if self._validate_doi(doi):
                     self.logger.info(f"Found DOI in meta tags: {doi}")
                     return doi
@@ -909,6 +1652,8 @@ class IdentifierModule:
                 try:
                     import json
 
+                    if not script.string:
+                        continue
                     data = json.loads(script.string)
                     if isinstance(data, dict) and "identifier" in data:
                         identifier = data["identifier"]
@@ -931,26 +1676,71 @@ class IdentifierModule:
 
         return None
 
-    def suggest(self, raw_entry: RawEntry, limit: int = 5) -> Dict:
-        """Return candidate matches for a raw entry without resolving it."""
+    def suggest(self, raw_entry: RawEntry, limit: int = 5, audit_trace: bool = False) -> Dict:
+        """Return candidate matches for a raw entry without resolving it.
+
+        ``audit_trace`` is reserved for provenance-locked evaluation runs.  It
+        retains private source/scorer positions without changing the ordinary
+        CLI or Python response surface.
+        """
         query_string = (raw_entry.get("query_string") or raw_entry.get("raw_text") or "").strip()
-        suggestion = {
+        suggestion: Dict[str, Any] = {
             "id": raw_entry["id"],
             "raw_text": raw_entry.get("raw_text", ""),
             "query_string": query_string,
             "status": "no_candidates",
             "candidates": [],
+            "sources": [],
         }
+        if audit_trace:
+            suggestion["candidate_trace"] = []
+            suggestion["candidate_trace_limit"] = max(limit, 0)
         if not query_string:
             return suggestion
 
-        candidates = self._collect_suggestion_candidates(query_string)
+        self._source_status = {}
+        candidates = [
+            {**candidate, "_collection_rank": rank}
+            for rank, candidate in enumerate(
+                self._collect_suggestion_candidates(query_string), start=1
+            )
+        ]
         scored_candidates = self._score_candidates(candidates, query_string) if candidates else []
         suggestion["candidates"] = [
             self._public_candidate(candidate) for candidate in scored_candidates[: max(limit, 0)]
         ]
+        # Disclose every source actually consulted. A rate-limited or errored
+        # source means the candidate list may be missing the correct match,
+        # and the caller must be able to see that.
+        candidate_counts: Dict[str, int] = {}
+        for candidate in candidates:
+            source_name = candidate.get("source", "unknown")
+            candidate_counts[source_name] = candidate_counts.get(source_name, 0) + 1
+        suggestion["sources"] = [
+            {
+                "source": source_name,
+                "status": status,
+                "candidates": candidate_counts.get(source_name, 0),
+            }
+            for source_name, status in sorted(self._source_status.items())
+        ]
+        if audit_trace:
+            suggestion["candidate_trace"] = [
+                {
+                    **candidate,
+                    "final_rank": rank,
+                    "disposition": "selected" if rank <= max(limit, 0) else "below_limit",
+                }
+                for rank, candidate in enumerate(scored_candidates, start=1)
+            ]
         if suggestion["candidates"]:
             suggestion["status"] = "candidates_found"
+        if any(item["status"] != "ok" for item in suggestion["sources"]):
+            suggestion["status"] = (
+                "candidates_found_incomplete"
+                if suggestion["candidates"]
+                else "no_candidates_incomplete"
+            )
         return suggestion
 
     def _public_candidate(self, candidate: Dict) -> Dict:
@@ -962,12 +1752,15 @@ class IdentifierModule:
         query_lower = query_string.lower()
         candidates = []
 
-        self.logger.info("Querying suggestion sources: CrossRef + Semantic Scholar")
+        self.logger.info("Querying suggestion sources: CrossRef + Semantic Scholar + arXiv")
         crossref_results = self._search_crossref(query_string)
         candidates.extend(crossref_results)
 
         semantic_results = self._search_semantic_scholar(query_string)
         candidates.extend(semantic_results)
+
+        arxiv_results = self._search_arxiv_candidates(query_string)
+        candidates.extend(arxiv_results)
 
         pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string.strip(), re.IGNORECASE)
         if pmid_match:
@@ -1006,36 +1799,59 @@ class IdentifierModule:
     def _search_crossref(self, query: str, limit: int = 15) -> List[Dict]:
         """CrossRef search with query optimization."""
         try:
-            # Optimize query parameters
-            params = {
-                "query": query,
-                "query.bibliographic": query,
-                "query.title": query,
+            # Crossref's bibliographic query is designed for complete or
+            # partial citation strings.  Supplying the same unparsed citation
+            # simultaneously as a generic query, title, and bibliographic
+            # query degrades relevance for author-year and title-less forms.
+            base_params: Dict[str, Any] = {
                 "rows": limit,
                 "sort": "relevance",
                 "mailto": "onecite@users.noreply.github.com",
             }
 
-            # Try multiple query strategies
+            # Use the task-aligned strategy first, then broader fallbacks only
+            # when it does not return enough usable records.
             search_strategies = [
-                params,
-                {**params, "query.author": query.split(".")[0] if "." in query else query},
+                {**base_params, "query.bibliographic": query},
+                {**base_params, "query": query},
                 {
-                    **params,
+                    **base_params,
+                    "query.title": query,
+                    "query.author": query.split(".")[0] if "." in query else query,
                     "filter": "type:journal-article,proceedings-article,book-chapter,book,monograph",
                 },
             ]
 
-            all_results = []
+            all_results: List[Dict[str, Any]] = []
             seen_dois = set()
 
             for i, strategy_params in enumerate(search_strategies):
                 try:
                     self.logger.debug(f"CrossRef search strategy {i+1}")
                     url = f"{self.crossref_base_url}"
-                    response = requests.get(url, params=strategy_params, timeout=15)
+                    response = self._get_with_retry(
+                        url,
+                        source_name=f"Crossref strategy {i + 1}",
+                        max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                        fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                        headers=self._crossref_headers,
+                        params=strategy_params,
+                        timeout=15,
+                    )
+                    if response.status_code == 429:
+                        self.logger.warning("CrossRef remained rate-limited after retries")
+                        self._record_source_status("crossref", "rate_limited")
+                        break
+                    if response.status_code in RETRYABLE_HTTP_STATUSES:
+                        self.logger.warning(
+                            f"CrossRef remained unavailable with HTTP {response.status_code} "
+                            "after retries"
+                        )
+                        self._record_source_status("crossref", "error")
+                        break
                     response.raise_for_status()
                     data = response.json()
+                    self._record_source_status("crossref", "ok")
 
                     for item in data.get("message", {}).get("items", []):
                         doi = item.get("DOI")
@@ -1059,6 +1875,11 @@ class IdentifierModule:
                             "pages": item.get("page", ""),
                             "isbn": None,
                             "edition": item.get("edition-number", ""),
+                            # Preserve the upstream relevance position for the
+                            # near-tie layer.  This private field is removed
+                            # from the public suggestion payload.
+                            "_source_rank": len(all_results) + 1,
+                            "_source_score": item.get("score"),
                         }
 
                         # Handle ISBN (book-specific)
@@ -1123,13 +1944,15 @@ class IdentifierModule:
                     if len(all_results) >= limit:
                         break
 
-                except requests.exceptions.Timeout:
-                    self.logger.warning(f"CrossRef search strategy {i+1} timed out")
-                    time.sleep(5)
-                    continue
+                except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                    self.logger.warning(
+                        f"CrossRef search strategy {i + 1} failed after retries: {str(e)}"
+                    )
+                    self._record_source_status("crossref", "error")
+                    break
                 except Exception as e:
                     self.logger.warning(f"CrossRef search strategy {i+1} failed: {str(e)}")
-                    time.sleep(2)
+                    self._record_source_status("crossref", "error")
                     continue
 
             self.logger.info(f"CrossRef search returned {len(all_results)} unique results")
@@ -1137,6 +1960,7 @@ class IdentifierModule:
 
         except Exception as e:
             self.logger.error(f"CrossRef search failed: {str(e)}")
+            self._record_source_status("crossref", "error")
             return []
 
     def _search_google_books(self, query: str, limit: int = 5) -> List[Dict]:
@@ -1182,18 +2006,35 @@ class IdentifierModule:
             self.logger.info(f"Google Books query: {query_clean}")
 
             base_url = "https://www.googleapis.com/books/v1/volumes"
-            params = {
+            params: Dict[str, Any] = {
                 "q": query_clean,
                 "maxResults": limit,
                 "printType": "books",
                 "langRestrict": "en",
             }
 
-            response = requests.get(base_url, params=params, timeout=10)
+            # Google Books rate-limits unauthenticated clients aggressively;
+            # a single 429 must not fail the whole entry when a short backoff
+            # would succeed.
+            response = self._get_with_retry(
+                base_url,
+                source_name="Google Books",
+                max_attempts=SUGGESTION_MAX_ATTEMPTS,
+                fallback_backoff_seconds=SUGGESTION_FALLBACK_BACKOFF_SECONDS,
+                params=params,
+                timeout=10,
+            )
+            if response is None:
+                self._record_source_status("google_books", "error")
+                return []
+            if response.status_code == 429:
+                self._record_source_status("google_books", "rate_limited")
+                return []
             response.raise_for_status()
 
             data = response.json()
             items = data.get("items", [])
+            self._record_source_status("google_books", "ok")
 
             results = []
             for item in items:
@@ -1242,6 +2083,7 @@ class IdentifierModule:
 
         except Exception as e:
             self.logger.warning(f"Google Books search failed: {str(e)}")
+            self._record_source_status("google_books", "error")
             return []
 
     def _search_google_scholar(self, query: str, limit: int = 5) -> List[Dict]:
@@ -1251,8 +2093,9 @@ class IdentifierModule:
             import time
 
             # Add delay between requests to avoid rate limiting
-            if hasattr(self, "_last_scholar_request"):
-                time_since_last = time.time() - self._last_scholar_request
+            last_request = getattr(self, "_last_scholar_request", None)
+            if last_request is not None:
+                time_since_last = time.time() - last_request
                 if time_since_last < 10.0:
                     time.sleep(10.0 - time_since_last)
 
@@ -1271,7 +2114,7 @@ class IdentifierModule:
 
                 results = []
                 search_completed = [False]
-                error_occurred = [None]
+                error_occurred: List[Optional[str]] = [None]
 
                 def search_worker():
                     try:
@@ -1471,6 +2314,9 @@ class IdentifierModule:
         }
 
         normalized_query_lower = normalized_query.lower()
+        normalized_query_evidence = re.sub(
+            r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", normalized_query_lower)
+        ).strip()
         # Expand query with venue synonyms for better matching
         for k, v in synonyms.items():
             if k in normalized_query_lower and v not in normalized_query_lower:
@@ -1516,22 +2362,37 @@ class IdentifierModule:
         weights = {s: base_weights[s] / available_weight_sum for s in available_signals}
 
         for candidate in candidates:
-            scores = {}
+            scores: Dict[str, Any] = {}
 
             # Title similarity (core signal)
             candidate_title = candidate.get("title", "").lower()
             base_title = title_part.lower()
             title_score = 0
+            title_in_query = False
             if candidate_title and base_title:
                 ratio = fuzz.ratio(base_title, candidate_title)
                 partial = fuzz.partial_ratio(base_title, candidate_title)
                 token_sort = fuzz.token_sort_ratio(base_title, candidate_title)
                 token_set = fuzz.token_set_ratio(base_title, candidate_title)
+                candidate_title_evidence = re.sub(
+                    r"\s+", " ", re.sub(r"[^a-z0-9]+", " ", candidate_title)
+                ).strip()
+                # Exact normalized containment is strong evidence while fuzzy
+                # partial matching against the entire citation is not: the
+                # latter can over-score an unrelated title that shares only a
+                # phrase such as "all you need".
+                title_in_query = bool(
+                    len(candidate_title_evidence) >= 12
+                    and candidate_title_evidence in normalized_query_evidence
+                )
                 title_score = max(ratio, partial, token_sort, token_set)
+                if title_in_query:
+                    title_score = 100
                 # Bonus for exact phrase match
                 if base_title in candidate_title or candidate_title in base_title:
                     title_score = min(title_score + 10, 100)
             scores["title"] = title_score
+            scores["title_in_query"] = title_in_query
 
             # Author matching
             author_score = 0
@@ -1549,7 +2410,8 @@ class IdentifierModule:
 
             # Year matching (only if query has year)
             year_score = 0
-            if has_query_year and candidate.get("year"):
+            year_conflict = False
+            if query_year is not None and candidate.get("year"):
                 try:
                     candidate_year = int(candidate["year"])
                     year_diff = abs(candidate_year - query_year)
@@ -1559,6 +2421,13 @@ class IdentifierModule:
                         year_score = 70
                     elif year_diff <= 5:
                         year_score = 30
+                    else:
+                        # The query explicitly cites a year this candidate
+                        # contradicts by more than five years. That is not a
+                        # weak signal but contradictory evidence — a same-title
+                        # later work (commentary, book chapter, reprint) must
+                        # not outrank on title similarity alone.
+                        year_conflict = True
                 except (ValueError, TypeError):
                     pass
             scores["year"] = year_score
@@ -1576,13 +2445,24 @@ class IdentifierModule:
                         venue_score = fuzz.partial_ratio(normalized_query_lower, venue_lower)
             scores["venue"] = venue_score
 
+            # Year and venue only corroborate a candidate that already looks
+            # like the cited work — countless works share any given year or
+            # venue, so without title similarity they are not evidence and
+            # must not lift unrelated candidates up the ranking.
+            title_gate = scores["title"] / 100.0
+            scores["year"] = round(scores["year"] * title_gate, 1)
+            scores["venue"] = round(scores["venue"] * title_gate, 1)
+
             # Compute Query-Match Score (0-100)
             match_score = sum(scores.get(k, 0) * weights.get(k, 0) for k in available_signals)
+            if year_conflict:
+                match_score *= 0.65
             match_score = min(max(match_score, 0), 100)
 
             # Store for tie-break layer
             candidate_copy = candidate.copy()
             candidate_copy["match_score"] = round(match_score, 2)
+            scores["year_conflict"] = year_conflict
             candidate_copy["score_breakdown"] = scores
             candidate_copy["_weights"] = weights  # Internal use for debugging
             scored_candidates.append(candidate_copy)
@@ -1599,32 +2479,53 @@ class IdentifierModule:
 
             def tie_break_rank(c):
                 sb = c.get("score_breakdown", {})
-                rank = 0
-                # 1. Exact title match (highest priority)
-                if sb.get("title", 0) >= 90:
-                    rank += 1000
+                # 1. Exact title match (highest priority) — unless the
+                # candidate's year contradicts the year the query cites.
+                exact_title = int(sb.get("title", 0) >= 90 and not sb.get("year_conflict"))
                 # 2. Venue exact hit
-                if sb.get("venue", 0) >= 70:
-                    rank += 100
+                venue_hit = int(sb.get("venue", 0) >= 70)
                 # 3. Has DOI
-                if c.get("doi"):
-                    rank += 10
-                # 4. Source tier (lower number = better)
+                has_doi = int(bool(c.get("doi")))
+                # 4. Preserve a consulted source's own relevance order when
+                # OneCite's lexical scores are effectively tied.
+                source_rank = c.get("_source_rank")
+                try:
+                    source_position = -int(source_rank)
+                except (TypeError, ValueError):
+                    source_position = -10_000
+                # 5. Source tier (lower number = better)
                 source_tier = {
                     "crossref": 1,
                     "pubmed": 2,
-                    "semantic_scholar": 3,
-                    "google_books": 4,
-                    "datacite": 5,
-                    "zenodo": 6,
-                    "google_scholar": 7,
-                }.get(c.get("source"), 8)
-                rank -= source_tier  # Better source = lower tier number = higher rank
-                return rank
+                    "arxiv": 3,
+                    "semantic_scholar": 4,
+                    "google_books": 5,
+                    "datacite": 6,
+                    "zenodo": 7,
+                    "google_scholar": 8,
+                }.get(c.get("source"), 9)
+                # A final raw-score term makes the ordering deterministic when
+                # every higher-priority signal is equal.
+                return (
+                    exact_title,
+                    venue_hit,
+                    has_doi,
+                    source_position,
+                    -source_tier,
+                    c.get("match_score", 0),
+                )
 
             best_score = scored_candidates[0]["match_score"]
-            cluster = [c for c in scored_candidates if best_score - c["match_score"] <= 5]
-            rest = [c for c in scored_candidates if best_score - c["match_score"] > 5]
+            has_direct_title_evidence = any(
+                c.get("score_breakdown", {}).get("title_in_query") for c in scored_candidates
+            )
+            # Sparse citations sometimes contain only authors, venue, volume,
+            # and page.  In that case OneCite's lexical score cannot identify
+            # the title and should defer more strongly to a source's own
+            # bibliographic relevance order rather than invent precision.
+            tie_window = 5 if has_direct_title_evidence else 25
+            cluster = [c for c in scored_candidates if best_score - c["match_score"] <= tie_window]
+            rest = [c for c in scored_candidates if best_score - c["match_score"] > tie_window]
             cluster.sort(key=tie_break_rank, reverse=True)
             scored_candidates = cluster + rest
 

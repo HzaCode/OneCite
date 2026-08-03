@@ -31,8 +31,72 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   JSON, doctor JSON, and template JSON envelopes used by automation and CI.
 - `build>=1.0` is now included in the development extra so the documented
   wheel build check works after `pip install -e ".[dev]"`.
+- `onecite benchmark --anti-hallucination`: a labelled, fully-offline evaluation
+  of OneCite's non-fabrication property (resolution rate on real identifiers;
+  non-fabrication rate on ambiguous text and fabricated DOIs; mismatch
+  detection rate on real DOIs paired with a different paper's title), also
+  exposed as `onecite.run_anti_hallucination_eval()`. Pipeline crashes are
+  recorded as `error` and never count as correct.
+- Text/DOI consistency warning: when the descriptive text around a resolved
+  DOI clearly describes a different work (the classic hallucinated title+DOI
+  pairing), `process` still resolves from the authoritative DOI but attaches
+  a non-blocking `text_metadata_mismatch` warning, surfaced in the report,
+  the JSON/NDJSON envelopes, and the CLI summary. Consistency requires
+  *positive* overlap — the text must contain most of the title's words or
+  most of the authors' family names; character-level fuzz alone is not
+  accepted as evidence (it has a blind spot for short titles like "Deep
+  learning"). A year cited in the text that contradicts the resolved
+  metadata by more than five years raises the required overlap further.
+- Auditable failure reports: failed entries now carry the original input
+  text (`raw_text`) and a `reason` code (`doi_not_found`, `source_error`,
+  `pmid_unresolved`, `isbn_unresolved`, `no_strong_identifier`, and more) so
+  a safely rejected identifier, an ambiguous reference, and an unavailable
+  source can be told apart; identification-stage failures are no longer
+  mislabelled as `enrichment_failed`.
+- DOI-level deduplication: when the same work appears several times in a
+  batch under different spellings (bare DOI, PMID, formatted citation), it
+  is emitted once and the repeats are reported as `duplicates` (with the
+  emitted entry's cite key) instead of re-emitted under suffixed keys.
+- `onecite benchmark --anti-hallucination` now refuses `--cases` and
+  `--min-success-rate` instead of silently ignoring them.
+
+- `onecite suggest` now searches arXiv directly alongside CrossRef and
+  Semantic Scholar. arXiv covers the CS/ML venues that CrossRef does not
+  index (e.g. NeurIPS/ICML), which previously made famous conference papers
+  unfindable when Semantic Scholar was rate-limited; the title-field query
+  is derived from the segment before the first comma of the citation.
+- CSL-JSON output: `onecite process --output-format csl-json` emits a valid
+  CSL-JSON array (plain Unicode, structured author names, mapped item types)
+  for downstream tools that consume CSL-JSON; a development fixture verifies
+  Pandoc 3.10 consumption of representative emitted items, while Quarto,
+  standalone citeproc, and reference-manager import workflows are not
+  separately validated in this release;
+  `process_references(output_format="csl-json")` returns one CSL item per
+  result. Deduplication, warnings, and failure reporting apply unchanged.
+- Honest suggestion scoring: when the query explicitly cites a year, a
+  candidate contradicting it by more than five years is penalized and
+  flagged (`year_conflict` in `score_breakdown`) — same-title later works
+  (commentaries, book chapters, reprints) no longer outrank on title
+  similarity alone. Year and venue scores are now gated by title similarity,
+  so unrelated works sharing only a year or a phrase fragment no longer
+  climb the ranking.
+- `onecite suggest` now discloses source health: each suggestion carries a
+  `sources` list with the status of the always-consulted scholarly indexes
+  (CrossRef, Semantic Scholar) and per-source candidate counts. When a
+  source is rate-limited or errors, the suggestion status becomes
+  `candidates_found_incomplete`/`no_candidates_incomplete` and the CLI
+  prints a notice — an incomplete candidate list is no longer presented as
+  exhaustive. Semantic Scholar rate limits are retried once with backoff.
 
 ### Changed
+- Moved the importable package from the repository root to
+  `src/onecite`, adopting the standard `src/` repository layout while
+  retaining the public `onecite` module and CLI names.
+- Installed data files are now limited to artifacts with an actual consumer
+  (the OneCite Skill file and the benchmark baseline, both located by
+  `onecite doctor`). Documentation is no longer installed into
+  `sys.prefix/share` — it ships in the source distribution and lives on the
+  documentation site; the wheel drops from 56 to 33 files.
 - Default pytest runs now exclude live external-API checks;
   live checks are explicitly marked with `pytest.mark.live` so the
   default suite is deterministic and offline.
@@ -52,10 +116,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   supports the current pyproject license contract.
 - Reformatted the package and tests with Black, removed stale imports and
   unused locals, aligned flake8 with Black for long lines, and made CI run
-  the same `flake8 onecite tests` check documented in the OneCite
+  the same `flake8 src/onecite tests` check documented in the OneCite
   Skill release checklist.
 - Aligned the OneCite Skill with the repository's actual Roadmap source
-  in the `README.md` Roadmap section and the `flake8 onecite tests`
+  in the `README.md` Roadmap section and the `flake8 src/onecite tests`
   validation check.
 
 ### Removed
@@ -79,6 +143,92 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   strong-identifier-only contract of `process`.
 
 ### Fixed
+- The bundled DataCite and Zenodo fixtures used a dead Dryad DOI and a
+  fabricated Zenodo title, so `benchmark --live` failed on real APIs even
+  though the offline run passed. Both now mirror real, long-lived records
+  (`10.5061/dryad.8515`; Zenodo `3233118` = nibabel 2.4.1), and the golden
+  + anti-hallucination suites both passed live in their then-current forms on
+  2026-07-03. Those historical fixtures are regression smoke checks, not a
+  general effectiveness estimate; the later 11-case development smoke suite
+  is tracked separately. Live baseline records were added to
+  `benchmarks/`.
+- The test-suite mock responses are now derived from the bundled offline
+  fixtures instead of hand-maintaining a second copy of the same DOIs'
+  metadata; the two copies had already drifted (`URL` and citation counts
+  missing on one side, `ISSN` on the other) and consistency tests now pin
+  the derivation.
+- The documentation changelog (`docs/changelog.rst`) had silently drifted
+  from `CHANGELOG.md` (16 Unreleased entries missing) and the Unreleased
+  section contained a duplicated `### Fixed` heading; both are fixed and
+  the docs page now states that `CHANGELOG.md` is canonical.
+- `process_references` no longer requires the `interactive_callback`
+  argument. The parameter was never invoked by the pipeline — `process` is
+  strictly non-interactive — yet the signature forced every caller to pass a
+  dummy lambda and the docs described selection behavior that did not exist.
+  It is now optional, documented as never invoked, and retained only for
+  backward compatibility; the Python API examples were corrected accordingly.
+- Google Books lookups now retry with backoff on HTTP 429/5xx instead of
+  failing the ISBN entry on the first rate-limit response.
+- `onecite process --template` now rejects unknown template names with the
+  list of valid presets instead of silently falling back to the default
+  template; the Python-level `TemplateLoader` fallback logs a warning.
+- Explicitly labelled PMIDs embedded in citation text (e.g.
+  `"Author (2015). Deep learning. PMID:26017442"`) now resolve, matching
+  the long-standing behavior for DOIs embedded in text. Unlabelled numbers
+  inside prose remain ambiguous and are not extracted.
+- The arXiv suggestion source now queries the `https` endpoint directly
+  (the `http` URL 301-redirected on every call), retries transient
+  429/5xx responses with a short backoff, and truthfully discloses a
+  still-throttled source as `rate_limited` instead of `error`.
+- The test suite now fails loudly on any unmocked network call from a
+  non-`live` test (autouse guard in `conftest.py`). This exposed unit
+  tests that had been silently hitting live APIs whenever a suggestion
+  source was missing from their mock list, and cut the full-suite runtime
+  from ~43s to ~6s.
+- Eliminated a duplicate CrossRef API call per DOI entry: the work object
+  fetched during DOI verification is now reused for enrichment instead of
+  requesting the same DOI from CrossRef a second time — halving CrossRef
+  load and saving up to a second of latency per entry in live runs.
+- Cite-key generation is now LaTeX-safe and crash-free: accented author
+  names are ASCII-folded (Müller → Muller), characters with no ASCII form
+  (CJK) are dropped instead of emitted into `\cite{...}` keys, and an
+  integer `year` (as DataCite's `publicationYear` delivers) no longer
+  raises `TypeError`.
+- CSL-JSON values now strip *all* LaTeX case-protection braces instead of
+  mangling inner ones (`{ResNet}: ...` previously became the unbalanced
+  `ResNet}: ...`), and BibTeX `--` page ranges are normalized to plain
+  `-` as CSL expects.
+- An unwritable `--output` path no longer discards computed results or
+  misattributes the IO failure as a processing failure: `process` and
+  `suggest` now emit the computed output to stdout with a clear error on
+  stderr and exit `1`, so expensive live-API work is never lost.
+- `onecite doctor` now verifies the bundled anti-hallucination dataset as
+  part of the `benchmark_resources` check, so a broken install cannot
+  report healthy benchmark resources while the core safety-evaluation
+  asset is missing.
+- Removed the undocumented `sugget` CLI alias (a development-time typo
+  for `suggest` that leaked into the subcommand list).
+- `onecite suggest --input-type bib` no longer sends a Python dict repr to
+  the scholarly indexes when a BibTeX entry carries a DOI: the search query
+  is now always built from the structured title/author/year fields.
+- OneCite's own BibTeX output now survives re-processing through
+  `--input-type bib` byte-identically for all entry kinds, locked in by
+  round-trip tests. Two defects were closed: bibtexparser silently dropped
+  non-standard entry types, so OneCite could not re-parse its own
+  `@software` entries; and a non-empty BibTeX file that parsed to zero
+  entries produced an empty "success" (exit 0, empty output) instead of a
+  loud `ParseError`.
+- The Sphinx documentation now builds with zero warnings (fixed broken
+  section underlines in the changelog and FAQ, removed the nonexistent
+  `_static` path and the deprecated `display_version` theme option), and
+  the docs CI build runs with `-W` so new warnings fail the build.
+- The mypy configuration declared in `pyproject.toml` is now actually
+  enforced: all 70 outstanding type errors were fixed and `mypy src/onecite`
+  runs in CI. This closed several latent crash paths — an `HTTPError`
+  handler that dereferenced a possibly-absent `response` object,
+  `json.loads(None)` on empty structured-data script tags in publisher
+  pages, a possibly-unset Google Books retry response, and unguarded
+  `.get()` calls on possibly-`None` metadata dicts in the enricher.
 - Corrected the benchmark Nature DQN DOI fixture from
   `10.1038/nature14539` to `10.1038/nature14236`, and added regression
   coverage to catch future DOI-title-author mismatches in bundled

@@ -1,0 +1,96 @@
+{
+  "suite": "onecite-anti-hallucination",
+  "version": "1.1",
+  "description": "Labelled, fully-offline regression evaluation: process() resolves fixture-backed strong identifiers, emits no result for the bundled ambiguous or non-existent inputs, and flags input text that contradicts the resolved DOI metadata.",
+  "cases": [
+    {
+      "id": "A_doi_crossref",
+      "class": "A_strong_identifier",
+      "input": "10.1038/nature14236",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "note": "Real Crossref DOI resolves to a source-resolved entry."
+    },
+    {
+      "id": "A_arxiv_id",
+      "class": "A_strong_identifier",
+      "input": "1706.03762",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "note": "Real arXiv identifier resolves via the arXiv API."
+    },
+    {
+      "id": "A_pmid",
+      "class": "A_strong_identifier",
+      "input": "PMID:26017442",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "note": "Real PMID resolves via PubMed then Crossref enrichment."
+    },
+    {
+      "id": "A_github_url",
+      "class": "A_strong_identifier",
+      "input": "https://github.com/HzaCode/OneCite",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "note": "Real GitHub repository URL resolves to software metadata."
+    },
+    {
+      "id": "A_zenodo_doi",
+      "class": "A_strong_identifier",
+      "input": "10.5281/zenodo.3233118",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "note": "Real Zenodo DOI resolves via the Zenodo API."
+    },
+    {
+      "id": "A_datacite_doi",
+      "class": "A_strong_identifier",
+      "input": "10.5061/dryad.8515",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "note": "Real DataCite-registered DOI resolves via the DataCite fallback."
+    },
+    {
+      "id": "B_ambiguous_title",
+      "class": "B_ambiguous_text",
+      "input": "a deep learning paper about attention and transformers",
+      "input_type": "txt",
+      "expect_resolution": "unresolved",
+      "note": "Plain-text title carries no strong identifier; process() must not auto-emit a source-resolved entry (this is what `onecite suggest` is for)."
+    },
+    {
+      "id": "B_partial_author_year",
+      "class": "B_ambiguous_text",
+      "input": "Smith et al., neural networks for vision, 2019",
+      "input_type": "txt",
+      "expect_resolution": "unresolved",
+      "note": "Partial author/year snippet is not a strong identifier and must stay unresolved."
+    },
+    {
+      "id": "C_fabricated_doi",
+      "class": "C_fabricated_identifier",
+      "input": "10.9999/this.doi.does.not.exist",
+      "input_type": "txt",
+      "expect_resolution": "unresolved",
+      "note": "Syntactically valid but non-existent DOI (the kind an LLM may hallucinate) is rejected, never fabricated into an entry."
+    },
+    {
+      "id": "C_fabricated_doi_plausible",
+      "class": "C_fabricated_identifier",
+      "input": "10.1234/hallucinated.journal.2024.0099",
+      "input_type": "txt",
+      "expect_resolution": "unresolved",
+      "note": "Plausible-looking fabricated DOI returns 404 from both Crossref and DataCite and is rejected."
+    },
+    {
+      "id": "D_wrong_title_real_doi",
+      "class": "D_mismatched_pairing",
+      "input": "Attention Is All You Need. Vaswani, A. et al. (2017). doi:10.1038/nature14236",
+      "input_type": "txt",
+      "expect_resolution": "resolved",
+      "expect_warning": "text_metadata_mismatch",
+      "note": "A real DOI is paired with a different paper's title. The supplied DOI resolves to the DQN paper, but the mismatch must be flagged for review rather than silently presented as clean source-resolved output."
+    }
+  ]
+}

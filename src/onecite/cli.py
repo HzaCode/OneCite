@@ -13,10 +13,15 @@ import sys
 from contextlib import nullcontext
 from importlib import resources
 from pathlib import Path
-from typing import Any, List, Dict
+from typing import Any, Dict
 from unittest.mock import patch
 
 from .benchmark import format_benchmark_text, load_benchmark_suite, run_benchmark
+from .benchmarks.anti_hallucination import (
+    format_anti_hallucination_text,
+    load_eval_cases,
+    run_anti_hallucination_eval,
+)
 from .benchmarks.offline import offline_requests_get
 from .core import process_references, suggest_references, TemplateLoader
 from .exceptions import OneCiteError
@@ -31,7 +36,7 @@ def main() -> int:
     try:
         if args.command == "process":
             return process_command(args)
-        elif args.command in ("suggest", "sugget"):
+        elif args.command == "suggest":
             return suggest_command(args)
         elif args.command == "benchmark":
             return benchmark_command(args)
@@ -58,7 +63,7 @@ def create_parser() -> argparse.ArgumentParser:
     """Create the argument parser."""
     parser = argparse.ArgumentParser(
         prog="onecite",
-        description="Citation management and academic reference toolkit",
+        description="Auditable normalization into source-resolved BibTeX and CSL-JSON",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -66,12 +71,16 @@ Examples:
   onecite process references.bib --input-type bib --template conference_paper
   onecite process references.txt --output results.bib
   onecite process "10.1038/nature14539"
-  onecite process "attention is all you need, Vaswani et al., NIPS 2017"
   onecite suggest "attention is all you need, Vaswani et al., NIPS 2017" --json
   onecite benchmark --json
+  onecite benchmark --anti-hallucination --json
   onecite doctor --json
   onecite templates
   echo "10.1038/nature14539" | onecite process -
+
+Note: `process` resolves strong identifiers (DOI, PMID, arXiv, URL) through
+documented source routes and does not auto-accept fuzzy title matches; for
+plain-text titles use `suggest` to get candidates for review.
         """,
     )
 
@@ -91,9 +100,13 @@ Examples:
     process_parser.add_argument(
         "--input-type", choices=["txt", "bib"], default="txt", help="Input type (default: txt)"
     )
+    # Reject unknown template names up front: silently falling back to the
+    # default preset would misrepresent which template shaped the output.
+    template_names = sorted(item["name"] for item in TemplateLoader().list_templates()) or None
     process_parser.add_argument(
         "--template",
         default="journal_article_full",
+        choices=template_names,
         help=(
             "Fallback BibTeX entry-type preset when auto-detection is "
             "inconclusive (default: journal_article_full)"
@@ -101,7 +114,7 @@ Examples:
     )
     process_parser.add_argument(
         "--output-format",
-        choices=["bibtex"],
+        choices=["bibtex", "csl-json"],
         default="bibtex",
         help="Output format (default: bibtex)",
     )
@@ -130,7 +143,6 @@ Examples:
 
     suggest_parser = subparsers.add_parser(
         "suggest",
-        aliases=["sugget"],
         help="Suggest candidate matches without resolving them to BibTeX",
     )
     suggest_parser.add_argument(
@@ -171,7 +183,7 @@ Examples:
     benchmark_parser.add_argument(
         "--min-success-rate",
         type=float,
-        default=1.0,
+        default=None,
         help="Minimum case pass rate required for a successful exit (default: 1.0)",
     )
     benchmark_parser.add_argument(
@@ -181,6 +193,16 @@ Examples:
         "--live",
         action="store_true",
         help="Use live external APIs instead of bundled offline fixtures",
+    )
+    benchmark_parser.add_argument(
+        "--anti-hallucination",
+        action="store_true",
+        help=(
+            "Run the labelled anti-hallucination (non-fabrication) evaluation "
+            "instead of the golden cases; uses its own bundled dataset and an "
+            "all-cases pass gate (cannot be combined with --cases or "
+            "--min-success-rate)"
+        ),
     )
 
     doctor_parser = subparsers.add_parser(
@@ -209,18 +231,21 @@ def _read_input_content(args: "argparse.Namespace") -> str:
             input_content = f.read()
         if args.input_type == "txt" and args.input_file.lower().endswith(".bib"):
             args.input_type = "bib"
-        return input_content
-    return args.input_file
+        return str(input_content)
+    return str(args.input_file)
 
 
 def _build_process_report(args: "argparse.Namespace", result: Dict[str, Any]) -> Dict[str, Any]:
     """Build the stable process report used by JSON and NDJSON modes."""
     report = result.get("report", {})
     failed_entries = list(report.get("failed_entries", []))
+    duplicates = list(report.get("duplicates", []))
     total = int(report.get("total", 0))
     succeeded = int(report.get("succeeded", 0))
     failed = len(failed_entries)
-    success_rate = round(succeeded / total, 4) if total else 0.0
+    # Duplicates resolved successfully — they are just repeat occurrences of
+    # an already-emitted work — so they count toward the resolution rate.
+    success_rate = round((succeeded + len(duplicates)) / total, 4) if total else 0.0
 
     return {
         "schema_version": "1.0",
@@ -231,6 +256,7 @@ def _build_process_report(args: "argparse.Namespace", result: Dict[str, Any]) ->
             "total": total,
             "succeeded": succeeded,
             "failed": failed,
+            "duplicates": len(duplicates),
             "success_rate": success_rate,
         },
         "options": {
@@ -240,6 +266,8 @@ def _build_process_report(args: "argparse.Namespace", result: Dict[str, Any]) ->
             "fail_on_unresolved": bool(args.fail_on_unresolved),
         },
         "failed_entries": failed_entries,
+        "warnings": list(report.get("warnings", [])),
+        "duplicates": duplicates,
         "results": list(result.get("results", [])),
     }
 
@@ -326,6 +354,12 @@ def _format_suggest_text(report: Dict[str, Any]) -> str:
     for suggestion in report["suggestions"]:
         heading = suggestion.get("query_string") or suggestion.get("raw_text") or "<empty>"
         lines.append(f"Entry {suggestion.get('id')}: {heading}")
+        degraded = [item for item in suggestion.get("sources", []) if item.get("status") != "ok"]
+        for item in degraded:
+            lines.append(
+                f"  note: {item['source']} {item['status']} — "
+                "the candidate list may be missing the correct match"
+            )
         candidates = suggestion.get("candidates", [])
         if not candidates:
             lines.append("  No candidates found.")
@@ -360,6 +394,10 @@ def _format_process_ndjson(report: Dict[str, Any]) -> str:
         {"type": "result", "index": index, "content": content}
         for index, content in enumerate(report["results"])
     )
+    events.extend({"type": "warning", "entry": warning} for warning in report.get("warnings", []))
+    events.extend(
+        {"type": "duplicate", "entry": duplicate} for duplicate in report.get("duplicates", [])
+    )
     events.extend(
         {"type": "failure", "entry": failed_entry} for failed_entry in report["failed_entries"]
     )
@@ -375,9 +413,32 @@ def _offline_source_context():
 
 def benchmark_command(args: "argparse.Namespace") -> int:
     """Run the ``onecite benchmark`` subcommand."""
+    if getattr(args, "anti_hallucination", False):
+        conflicting = []
+        if args.cases is not None:
+            conflicting.append("--cases")
+        if args.min_success_rate is not None:
+            conflicting.append("--min-success-rate")
+        if conflicting:
+            # Silently ignoring these options would misrepresent what was
+            # evaluated; refuse the combination instead.
+            print(
+                f"Error: {' and '.join(conflicting)} cannot be combined with "
+                "--anti-hallucination; the anti-hallucination evaluation uses "
+                "its own bundled labelled dataset and an all-cases pass gate.",
+                file=sys.stderr,
+            )
+            return 1
+        report = run_anti_hallucination_eval(live=args.live)
+        if args.as_json:
+            print(json.dumps(report, indent=2))
+        else:
+            print(format_anti_hallucination_text(report))
+        return 0 if report["status"] == "passed" else 1
+
     report = run_benchmark(
         cases_path=args.cases,
-        min_success_rate=args.min_success_rate,
+        min_success_rate=1.0 if args.min_success_rate is None else args.min_success_rate,
         live=args.live,
     )
     if args.as_json:
@@ -469,19 +530,32 @@ def _check_benchmark_resources() -> Dict[str, Any]:
         suite_path = resources.files("onecite.benchmarks").joinpath("golden_cases.json")
         suite_exists = suite_path.is_file()
         suite = load_benchmark_suite()
+        # The anti-hallucination dataset is a bundled core asset too; a
+        # broken install must not report healthy benchmark resources.
+        anti_suite = load_eval_cases()
     except Exception as exc:
         return _doctor_check("benchmark_resources", False, f"Benchmark resources failed: {exc}")
     return _doctor_check(
         "benchmark_resources",
         suite_exists,
-        f"Loaded benchmark suite {suite['suite']} {suite['version']}.",
-        {"suite": suite["suite"], "version": suite["version"], "cases": len(suite["cases"])},
+        (
+            f"Loaded benchmark suite {suite['suite']} {suite['version']} and "
+            f"anti-hallucination suite {anti_suite['suite']} {anti_suite['version']}."
+        ),
+        {
+            "suite": suite["suite"],
+            "version": suite["version"],
+            "cases": len(suite["cases"]),
+            "anti_hallucination_suite": anti_suite["suite"],
+            "anti_hallucination_version": anti_suite["version"],
+            "anti_hallucination_cases": len(anti_suite["cases"]),
+        },
     )
 
 
 def _check_skill_package() -> Dict[str, Any]:
     candidates = [
-        Path(__file__).resolve().parents[1] / "skills" / "onecite" / "SKILL.md",
+        Path(__file__).resolve().parents[2] / "skills" / "onecite" / "SKILL.md",
         Path.cwd() / "skills" / "onecite" / "SKILL.md",
         Path(sys.prefix) / "share" / "onecite" / "skills" / "onecite" / "SKILL.md",
         Path(sys.base_prefix) / "share" / "onecite" / "skills" / "onecite" / "SKILL.md",
@@ -586,10 +660,21 @@ def suggest_command(args: "argparse.Namespace") -> int:
         )
 
         if args.output:
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(output_content)
-                if args.as_json:
-                    f.write("\n")
+            try:
+                with open(args.output, "w", encoding="utf-8") as f:
+                    f.write(output_content)
+                    if args.as_json:
+                        f.write("\n")
+            except OSError as write_error:
+                # Candidate searches hit live APIs; a bad output path must
+                # not discard the collected suggestions.
+                print(
+                    f"Error: suggestions were computed but could not be written "
+                    f"to {args.output}: {write_error}. Emitting them to stdout instead.",
+                    file=sys.stderr,
+                )
+                print(output_content)
+                return 1
             if not args.quiet:
                 status_stream = sys.stderr if args.as_json else sys.stdout
                 print(f"Suggestions saved to: {args.output}", file=status_stream)
@@ -619,12 +704,6 @@ def process_command(args: "argparse.Namespace") -> int:
     try:
         input_content = _read_input_content(args)
 
-        # The process pipeline is non-interactive: plain-text candidate
-        # selection lives in `onecite suggest`. This callback is retained only
-        # to satisfy the process_references signature and always skips.
-        def interactive_callback(candidates: List[Dict]) -> int:
-            return -1
-
         if args.quiet or args.as_json or args.as_ndjson:
             import logging
 
@@ -633,12 +712,13 @@ def process_command(args: "argparse.Namespace") -> int:
                 logging.getLogger(logger_name).setLevel(logging.CRITICAL)
 
         with _offline_source_context():
+            # The process pipeline is strictly non-interactive; candidate
+            # selection lives in `onecite suggest`.
             result = process_references(
                 input_content=input_content,
                 input_type=args.input_type,
                 template_name=args.template,
                 output_format=args.output_format,
-                interactive_callback=interactive_callback,
             )
 
         process_report = _build_process_report(args, result)
@@ -646,14 +726,30 @@ def process_command(args: "argparse.Namespace") -> int:
             output_content = json.dumps(process_report, indent=2)
         elif args.as_ndjson:
             output_content = _format_process_ndjson(process_report)
+        elif args.output_format == "csl-json":
+            # Each result is one CSL-JSON item; emit a single valid JSON array.
+            items = [json.loads(item) for item in result["results"]]
+            output_content = json.dumps(items, ensure_ascii=False, indent=2)
         else:
             output_content = "\n\n".join(result["results"])
 
         if args.output:
-            with open(args.output, "w", encoding="utf-8") as f:
-                f.write(output_content)
-                if args.as_json or args.as_ndjson:
-                    f.write("\n")
+            try:
+                with open(args.output, "w", encoding="utf-8") as f:
+                    f.write(output_content)
+                    if args.as_json or args.as_ndjson:
+                        f.write("\n")
+            except OSError as write_error:
+                # The pipeline already did its (possibly expensive, live-API)
+                # work; a bad output path must not discard the results or be
+                # misreported as a processing failure.
+                print(
+                    f"Error: results were computed but could not be written to "
+                    f"{args.output}: {write_error}. Emitting them to stdout instead.",
+                    file=sys.stderr,
+                )
+                print(output_content)
+                return 1
             if not args.quiet:
                 status_stream = sys.stderr if args.as_json or args.as_ndjson else sys.stdout
                 print(f"Results saved to: {args.output}", file=status_stream)
@@ -665,12 +761,43 @@ def process_command(args: "argparse.Namespace") -> int:
             print("\nProcessing Report:")
             print(f"  Total entries: {report['total']}")
             print(f"  Successfully processed: {report['succeeded']}")
+            print(f"  Duplicates merged: {len(report.get('duplicates', []))}")
             print(f"  Failed entries: {len(report['failed_entries'])}")
+            print(f"  Warnings: {len(report.get('warnings', []))}")
+
+            if report.get("duplicates"):
+                print("\nDuplicates (same DOI as an earlier entry, not re-emitted):")
+                for duplicate in report["duplicates"]:
+                    print(
+                        f"  - Entry {duplicate['id']} duplicates entry "
+                        f"{duplicate['duplicate_of']} (DOI {duplicate['doi']}, "
+                        f"cite key {duplicate['bib_key']})"
+                    )
+
+            if report.get("warnings"):
+                print("\nWarnings (resolved, but review recommended):")
+                for warning in report["warnings"]:
+                    print(
+                        f"  - Entry {warning['id']} [{warning.get('type', 'warning')}]: "
+                        f"input text may cite a different work than DOI "
+                        f"{warning.get('resolved_doi', '?')} "
+                        f"(resolved title: {warning.get('resolved_title', '?')!r})"
+                    )
 
             if report["failed_entries"]:
                 print("\nFailed entries:")
                 for failed in report["failed_entries"]:
-                    print(f"  - Entry {failed['id']}: {failed.get('error', 'Unknown error')}")
+                    reason = failed.get("reason")
+                    label = f" [{reason}]" if reason else ""
+                    line = (
+                        f"  - Entry {failed['id']}{label}: {failed.get('error', 'Unknown error')}"
+                    )
+                    raw_excerpt = (failed.get("raw_text") or "").strip()
+                    if raw_excerpt:
+                        if len(raw_excerpt) > 60:
+                            raw_excerpt = raw_excerpt[:57] + "..."
+                        line += f"\n      input: {raw_excerpt!r}"
+                    print(line)
 
         if args.fail_on_unresolved and process_report["summary"]["failed"] > 0:
             return 2

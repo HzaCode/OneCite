@@ -14,7 +14,7 @@ from unittest.mock import patch
 from .mock_responses import mock_requests_get
 
 
-def test_pypi_version(tmp_path):
+def test_post_install_e2e(tmp_path):
     import onecite
 
     # 1. package metadata

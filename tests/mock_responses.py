@@ -1,5 +1,11 @@
 """
-Hand-crafted mock responses for the external APIs we hit at runtime.
+Mock responses for the external APIs we hit at runtime.
+
+The shared Crossref/arXiv payloads are *derived from* the bundled offline
+fixtures in :mod:`onecite.benchmarks.offline` (single source of truth) with
+test-only extras layered on top — maintaining two hand-written copies of
+the same DOI's metadata let them silently drift apart (the test copies were
+missing ``URL``/``is-referenced-by-count``; the bundled ones lack ``ISSN``).
 
 Why only Crossref + arXiv?
   These two cover the two most common lookup paths (DOI-based and
@@ -9,112 +15,34 @@ Why only Crossref + arXiv?
   a single canned response here.
 """
 
+import copy
+
+from onecite.benchmarks.offline import (
+    ARXIV_TRANSFORMER,
+    CROSSREF_SEARCH_TRANSFORMER,
+    CROSSREF_WORK_NATURE_DEEP_LEARNING,
+    CROSSREF_WORK_NATURE_DQN,
+    CROSSREF_WORK_TRANSFORMER,
+)
+
 # -- Crossref -----------------------------------------------------------------
 # Corresponds to DOI 10.1038/nature14539.
-MOCK_CROSSREF_RESPONSE = {
-    "status": "ok",
-    "message-type": "work",
-    "message": {
-        "DOI": "10.1038/nature14539",
-        "type": "journal-article",
-        "title": ["Deep learning"],
-        "author": [
-            {"given": "Yann", "family": "LeCun", "sequence": "first"},
-            {"given": "Yoshua", "family": "Bengio", "sequence": "additional"},
-            {"given": "Geoffrey", "family": "Hinton", "sequence": "additional"},
-        ],
-        "container-title": ["Nature"],
-        "published-print": {"date-parts": [[2015, 5, 28]]},
-        "volume": "521",
-        "issue": "7553",
-        "page": "436-444",
-        "publisher": "Springer Nature",
-        "ISSN": ["0028-0836", "1476-4687"],
-    },
-}
+MOCK_CROSSREF_RESPONSE = copy.deepcopy(CROSSREF_WORK_NATURE_DEEP_LEARNING)
+MOCK_CROSSREF_RESPONSE["message"]["ISSN"] = ["0028-0836", "1476-4687"]
 
 # Corresponds to DOI 10.1038/nature14236 (Mnih et al., 2015 - DQN paper).
-MOCK_CROSSREF_DQN_RESPONSE = {
-    "status": "ok",
-    "message-type": "work",
-    "message": {
-        "DOI": "10.1038/nature14236",
-        "type": "journal-article",
-        "title": ["Human-level control through deep reinforcement learning"],
-        "author": [
-            {"given": "Volodymyr", "family": "Mnih", "sequence": "first"},
-            {"given": "Koray", "family": "Kavukcuoglu", "sequence": "additional"},
-            {"given": "David", "family": "Silver", "sequence": "additional"},
-        ],
-        "container-title": ["Nature"],
-        "published-print": {"date-parts": [[2015, 2, 26]]},
-        "volume": "518",
-        "issue": "7540",
-        "page": "529-533",
-        "publisher": "Springer Nature",
-        "ISSN": ["0028-0836", "1476-4687"],
-    },
-}
+MOCK_CROSSREF_DQN_RESPONSE = copy.deepcopy(CROSSREF_WORK_NATURE_DQN)
+MOCK_CROSSREF_DQN_RESPONSE["message"]["ISSN"] = ["0028-0836", "1476-4687"]
 
 # -- arXiv --------------------------------------------------------------------
 # 1706.03762 = "Attention Is All You Need"
-MOCK_ARXIV_RESPONSE = """\
-<?xml version="1.0" encoding="UTF-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <entry>
-    <id>http://arxiv.org/abs/1706.03762v5</id>
-    <updated>2017-12-06T00:00:00Z</updated>
-    <published>2017-06-12T00:00:00Z</published>
-    <title>Attention Is All You Need</title>
-    <summary>Transformer sequence transduction fixture.</summary>
-    <author><name>Ashish Vaswani</name></author>
-    <author><name>Noam Shazeer</name></author>
-    <author><name>Niki Parmar</name></author>
-    <arxiv:doi xmlns:arxiv="http://arxiv.org/schemas/atom">10.5555/3295222.3295349</arxiv:doi>
-    <arxiv:comment xmlns:arxiv="http://arxiv.org/schemas/atom">15 pages, 5 figures</arxiv:comment>
-    <arxiv:primary_category xmlns:arxiv="http://arxiv.org/schemas/atom"
-        term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
-  </entry>
-</feed>
-"""
+MOCK_ARXIV_RESPONSE = ARXIV_TRANSFORMER
 
 # -- Crossref proceedings paper (10.5555/3295222.3295349, "Attention Is All You Need") --
-MOCK_CROSSREF_PROCEEDINGS_RESPONSE = {
-    "status": "ok",
-    "message-type": "work",
-    "message": {
-        "DOI": "10.5555/3295222.3295349",
-        "type": "proceedings-article",
-        "title": ["Attention Is All You Need"],
-        "author": [
-            {"given": "Ashish", "family": "Vaswani", "sequence": "first"},
-            {"given": "Noam", "family": "Shazeer", "sequence": "additional"},
-            {"given": "Niki", "family": "Parmar", "sequence": "additional"},
-        ],
-        "container-title": ["Advances in Neural Information Processing Systems"],
-        "published-print": {"date-parts": [[2017]]},
-        "publisher": "Curran Associates Inc.",
-    },
-}
+MOCK_CROSSREF_PROCEEDINGS_RESPONSE = copy.deepcopy(CROSSREF_WORK_TRANSFORMER)
 
 # -- Crossref title search (used by _resolve_doi_via_crossref_title) ----------
-MOCK_CROSSREF_SEARCH_RESPONSE = {
-    "status": "ok",
-    "message-type": "work-list",
-    "message": {
-        "items": [
-            {
-                "DOI": "10.5555/3295222.3295349",
-                "title": ["Attention Is All You Need"],
-                "author": [{"given": "Ashish", "family": "Vaswani"}],
-                "container-title": ["Advances in Neural Information Processing Systems"],
-                "type": "proceedings-article",
-                "issued": {"date-parts": [[2017]]},
-                "is-referenced-by-count": 90000,
-            }
-        ],
-    },
-}
+MOCK_CROSSREF_SEARCH_RESPONSE = copy.deepcopy(CROSSREF_SEARCH_TRANSFORMER)
 
 # -- Semantic Scholar (partial, for the arXiv paper) --------------------------
 MOCK_S2_RESPONSE = {

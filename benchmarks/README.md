@@ -1,7 +1,7 @@
 # OneCite Benchmarks
 
 This directory is the repository-facing benchmark area. The packaged
-golden cases live in `onecite/benchmarks/golden_cases.json`; the baseline
+golden cases live in `src/onecite/benchmarks/golden_cases.json`; the baseline
 run record lives in `benchmarks/leaderboard.json`.
 
 The bundled suite is a small deterministic golden-case regression suite. It
@@ -21,6 +21,13 @@ Run a live upstream-source spot check:
 
 ```bash
 onecite benchmark --live --json
+```
+
+Run the labelled anti-hallucination (non-fabrication) evaluation; its
+baseline record lives in `benchmarks/anti_hallucination_baseline.json`:
+
+```bash
+onecite benchmark --anti-hallucination --json
 ```
 
 Baseline entries should include the suite name, suite version, source mode,

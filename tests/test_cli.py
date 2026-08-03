@@ -43,7 +43,7 @@ class TestCLI:
     def test_help(self):
         code, out, _ = self._run(["--help"])
         assert code == 0
-        assert "Citation management" in out
+        assert "Auditable normalization" in out
         assert "process" in out
         assert "benchmark" in out
         assert "doctor" in out
@@ -101,6 +101,17 @@ class TestCLI:
         path = create_test_file(sample_references["doi_only"])
         code, _, _ = self._run(["process", path, "--output-format", "invalid"])
         assert code != 0
+
+    def test_unknown_template_is_rejected_not_silently_defaulted(
+        self, create_test_file, sample_references
+    ):
+        # A typo in --template must not silently fall back to the default
+        # preset — that would misrepresent which template shaped the output.
+        path = create_test_file(sample_references["doi_only"])
+        code, _, err = self._run(["process", path, "--template", "journal_article_fulll"])
+        assert code != 0
+        assert "invalid choice" in err
+        assert "journal_article_full" in err  # valid choices are listed
 
     def test_templates_command(self):
         code, out, err = self._run(["templates"])
@@ -374,16 +385,10 @@ class TestCLIUnit:
         inf.write_text("10.1038/nature14539", encoding="utf-8")
         outf = tmp_path / "out.bib"
 
-        def _fake(
-            *, input_content, input_type, template_name, output_format, interactive_callback, **kw
-        ):
-            # quiet mode → callback should auto-skip
-            assert (
-                interactive_callback(
-                    [{"title": "T", "authors": [], "journal": "", "year": 2020, "match_score": 75}]
-                )
-                == -1
-            )
+        def _fake(*, input_content, input_type, template_name, output_format, **kw):
+            # process is strictly non-interactive: the CLI must not wire any
+            # candidate-selection callback into the pipeline.
+            assert "interactive_callback" not in kw
             return {"results": ["OK"], "report": {"total": 1, "succeeded": 1, "failed_entries": []}}
 
         with patch("onecite.cli.process_references", side_effect=_fake):
@@ -415,9 +420,7 @@ class TestCLIUnit:
         inf = tmp_path / "in.txt"
         inf.write_text("query", encoding="utf-8")
 
-        def _fake(
-            *, input_content, input_type, template_name, output_format, interactive_callback, **kw
-        ):
+        def _fake(*, input_content, input_type, template_name, output_format, **kw):
             return {
                 "results": ["@article{ok}"],
                 "report": {
@@ -442,10 +445,14 @@ class TestCLIUnit:
                 "summary",
                 "options",
                 "failed_entries",
+                "warnings",
+                "duplicates",
                 "results",
             },
         )
-        _assert_keys(data["summary"], {"total", "succeeded", "failed", "success_rate"})
+        _assert_keys(
+            data["summary"], {"total", "succeeded", "failed", "duplicates", "success_rate"}
+        )
         _assert_keys(
             data["options"],
             {
@@ -608,9 +615,7 @@ class TestCLIUnit:
         inf.write_text("query", encoding="utf-8")
         outf = tmp_path / "out.bib"
 
-        def _fake(
-            *, input_content, input_type, template_name, output_format, interactive_callback, **kw
-        ):
+        def _fake(*, input_content, input_type, template_name, output_format, **kw):
             return {
                 "results": ["OK"],
                 "report": {
@@ -839,3 +844,32 @@ class TestCLIUnit:
         ):
             assert cli.main() == 1
         assert "Processing failed" in capsys.readouterr().err
+
+
+class TestOutputWriteFailure:
+    """A bad --output path must not discard computed results or misattribute
+    the IO failure as a processing failure."""
+
+    def test_results_rescued_to_stdout_on_unwritable_path(self, tmp_path):
+        inf = tmp_path / "in.txt"
+        inf.write_text("10.1038/nature14236", encoding="utf-8")
+        bad_path = tmp_path / "no_such_dir" / "out.bib"
+
+        cmd = [
+            sys.executable,
+            "-m",
+            "onecite.cli",
+            "process",
+            str(inf),
+            "--quiet",
+            "-o",
+            str(bad_path),
+        ]
+        env = {**os.environ, "ONECITE_OFFLINE_FIXTURES": "1"}
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=60, env=env)
+
+        assert r.returncode == 1
+        assert "could not be written" in r.stderr
+        # The computed BibTeX is rescued to stdout, not lost.
+        assert "@article" in r.stdout
+        assert "Human-level control" in r.stdout

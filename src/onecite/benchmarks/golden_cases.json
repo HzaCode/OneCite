@@ -84,7 +84,7 @@
         "min_succeeded": 1,
         "required_substrings": [
           "10.5281/zenodo.3233118",
-          "OneCite deterministic benchmark dataset",
+          "nipy/nibabel: 2.4.1",
           "Zenodo"
         ]
       }
@@ -92,7 +92,7 @@
     {
       "id": "datacite_dataset_doi",
       "description": "DataCite-prefix DOI resolves through DataCite as a dataset citation.",
-      "input": "10.5061/dryad.8gtht76m6",
+      "input": "10.5061/dryad.8515",
       "input_type": "txt",
       "template": "dataset",
       "output_format": "bibtex",
@@ -100,8 +100,8 @@
         "min_total": 1,
         "min_succeeded": 1,
         "required_substrings": [
-          "10.5061/dryad.8gtht76m6",
-          "Robust citation validation benchmark fixture",
+          "10.5061/dryad.8515",
+          "A new malaria agent in African hominids",
           "Dryad"
         ]
       }

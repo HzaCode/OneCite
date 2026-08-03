@@ -10,6 +10,7 @@ exist on Crossref, which makes it obvious when a mock is missing.
 """
 
 import io
+import logging
 
 import pytest
 import requests
@@ -110,13 +111,15 @@ class TestIdentifierZenodo:
             if "/api/records/12345" in url:
                 return DummyResponse(
                     json_data={
+                        "id": 12345,
+                        "doi": "10.5281/zenodo.12345",
                         "metadata": {
                             "title": "Dataset",
                             "creators": [{"name": "A"}],
                             "publication_date": "2021-01-01",
                             "version": "1.0",
                             "resource_type": {"type": "dataset"},
-                        }
+                        },
                     }
                 )
             return DummyResponse(status_code=404, json_data={})
@@ -457,9 +460,20 @@ class TestIdentifierFuzzySearch:
 
     @pytest.fixture(autouse=True)
     def _block_live_core_searches(self, monkeypatch):
-        """Fuzzy-search unit tests must opt into each core source explicitly."""
+        """Fuzzy-search unit tests must opt into each core source explicitly.
+
+        Every network-backed suggestion source belongs here — a source
+        missing from this list silently sends live traffic from unit tests
+        (exactly what happened when arXiv was added to suggest).
+        """
         monkeypatch.setattr(IdentifierModule, "_search_crossref", lambda _self, _query: [])
         monkeypatch.setattr(IdentifierModule, "_search_semantic_scholar", lambda _self, _query: [])
+        monkeypatch.setattr(
+            IdentifierModule, "_search_arxiv_candidates", lambda _self, _query, limit=5: []
+        )
+        monkeypatch.setattr(
+            IdentifierModule, "_search_google_books", lambda _self, _query, limit=5: []
+        )
 
     def test_no_hardcoded_well_known_papers(self):
         """fix #19: IdentifierModule must not have a well_known_papers shortcut."""
@@ -672,14 +686,16 @@ class TestIdentifierDataCite:
         ident = IdentifierModule()
         payload = {
             "data": {
+                "id": "10.1234/data",
                 "attributes": {
+                    "doi": "10.1234/data",
                     "titles": [{"title": "My Dataset"}],
                     "creators": [{"name": "Doe, Jane"}],
                     "publicationYear": 2022,
                     "publisher": "Zenodo",
                     "url": "https://doi.org/10.1234/data",
                     "types": {"resourceTypeGeneral": "Dataset"},
-                }
+                },
             }
         }
 
@@ -709,6 +725,39 @@ class TestIdentifierDataCite:
 
 
 class TestEnricher:
+
+    def test_plain_text_input_without_original_bibtex_is_not_a_warning(self, caplog):
+        """A normal TXT/DOI input has no original BibTeX fields to preserve."""
+        enricher = EnricherModule(use_google_scholar=False)
+        identified = {
+            "id": 0,
+            "status": "identified",
+            "doi": "10.1234/example",
+            "raw_text": "10.1234/example",
+            "metadata": {},
+        }
+        raw_entry = {
+            "id": 0,
+            "raw_text": "10.1234/example",
+            "doi": "10.1234/example",
+        }
+        base_record = {
+            "doi": "10.1234/example",
+            "title": "Example",
+            "author": "Doe, Jane",
+            "year": "2026",
+        }
+
+        caplog.set_level(logging.DEBUG, logger="onecite.pipeline.enricher")
+        with (
+            patch.object(enricher, "_get_crossref_metadata", return_value=base_record),
+            patch.object(enricher, "_complete_fields", return_value=base_record),
+        ):
+            result = enricher._enrich_single_entry(identified, {"fields": []}, raw_entry)
+
+        assert result["status"] == "completed"
+        assert "no original BibTeX fields to preserve" in caplog.text
+        assert not [record for record in caplog.records if record.levelno >= logging.WARNING]
 
     def test_convert_dataset(self):
         e = EnricherModule(use_google_scholar=False)
@@ -745,7 +794,10 @@ class TestEnricher:
         """fix #25: 429 from Semantic Scholar must return [] without raising."""
         ident = IdentifierModule()
         resp = DummyResponse(status_code=429, json_data={})
-        with patch("onecite.pipeline.requests.get", return_value=resp):
+        with (
+            patch("onecite.pipeline.requests.get", return_value=resp),
+            patch("onecite.pipeline.identifier.time.sleep"),
+        ):
             result = ident._search_semantic_scholar("attention is all you need")
         assert result == []
 
@@ -1043,6 +1095,20 @@ class TestEnricher:
 
         with patch("onecite.pipeline.requests.get", side_effect=fake_get):
             assert e._get_pubmed_abstract({"doi": "10.1234/noabs"}) is None
+
+    def test_pubmed_abstract_404_is_optional_not_a_warning(self, caplog):
+        """An optional PubMed miss must not make successful processing noisy."""
+        e = EnricherModule(use_google_scholar=False)
+        caplog.set_level(logging.INFO, logger="onecite.pipeline.enricher")
+
+        with patch(
+            "onecite.pipeline.requests.get",
+            return_value=DummyResponse(status_code=404, json_data={}),
+        ):
+            assert e._get_pubmed_abstract({"doi": "10.1234/not-in-pubmed"}) is None
+
+        assert "Optional PubMed abstract fallback unavailable" in caplog.text
+        assert not [record for record in caplog.records if record.levelno >= logging.WARNING]
 
     def test_complete_fields_fills_abstract_from_pubmed_when_flag_set(self):
         """With allow_abstract_fallback=True and SS empty, abstract is filled

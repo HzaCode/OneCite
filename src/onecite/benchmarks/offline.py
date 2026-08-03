@@ -170,27 +170,43 @@ GITHUB_REPO_ONECITE: Dict[str, Any] = {
 GITHUB_TAGS_ONECITE = [{"name": "v0.1.1"}]
 
 
-ZENODO_RECORD_ONECITE: Dict[str, Any] = {
+# Mirrors the real Zenodo record for 10.5281/zenodo.3233118 (nibabel 2.4.1),
+# so the offline fixture and the live Zenodo API agree.
+ZENODO_RECORD_NIBABEL: Dict[str, Any] = {
+    "id": 3233118,
+    "doi": "10.5281/zenodo.3233118",
     "metadata": {
-        "title": "OneCite deterministic benchmark dataset",
-        "creators": [{"name": "HzaCode"}],
-        "publication_date": "2026-05-20",
-        "version": "1.0.0",
-        "resource_type": {"type": "dataset"},
-    }
+        "title": "nipy/nibabel: 2.4.1",
+        "creators": [
+            {"name": "Brett, Matthew"},
+            {"name": "Markiewicz, Christopher J."},
+            {"name": "Hanke, Michael"},
+        ],
+        "publication_date": "2019-05-28",
+        "version": "2.4.1",
+        "resource_type": {"type": "software"},
+    },
 }
 
 
+# Mirrors the real DataCite record for 10.5061/dryad.8515 (a long-lived
+# Dryad dataset), so the offline fixture and the live API agree.
 DATACITE_DRYAD_DATASET: Dict[str, Any] = {
     "data": {
+        "id": "10.5061/dryad.8515",
         "attributes": {
-            "titles": [{"title": "Data from: Robust citation validation benchmark fixture"}],
-            "creators": [{"name": "Dryad Data Repository"}],
-            "publicationYear": 2021,
+            "doi": "10.5061/dryad.8515",
+            "titles": [{"title": "Data from: A new malaria agent in African hominids."}],
+            "creators": [
+                {"name": "Ollomo, Benjamin"},
+                {"name": "Durand, Patrick"},
+                {"name": "Prugnolle, Franck"},
+            ],
+            "publicationYear": 2011,
             "publisher": "Dryad",
-            "url": "https://doi.org/10.5061/dryad.8gtht76m6",
+            "url": "https://datadryad.org/dataset/doi:10.5061/dryad.8515",
             "types": {"resourceTypeGeneral": "Dataset"},
-        }
+        },
     }
 }
 
@@ -200,7 +216,7 @@ class OfflineResponse:
 
     def __init__(
         self,
-        json_data: Optional[Dict[str, Any]] = None,
+        json_data: Optional[Any] = None,
         text: str = "",
         status_code: int = 200,
         headers: Optional[Dict[str, str]] = None,
@@ -212,7 +228,7 @@ class OfflineResponse:
         self.ok = status_code == 200
         self.headers = headers or {}
 
-    def json(self) -> Dict[str, Any]:
+    def json(self) -> Any:
         if self.json_data is None:
             raise ValueError("No JSON data")
         return self.json_data
@@ -221,7 +237,9 @@ class OfflineResponse:
         if self.status_code >= 400:
             from requests.exceptions import HTTPError
 
-            raise HTTPError(f"HTTP {self.status_code}", response=self)
+            # OfflineResponse is a deliberate stand-in for requests.Response;
+            # HTTPError only reads duck-typed attributes from it.
+            raise HTTPError(f"HTTP {self.status_code}", response=self)  # type: ignore[arg-type]
 
 
 def offline_requests_get(url: str, *args: Any, **kwargs: Any) -> OfflineResponse:
@@ -245,6 +263,15 @@ def offline_requests_get(url: str, *args: Any, **kwargs: Any) -> OfflineResponse
     if "export.arxiv.org" in normalized_url and "1706.03762" in normalized_url:
         return OfflineResponse(text=ARXIV_TRANSFORMER)
 
+    if "export.arxiv.org" in normalized_url and "attention" in params_text.lower():
+        return OfflineResponse(text=ARXIV_TRANSFORMER)
+
+    if "export.arxiv.org" in normalized_url:
+        return OfflineResponse(
+            text='<?xml version="1.0" encoding="UTF-8"?>'
+            '<feed xmlns="http://www.w3.org/2005/Atom"></feed>'
+        )
+
     if "eutils.ncbi.nlm.nih.gov" in normalized_url and "esummary.fcgi" in normalized_url:
         if str(params.get("id")) == "26017442":
             return OfflineResponse(json_data=PUBMED_SUMMARY_DEEP_LEARNING)
@@ -256,9 +283,9 @@ def offline_requests_get(url: str, *args: Any, **kwargs: Any) -> OfflineResponse
         return OfflineResponse(json_data=GITHUB_REPO_ONECITE)
 
     if "zenodo.org/api/records/3233118" in normalized_url:
-        return OfflineResponse(json_data=ZENODO_RECORD_ONECITE)
+        return OfflineResponse(json_data=ZENODO_RECORD_NIBABEL)
 
-    if "api.datacite.org/dois/10.5061/dryad.8gtht76m6" in normalized_url:
+    if "api.datacite.org/dois/10.5061/dryad.8515" in normalized_url:
         return OfflineResponse(json_data=DATACITE_DRYAD_DATASET)
 
     if "api.semanticscholar.org" in normalized_url:

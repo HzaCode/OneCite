@@ -1,23 +1,25 @@
 {
-  "title": "OneCite: Citation Management and Academic Reference Toolkit",
-  "description": "OneCite is a command-line tool and Python library that automates citation management. It accepts multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and produces clean BibTeX entries.",
+  "title": "OneCite: Auditable citation normalization for research workflows",
+  "description": "OneCite is a command-line tool and Python library that normalizes messy scholarly references into auditable, source-resolved BibTeX and CSL-JSON. Strong identifiers follow documented metadata-service routes; ambiguous plain-text references are returned as ranked candidates for review rather than auto-promoted by the processing workflow.",
   "creators": [
     {
-      "name": "He, Zhiang",
-      "affiliation": "Independent Developer"
+      "name": "He, Zhiang"
     }
   ],
   "keywords": [
-    "citation management",
+    "citation",
     "bibliography",
     "bibtex",
     "academic research",
-    "reference management",
+    "reference normalization",
     "doi",
     "arxiv",
+    "reproducibility",
+    "metadata",
     "python"
   ],
   "license": "MIT",
+  "version": "0.2.0",
   "upload_type": "software",
   "access_right": "open",
   "related_identifiers": [
@@ -25,12 +27,6 @@
       "identifier": "https://github.com/HzaCode/OneCite",
       "relation": "isSupplementTo",
       "scheme": "url"
-    },
-    {
-      "identifier": "https://pypi.org/project/onecite/",
-      "relation": "isIdenticalTo",
-      "scheme": "url"
     }
   ]
 }
-

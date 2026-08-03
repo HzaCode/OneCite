@@ -7,7 +7,7 @@ import re
 import logging
 import warnings
 from html import unescape
-from typing import List, Dict, Optional
+from typing import Any, List, Dict, Optional
 
 import requests
 
@@ -16,6 +16,7 @@ try:
 except ImportError:
     scholarly = None
 
+from .. import __email__, __version__
 from ..core import RawEntry, IdentifiedEntry, CompletedEntry
 
 
@@ -35,17 +36,20 @@ class EnricherModule:
         self.semantic_scholar_base = "https://api.semanticscholar.org/graph/v1"
         self.use_google_scholar = use_google_scholar
         self._used_keys: set = set()
+        self._user_agent = (
+            f"OneCite/{__version__} " f"(https://github.com/HzaCode/OneCite; mailto:{__email__})"
+        )
         self._crossref_headers = {
             "Accept": "application/json",
-            "User-Agent": "OneCite/0.1.1 (https://github.com/HzaCode/OneCite; mailto:onecite@users.noreply.github.com)",
+            "User-Agent": self._user_agent,
         }
-        self._crossref_mailto = "onecite@users.noreply.github.com"
+        self._crossref_mailto = __email__
 
     def enrich(
         self,
         identified_entries: List[IdentifiedEntry],
         template: Dict,
-        raw_entries: List[RawEntry] = None,
+        raw_entries: Optional[List[RawEntry]] = None,
     ) -> List[CompletedEntry]:
         """Enrich entries to obtain complete bibliographic information.
 
@@ -85,23 +89,31 @@ class EnricherModule:
                     completed_entries.append(completed_entry)
                 else:
                     # Entries without any identifier
-                    failed_entry = {
+                    failed_entry: CompletedEntry = {
                         "id": entry["id"],
                         "doi": "",
                         "status": "enrichment_failed",
                         "bib_key": "",
                         "bib_data": {},
+                        "raw_text": entry.get("raw_text", ""),
+                        "failure_reason": "no_identifier_data",
                     }
                     completed_entries.append(failed_entry)
             else:
-                # Entries that were not identified are marked as failed
-                failed_entry = {
+                # Entries the identifier stage could not resolve keep their
+                # true stage status and reason so the report can distinguish
+                # a safely rejected identifier from an ambiguous reference
+                # or an unavailable source.
+                unresolved_entry: CompletedEntry = {
                     "id": entry["id"],
                     "doi": "",
-                    "status": "enrichment_failed",
+                    "status": entry.get("status", "identification_failed"),
                     "bib_key": "",
                     "bib_data": {},
+                    "raw_text": entry.get("raw_text", ""),
+                    "failure_reason": entry.get("failure_reason", "unresolved"),
                 }
+                failed_entry = unresolved_entry
                 completed_entries.append(failed_entry)
 
         successful_count = sum(1 for e in completed_entries if e["status"] == "completed")
@@ -112,12 +124,17 @@ class EnricherModule:
         return completed_entries
 
     def _enrich_single_entry(
-        self, identified_entry: IdentifiedEntry, template: Dict, raw_entry: RawEntry = None
+        self,
+        identified_entry: IdentifiedEntry,
+        template: Dict,
+        raw_entry: Optional[RawEntry] = None,
     ) -> CompletedEntry:
         """Enrich a single entry"""
         doi = identified_entry.get("doi")
         arxiv_id = identified_entry.get("arxiv_id")
-        metadata = identified_entry.get("metadata", {})
+        # The metadata key may be present with an explicit None; normalize so
+        # every downstream .get() is safe.
+        metadata = identified_entry.get("metadata") or {}
 
         try:
             base_record = None
@@ -129,8 +146,13 @@ class EnricherModule:
                 base_record = self._convert_search_metadata(metadata)
             # Try to get metadata from various sources
             elif doi:
-                # Get base record fromCrossref
-                base_record = self._get_crossref_metadata(doi)
+                # Reuse the CrossRef work object fetched during DOI
+                # verification instead of issuing a second identical call.
+                crossref_work = metadata.get("_crossref_work")
+                if crossref_work:
+                    base_record = self._convert_crossref_work(crossref_work)
+                else:
+                    base_record = self._get_crossref_metadata(doi)
             elif arxiv_id:
                 # Get base record from arXiv
                 base_record = self._get_arxiv_metadata(arxiv_id)
@@ -145,13 +167,12 @@ class EnricherModule:
                     "status": "enrichment_failed",
                     "bib_key": "",
                     "bib_data": {},
+                    "raw_text": identified_entry.get("raw_text", ""),
+                    "failure_reason": "metadata_unavailable",
                 }
 
-            original_id = (
-                raw_entry.get("original_entry", {}).get("ID")
-                if raw_entry and raw_entry.get("original_entry")
-                else None
-            )
+            original_entry = raw_entry.get("original_entry") if raw_entry else None
+            original_id = original_entry.get("ID") if original_entry else None
             bib_key = (
                 self._reserve_bibtex_key(str(original_id).strip())
                 if original_id and str(original_id).strip()
@@ -172,10 +193,10 @@ class EnricherModule:
             )
 
             # Preserve original BibTeX entry fields when available
-            if raw_entry and raw_entry.get("original_entry"):
-                original = raw_entry["original_entry"]
+            if original_entry:
+                original = original_entry
                 self.logger.info(
-                    f"Entry {identified_entry['id']}: Found original_entry with keys: {list(original.keys()) if original else 'None'}"
+                    f"Entry {identified_entry['id']}: Found original_entry with keys: {list(original.keys())}"
                 )
 
                 preserve_fields = [
@@ -204,11 +225,10 @@ class EnricherModule:
                             continue
 
                         # When the entry is DOI-backed, the resolved
-                        # CrossRef/DataCite metadata is authoritative: never let
-                        # an original field overwrite a canonical value, only
-                        # fall back to the original to fill a gap the API left
-                        # empty. Without a DOI we have no authority to override
-                        # the user's own text, so the original still wins.
+                        # For a DOI-backed record, preserve the source-resolved
+                        # Crossref/DataCite value rather than mixing it with a
+                        # conflicting original field; use the original only to
+                        # fill a gap. Without a DOI, the user's field wins.
                         if raw_has_doi and api_value and str(api_value).strip():
                             if api_value != original_value:
                                 self.logger.info(
@@ -222,8 +242,11 @@ class EnricherModule:
                             )
                         completed_data[field] = original_value
             else:
-                self.logger.warning(
-                    f"Entry {identified_entry['id']}: No original_entry available in raw_entry - raw_entry={raw_entry is not None}"
+                # Plain-text and identifier inputs normally have no embedded
+                # BibTeX record to preserve.  That is expected input shape,
+                # not a degraded enrichment result.
+                self.logger.debug(
+                    f"Entry {identified_entry['id']}: no original BibTeX fields to preserve"
                 )
 
             # Set the entry type based on content
@@ -293,13 +316,17 @@ class EnricherModule:
 
             self.logger.info(f"Entry {identified_entry['id']} enrichment successful")
 
-            return {
+            completed_entry: CompletedEntry = {
                 "id": identified_entry["id"],
                 "doi": doi or "",
                 "status": "completed",
                 "bib_key": bib_key,
                 "bib_data": completed_data,
+                "raw_text": identified_entry.get("raw_text", ""),
             }
+            if identified_entry.get("warnings"):
+                completed_entry["warnings"] = identified_entry["warnings"]
+            return completed_entry
 
         except Exception as e:
             self.logger.error(f"Entry {identified_entry['id']} enrichment failed: {str(e)}")
@@ -309,6 +336,8 @@ class EnricherModule:
                 "status": "enrichment_failed",
                 "bib_key": "",
                 "bib_data": {},
+                "raw_text": identified_entry.get("raw_text", ""),
+                "failure_reason": "enrichment_error",
             }
 
     def _strip_html_tags(self, text: str) -> str:
@@ -337,7 +366,19 @@ class EnricherModule:
 
             data = response.json()
             work = data.get("message", {})
+            return self._convert_crossref_work(work)
 
+        except Exception as e:
+            self.logger.error(f"Failed to get CrossRef metadata for {doi}: {str(e)}")
+            return None
+
+    def _convert_crossref_work(self, work: Dict) -> Optional[Dict]:
+        """Convert a raw CrossRef ``message`` object into a base record.
+
+        Split from the HTTP fetch so a work object already retrieved during
+        DOI verification can be reused without a second identical API call.
+        """
+        try:
             # Extract title and clean HTML tags
             raw_title = work.get("title", [""])[0] if work.get("title") else ""
             clean_title = self._strip_html_tags(raw_title)
@@ -382,7 +423,7 @@ class EnricherModule:
             return {k: v for k, v in metadata.items() if v is not None}
 
         except Exception as e:
-            self.logger.error(f"Failed to get CrossRef metadata for {doi}: {str(e)}")
+            self.logger.error(f"Failed to convert CrossRef work object: {str(e)}")
             return None
 
     def _get_arxiv_metadata(self, arxiv_id: str) -> Optional[Dict]:
@@ -597,6 +638,21 @@ class EnricherModule:
                     return str(date_parts[0][0])
         return None
 
+    @staticmethod
+    def _ascii_key_part(value: Any) -> str:
+        """Reduce a key component to LaTeX-safe ASCII word characters.
+
+        Cite keys end up inside ``\\cite{...}``; accented characters are
+        folded (Müller → Muller) and characters with no ASCII form (CJK,
+        emoji) are dropped rather than emitted into a key that breaks
+        LaTeX engines.
+        """
+        import unicodedata
+
+        text = unicodedata.normalize("NFKD", str(value))
+        ascii_text = text.encode("ascii", "ignore").decode("ascii")
+        return re.sub(r"[^\w]", "", ascii_text)
+
     def _generate_bibtex_key(self, metadata: Dict) -> str:
         """Generate BibTeX key"""
         # Format: First author's surname + year + first word of the title
@@ -604,23 +660,22 @@ class EnricherModule:
 
         # First author's surname
         if metadata.get("author"):
-            first_author = metadata["author"].split(" and ")[0]
+            first_author = str(metadata["author"]).split(" and ")[0]
             if "," in first_author:
                 family_name = first_author.split(",")[0].strip()
             else:
-                family_name = first_author.split()[-1]
-            key_parts.append(re.sub(r"[^\w]", "", family_name))
+                family_name = first_author.split()[-1] if first_author.split() else ""
+            key_parts.append(self._ascii_key_part(family_name))
 
-        # Year
+        # Year (may arrive as an int from sources like DataCite)
         if metadata.get("year"):
-            key_parts.append(metadata["year"])
+            key_parts.append(self._ascii_key_part(metadata["year"]))
 
         # First word of title
         if metadata.get("title"):
-            title_words = metadata["title"].split()
+            title_words = str(metadata["title"]).split()
             if title_words:
-                first_word = re.sub(r"[^\w]", "", title_words[0])
-                key_parts.append(first_word)
+                key_parts.append(self._ascii_key_part(title_words[0]))
 
         return self._reserve_bibtex_key("".join(key_parts) or "unknown")
 
@@ -691,7 +746,7 @@ class EnricherModule:
                 DeprecationWarning,
                 stacklevel=2,
             )
-            # If both were passed, prefer the new one as authoritative.
+            # If both were passed, prefer the new spelling.
             if not allow_abstract_fallback:
                 allow_abstract_fallback = allow_pubmed_fallback
 
@@ -756,7 +811,8 @@ class EnricherModule:
             abstract = data.get("abstract")
             if abstract:
                 self.logger.info(f"Retrieved abstract from Semantic Scholar for DOI {doi}")
-            return abstract
+                return str(abstract)
+            return None
         except Exception as exc:
             self.logger.warning(f"Semantic Scholar abstract lookup failed for {doi}: {exc}")
             return None
@@ -783,7 +839,12 @@ class EnricherModule:
 
             # Step 1: resolve DOI to PMID (the only supported path)
             url = f"{self.pubmed_base}/esearch.fcgi"
-            params = {"db": "pubmed", "term": f"{doi}[DOI]", "retmode": "json", "retmax": 1}
+            params: Dict[str, Any] = {
+                "db": "pubmed",
+                "term": f"{doi}[DOI]",
+                "retmode": "json",
+                "retmax": 1,
+            }
             response = requests.get(url, params=params, timeout=10)
             response.raise_for_status()
             data = response.json()
@@ -828,7 +889,10 @@ class EnricherModule:
                 self.logger.info(f"DOI {doi} not found in PubMed")
 
         except Exception as e:
-            self.logger.warning(f"Failed to get abstract from PubMed: {str(e)}")
+            # Abstract completion is optional and DOI-exact.  A missing PubMed
+            # record must leave the field absent without making an otherwise
+            # successful citation look failed on stderr.
+            self.logger.info(f"Optional PubMed abstract fallback unavailable: {str(e)}")
 
         return None
 
@@ -844,14 +908,15 @@ class EnricherModule:
             import threading
             import time
 
-            if hasattr(self, "_last_scholar_request"):
-                time_since_last = time.time() - self._last_scholar_request
+            last_request = getattr(self, "_last_scholar_request", None)
+            if last_request is not None:
+                time_since_last = time.time() - last_request
                 if time_since_last < 2.0:
                     time.sleep(2.0 - time_since_last)
 
             self._last_scholar_request = time.time()
 
-            result_container = [None]
+            result_container: List[Optional[str]] = [None]
             search_completed = [False]
 
             def search_worker():

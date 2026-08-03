@@ -116,9 +116,55 @@ onecite benchmark --live --json
 5. Run `onecite benchmark --json` before reporting regression-check results.
 6. Run `onecite doctor --json` before reporting that the local installation
    has the expected automation or CI resources.
-7. Inspect `failed_entries` in the process report, benchmark case failures,
-   and doctor failed checks.
+7. Inspect `failed_entries`, `warnings`, and `duplicates` in the process
+   report, benchmark case failures, and doctor failed checks.
 8. Report unresolved entries explicitly instead of inventing replacements.
+
+## Interpreting Process Reports
+
+- `warnings` with type `text_metadata_mismatch`: the entry resolved from its
+  DOI, but the surrounding input text appears to describe a **different**
+  work — the classic hallucinated title+DOI pairing. Surface this to the
+  user for review; do not silently accept the entry.
+- `duplicates`: the same work appeared more than once in the batch (bare
+  DOI, PMID, formatted citation). It was emitted once; cite the listed
+  `bib_key`.
+- `failed_entries[].reason` tells you the correct follow-up:
+  - `doi_not_found` — the DOI does not exist in CrossRef or DataCite;
+    likely fabricated or mistyped. Do not retry unchanged; flag it.
+  - `no_strong_identifier` — ambiguous plain text; run `onecite suggest`
+    and have the result reviewed. Never promote a candidate to verified
+    output yourself.
+  - `source_error` — a source errored; retrying later may succeed.
+  - `pmid_unresolved` / `isbn_unresolved` — the lookup found no record
+    (nonexistent identifier or source unavailable/rate-limited).
+
+## Using Suggest Safely
+
+- `onecite suggest` returns **candidates for review, not verified
+  citations**. Check each suggestion's `sources` list: a status other than
+  `ok` (and an entry status ending in `_incomplete`) means a scholarly
+  index was rate-limited or errored and the correct match may be missing
+  from the list entirely.
+- Treat a low `match_score` as no-confidence: do not present a top
+  candidate as "the match" just because it ranks first. A `year_conflict`
+  flag in `score_breakdown` means the candidate's year contradicts the year
+  the query cites.
+- To turn a reviewed candidate into verified BibTeX, take its DOI and run
+  `onecite process "<doi>"` — never hand-assemble an entry from candidate
+  fields.
+
+## Anti-Hallucination Evaluation
+
+Run the labelled non-fabrication evaluation (offline, deterministic):
+
+```bash
+onecite benchmark --anti-hallucination --json
+```
+
+It reports the resolution rate on real identifiers, the non-fabrication
+rate on ambiguous/fabricated inputs, and the mismatch detection rate on
+real DOIs paired with a different paper's title.
 
 ## Repository Validation Checks
 
@@ -129,7 +175,7 @@ onecite benchmark --live --json
 
    ```bash
    python -m pytest
-   flake8 onecite tests --statistics --count
+   flake8 src/onecite tests --statistics --count
    onecite benchmark --json
    onecite doctor --json
    python -m build --wheel
@@ -159,7 +205,7 @@ unless these checks pass from the repository root:
 
 ```bash
 python -m pytest
-flake8 onecite tests
+flake8 src/onecite tests
 onecite benchmark --json
 onecite doctor --json
 python -m build --wheel

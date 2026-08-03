@@ -51,7 +51,7 @@ pip install -e ".[dev]"
 pytest
 
 # Check code style
-flake8 onecite tests
+flake8 src/onecite tests
 ```
 
 ## How to Contribute
@@ -188,7 +188,7 @@ def example_function(param1: str, param2: int) -> bool:
 pytest
 
 # Run specific test file
-pytest tests/test_core.py
+pytest tests/test_core_unit.py
 
 # Run with coverage
 pytest --cov=onecite --cov-report=html
@@ -255,4 +255,3 @@ If you have questions or need help:
 - Email ang@hezhiang.com
 
 Thank you for contributing to OneCite! 🎉
-

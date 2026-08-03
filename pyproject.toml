@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "onecite"
-version = "0.1.1"
-description = "Citation management and academic reference toolkit"
+version = "0.2.0"
+description = "Auditable normalization of messy scholarly references into source-resolved BibTeX and CSL-JSON"
 readme = "README.md"
 requires-python = ">=3.10"
 license = "MIT"
@@ -13,7 +13,7 @@ license-files = ["LICENSE"]
 authors = [
     {name = "He Zhiang", email = "ang@hezhiang.com"}
 ]
-keywords = ["citation", "bibliography", "bibtex", "academic", "reference", "doi", "arxiv"]
+keywords = ["citation", "bibliography", "bibtex", "academic", "reference", "doi", "arxiv", "normalization", "reproducibility", "metadata", "research-software"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
@@ -21,6 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Text Processing :: Markup",
 ]
@@ -44,6 +45,12 @@ dev = [
     "flake8>=3.8",
     "black>=20.8b1",
     "build>=1.0",
+    "mypy>=1.0",
+    "types-requests",
+    "types-PyYAML",
+    # Document and image tooling used by repository maintenance scripts.
+    "python-docx>=1.1.0,<2.0.0",
+    "pillow>=10.0.0,<13.0.0",
 ]
 
 [project.urls]
@@ -51,50 +58,29 @@ Homepage = "https://github.com/HzaCode/OneCite"
 Documentation = "https://hezhiang.com/OneCite/"
 Repository = "https://github.com/HzaCode/OneCite"
 Issues = "https://github.com/HzaCode/OneCite/issues"
-Changelog = "https://github.com/HzaCode/OneCite/blob/main/docs/changelog.rst"
+Changelog = "https://github.com/HzaCode/OneCite/blob/main/CHANGELOG.md"
 "Bug Tracker" = "https://github.com/HzaCode/OneCite/issues"
 
 [project.scripts]
 onecite = "onecite.cli:main"
 
 [tool.setuptools]
-packages = ["onecite", "onecite.benchmarks", "onecite.pipeline", "onecite.templates"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["onecite*"]
 
 [tool.setuptools.package-data]
 onecite = ["templates/*.yaml", "benchmarks/*.json"]
 
+# Installed data files are limited to artifacts with an actual consumer:
+# `onecite doctor` locates SKILL.md and the benchmark baseline under
+# sys.prefix/share. Documentation is not installed — it lives in the
+# repository and on the documentation site.
 [tool.setuptools.data-files]
 "share/onecite/skills/onecite" = ["skills/onecite/SKILL.md"]
-"share/onecite/benchmarks" = ["benchmarks/README.md", "benchmarks/leaderboard.json"]
-"share/onecite/docs" = [
-    "docs/README.md",
-    "docs/Makefile",
-    "docs/advanced_usage.rst",
-    "docs/basic_usage.rst",
-    "docs/benchmarking.rst",
-    "docs/changelog.rst",
-    "docs/cli_contracts.rst",
-    "docs/conf.py",
-    "docs/contributing.rst",
-    "docs/faq.rst",
-    "docs/index.rst",
-    "docs/installation.rst",
-    "docs/onecite_skill.rst",
-    "docs/output_formats.rst",
-    "docs/python_api.rst",
-    "docs/quick_start.rst",
-    "docs/requirements.txt",
-    "docs/templates.rst",
-]
-"share/onecite/docs/api" = [
-    "docs/api/core.rst",
-    "docs/api/exceptions.rst",
-    "docs/api/pipeline.rst",
-]
-"share/onecite/docs/examples" = [
-    "docs/examples/existing.bib",
-    "docs/examples/references.txt",
-]
+"share/onecite/benchmarks" = ["benchmarks/README.md", "benchmarks/leaderboard.json", "benchmarks/anti_hallucination_baseline.json"]
 
 
 [tool.pytest.ini_options]
@@ -117,7 +103,7 @@ check_untyped_defs = true
 
 [tool.black]
 line-length = 100
-target-version = ['py310', 'py311']
+target-version = ['py310', 'py311', 'py312']
 
 [tool.isort]
 profile = "black"

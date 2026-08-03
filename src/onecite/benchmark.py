@@ -34,7 +34,7 @@ def load_benchmark_suite(cases_path: Optional[str] = None) -> Dict[str, Any]:
         suite = json.loads(suite_resource.read_text(encoding="utf-8"))
 
     _validate_suite(suite)
-    return suite
+    return dict(suite)
 
 
 def run_benchmark(
@@ -197,7 +197,6 @@ def _run_case(case: Dict[str, Any], process_fn: BenchmarkProcess) -> Dict[str, A
             input_type=case["input_type"],
             template_name=case["template"],
             output_format=case["output_format"],
-            interactive_callback=lambda _candidates: -1,
         )
         output = "\n\n".join(result.get("results", []))
         _check_report_expectations(case, result.get("report", {}), failures)

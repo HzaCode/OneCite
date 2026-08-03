@@ -145,10 +145,10 @@ def test_run_benchmark_gate_uses_unrounded_success_ratio(tmp_path):
 
 def test_run_benchmark_uses_noninteractive_candidate_policy(tmp_path):
     suite_path = _write_suite(tmp_path, _valid_case(id="candidate-policy"))
-    observed_choices = []
+    observed_kwargs = []
 
-    def fake_process_fn(*, interactive_callback, **_kwargs):
-        observed_choices.append(interactive_callback([{"title": "Candidate"}]))
+    def fake_process_fn(**kwargs):
+        observed_kwargs.append(kwargs)
         return {
             "results": ["@article{Candidate}"],
             "report": {"total": 1, "succeeded": 1, "failed_entries": []},
@@ -157,7 +157,9 @@ def test_run_benchmark_uses_noninteractive_candidate_policy(tmp_path):
     report = run_benchmark(cases_path=str(suite_path), process_fn=fake_process_fn)
 
     assert report["status"] == "passed"
-    assert observed_choices == [-1]
+    # The benchmark exercises the same strictly non-interactive contract as
+    # `onecite process`: no candidate-selection callback is wired at all.
+    assert all("interactive_callback" not in kwargs for kwargs in observed_kwargs)
 
 
 def test_run_bundled_benchmark_with_mocked_sources():

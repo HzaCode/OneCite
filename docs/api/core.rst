@@ -18,7 +18,7 @@ The primary function for processing citations.
         input_type: str,
         template_name: str,
         output_format: str,
-        interactive_callback: Callable[[List[Dict]], int],
+        interactive_callback: Optional[Callable[[List[Dict]], int]] = None,
     ) -> Dict[str, Any]
 
 **Parameters:**
@@ -26,8 +26,8 @@ The primary function for processing citations.
 - ``input_content`` (str): The reference content to process
 - ``input_type`` (str): Type of input - ``"txt"`` or ``"bib"`` (required)
 - ``template_name`` (str): Template name to use (e.g., ``"journal_article_full"``) (required)
-- ``output_format`` (str): Output format - currently only ``"bibtex"`` is supported (required)
-- ``interactive_callback`` (Callable): Compatibility callback; plain-text candidate search is handled by ``suggest_references`` (required)
+- ``output_format`` (str): Output format - ``"bibtex"`` or ``"csl-json"`` (required)
+- ``interactive_callback`` (Optional[Callable]): Accepted for backward compatibility and never invoked — processing is strictly non-interactive; candidate search is handled by ``suggest_references`` (optional)
 
 **Returns:**
 
@@ -38,7 +38,12 @@ A dictionary with keys:
   
   - ``total`` (int): Total number of entries processed
   - ``succeeded`` (int): Number of successfully processed entries
-  - ``failed_entries`` (List[Dict]): List of failed entries with error details
+  - ``failed_entries`` (List[Dict]): Failed entries, each with the original
+    input text (``raw_text``) and a ``reason`` code
+  - ``warnings`` (List[Dict]): Non-blocking review warnings (e.g.
+    ``text_metadata_mismatch``)
+  - ``duplicates`` (List[Dict]): Entries whose DOI already resolved earlier
+    in the batch
 
 **Example:**
 
@@ -50,8 +55,7 @@ A dictionary with keys:
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: -1
+        output_format="bibtex"
     )
     
     # Access results
@@ -121,7 +125,9 @@ A TypedDict representing an entry after identification from data sources (Stage 
 CompletedEntry
 ~~~~~~~~~~~~~~~
 
-A TypedDict representing a fully processed entry with all metadata (Stage 3).
+A TypedDict representing a processed or failed entry after Stage 3. A
+``completed`` status does not guarantee that every possible bibliographic field
+is present or correct upstream.
 
 **Type Definition:**
 
@@ -140,9 +146,12 @@ A TypedDict representing a fully processed entry with all metadata (Stage 3).
 - ``doi`` (str): Digital Object Identifier
 - ``status`` (str): Status - 'completed' or 'enrichment_failed'
 - ``bib_key`` (str): BibTeX citation key (e.g., "LeCun2015Deep")
-- ``bib_data`` (dict): Complete bibliographic data with all fields
+- ``bib_data`` (dict): Bibliographic fields available for formatting
 
-CompletedEntry is a TypedDict. Use ``FormatterModule`` from ``pipeline.py`` to render entries as BibTeX (the only supported output format). Templates control which fields are included and the fallback BibTeX entry type when auto-detection is ambiguous.
+CompletedEntry is a TypedDict. Use ``FormatterModule`` from ``pipeline.py`` to
+render entries as BibTeX or CSL-JSON. Templates declare fields and provide a
+fallback BibTeX entry type; they do not filter every returned field or trigger
+broad multi-source completion.
 
 Classes
 -------
@@ -160,7 +169,7 @@ Manages citation templates by loading YAML template files.
 
 **Parameters:**
 
-- ``templates_dir`` (str, optional): Custom template directory path. If None, uses the built-in ``onecite/templates/`` directory.
+- ``templates_dir`` (str, optional): Custom template directory path. If None, uses the built-in ``src/onecite/templates/`` directory in a source checkout.
 
 **Methods:**
 
@@ -194,11 +203,15 @@ Manages the 4-stage processing pipeline (Parse → Identify → Enrich → Forma
 
 **Parameters:**
 
-- ``use_google_scholar`` (bool): Whether to enable Google Scholar as a data source. Default is False.
+- ``use_google_scholar`` (bool): Whether the controller's ``suggest`` workflow
+  may use the optional Google Scholar fallback. It does not enable Scholar in
+  ``process``. Default is ``False``.
 
 **Methods:**
 
-- ``process(input_content: str, input_type: str, template_name: str, output_format: str, interactive_callback: Callable) -> Dict[str, Any]``: Execute the complete 4-stage processing pipeline
+- ``process(input_content: str, input_type: str, template_name: str, output_format: str, interactive_callback: Optional[Callable] = None) -> Dict[str, Any]``: Execute the complete 4-stage processing pipeline (the callback is accepted for backward compatibility and never invoked)
+- ``suggest(input_content: str, input_type: str, limit: int = 5) -> Dict[str, Any]``:
+  Return ranked candidates without promoting them to resolved output
 
 For typical usage, ``process_references()`` is simpler. PipelineController exposes a lower-level API for advanced use cases.
 
@@ -213,8 +226,7 @@ For typical usage, ``process_references()`` is simpler. PipelineController expos
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: -1
+        output_format="bibtex"
     )
     
     print(result['results'])
@@ -241,8 +253,7 @@ Raised when entry validation fails.
             input_content="",
             input_type="txt",
             template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda c: 0,
+            output_format="bibtex"
         )
     except ValidationError as e:
         print(f"Validation failed: {e}")
@@ -259,8 +270,7 @@ Raised when parsing input fails.
             input_content="invalid input",
             input_type="bib",
             template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda c: 0,
+            output_format="bibtex"
         )
     except ParseError as e:
         print(f"Parse failed: {e}")
@@ -268,20 +278,21 @@ Raised when parsing input fails.
 ResolverError
 ~~~~~~~~~~~~~
 
-Raised when data source resolution fails.
+Retained in the public exception hierarchy. The current high-level processing
+path records ordinary lookup failures in ``report["failed_entries"]`` instead
+of raising ``ResolverError``. Inspect the report and reason codes; see
+:doc:`exceptions`.
 
 .. code-block:: python
 
-    try:
-        result = process_references(
-            input_content="nonexistent doi",
-            input_type="txt",
-            template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda c: 0,
-        )
-    except ResolverError as e:
-        print(f"Resolver failed: {e}")
+    result = process_references(
+        input_content="10.9999/nonexistent-doi",
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex"
+    )
+    for failed in result["report"]["failed_entries"]:
+        print(failed["reason"], failed["raw_text"])
 
 Advanced Usage
 --------------
@@ -298,8 +309,7 @@ Custom Data Processing
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     print('\n\n'.join(result['results']))
@@ -321,14 +331,13 @@ Working with Templates
     print(f"Template name: {template['name']}")
     print(f"Entry type: {template['entry_type']}")
     
-    # To use a custom template, place it in onecite/templates/ directory
+    # To use a custom template, place it in src/onecite/templates/ directory
     # then reference it by name
     result = process_references(
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="your_custom_template",  # without .yaml extension
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
 
 Next Steps
@@ -337,3 +346,4 @@ Next Steps
 - See :doc:`../python_api` for usage examples
 - Check :doc:`../advanced_usage` for complex scenarios
 - Review :doc:`../templates` for field requirements and fallback entry types
+- Review :doc:`../external_services` for network and privacy boundaries

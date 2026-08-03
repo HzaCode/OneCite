@@ -119,8 +119,9 @@ def test_verify_doi_crossref_request_uses_polite_headers_and_mailto():
         )
 
     with patch("onecite.pipeline.requests.get", side_effect=fake_get):
-        metadata = identifier._verify_doi_and_get_metadata("10.1234/example")
+        metadata, failure = identifier._verify_doi_and_get_metadata("10.1234/example")
 
+    assert failure is None
     assert metadata["doi"] == "10.1234/example"
     assert "api.crossref.org/works/10.1234/example" in captured["url"]
     assert "OneCite" in captured["headers"].get("User-Agent", "")
@@ -162,6 +163,8 @@ def test_plain_text_query_can_return_suggestions_without_identifying():
     with (
         patch.object(identifier, "_search_crossref", return_value=[candidate]),
         patch.object(identifier, "_search_semantic_scholar", return_value=[]),
+        patch.object(identifier, "_search_arxiv_candidates", return_value=[]),
+        patch.object(identifier, "_search_google_books", return_value=[]),
         patch.object(identifier, "_score_candidates", return_value=[candidate]),
     ):
         suggestion = identifier.suggest(raw_entry, limit=3)

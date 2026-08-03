@@ -1,14 +1,14 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite it as below."
 type: software
-title: "OneCite: Citation Management and Academic Reference Toolkit"
+title: "OneCite: Auditable citation normalization for research workflows"
 authors:
   - family-names: "He"
     given-names: "Zhiang"
     email: "ang@hezhiang.com"
 repository-code: "https://github.com/HzaCode/OneCite"
 url: "https://github.com/HzaCode/OneCite"
-abstract: "OneCite is a command-line tool and Python library that automates citation management. It accepts multiple input formats (DOI, arXiv ID, PMID, paper titles, etc.) and produces clean BibTeX entries."
+abstract: "OneCite is a command-line tool and Python library that normalizes messy scholarly references into auditable, source-resolved BibTeX and CSL-JSON. Strong identifiers follow documented metadata-service routes; ambiguous plain-text references are returned as ranked candidates for review rather than auto-promoted by the processing workflow."
 keywords:
   - citation
   - bibliography
@@ -19,6 +19,4 @@ keywords:
   - arxiv
   - research
 license: MIT
-version: "0.1.1"
-date-released: "2026-04-17"
-
+version: "0.2.0"

@@ -7,7 +7,10 @@ General Questions
 What is OneCite?
 ~~~~~~~~~~~~~~~~
 
-OneCite is a citation and academic reference toolkit that helps you manage bibliographic data. It converts reference formats (DOI, titles, arXiv IDs, etc.) into properly formatted BibTeX entries.
+OneCite is a citation-normalization toolkit. It routes supported identifiers to
+metadata services and emits BibTeX or CSL-JSON. Ordinary title/author text is
+searched with ``suggest`` and remains a candidate for review rather than being
+silently accepted by ``process``.
 
 How much does OneCite cost?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -21,9 +24,11 @@ You need:
 
 - Python 3.10 or higher
 - pip (Python package manager)
-- An internet connection (for data source access)
+- Network access for ordinary live ``process`` and ``suggest`` lookups
 
-That's it! Just run ``pip install onecite`` and you're ready to go.
+After installation, local commands such as ``templates``, ``doctor``, and the
+default offline ``benchmark`` do not require provider access. See
+:doc:`external_services` for the live/offline boundary.
 
 Installation Questions
 ----------------------
@@ -34,7 +39,7 @@ Can I use OneCite on Windows?
 Yes! OneCite works on Windows, macOS, and Linux. Simply follow the installation instructions for your system.
 
 I'm getting a permission error when installing. What should I do?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Try one of these solutions:
 
@@ -90,13 +95,15 @@ Yes! Here's how:
 How do I handle ambiguous references?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-``onecite process`` only resolves strong identifiers and never guesses from an
-ambiguous plain-text reference. Use ``onecite suggest`` to get candidate matches
-and review them yourself::
+``onecite process`` does not fuzzy-match an ordinary ambiguous plain-text
+reference. Use ``onecite suggest`` to get candidate matches and review them
+yourself::
 
     onecite suggest "deep learning hinton 2015"
 
-Candidates are returned for human review, not emitted as verified BibTeX.
+Candidates are returned for human review, not promoted to source-resolved
+bibliography output. Explicitly labelled thesis/dissertation citations are a
+separate ``process`` route; see :doc:`external_services`.
 
 Can I process multiple files at once?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -119,7 +126,7 @@ Data Source Questions
 What data sources does OneCite use?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite integrates with:
+OneCite has input-dependent routes for:
 
 - CrossRef (DOI metadata)
 - Semantic Scholar (keyword search)
@@ -128,16 +135,21 @@ OneCite integrates with:
 - DataCite (datasets)
 - Zenodo (open research)
 - Google Books (book metadata)
-- external providerRE / BASE (theses & grey literature)
+- OpenAIRE / BASE (theses & grey literature)
 - GitHub (software repositories)
-- Google Scholar (optional ``suggest``-only best-effort fallback, off by default)
+- Google Scholar (optional scraping-based ``suggest`` fallback, off by default)
+
+Not every source is queried for every input. ``process`` routes identifiers;
+``suggest`` always consults Crossref, Semantic Scholar, and arXiv when it has a
+usable query and conditionally consults the other sources. The precise triggers
+and data sent are documented in :doc:`external_services`.
 
 Which data source is best for my field?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 **For Biomedical Research:**
 - Use PMID when available
-- OneCite additionally queries PubMed when it detects strong medical cues in the query
+- ``suggest`` additionally queries PubMed when it detects strong medical cues
 
 **For Computer Science:**
 - Use arXiv ID for preprints
@@ -146,12 +158,18 @@ Which data source is best for my field?
 
 **For General Academic Work:**
 - Use DOI (most reliable)
-- Fall back to title + author for identification
+- Use title + author with ``suggest`` for candidates; review one, then resolve its trusted identifier with ``process``
 
 Do I need API keys?
 ~~~~~~~~~~~~~~~~~~~
 
-No! OneCite works without any API keys or authentication. All data sources are accessed through public APIs.
+The currently implemented default routes do not require users to configure API
+keys. That does not mean every route is a public API: the optional Google
+Scholar fallback uses the ``scholarly`` scraper, and it can be blocked or
+challenged by a CAPTCHA. Other unauthenticated services, including GitHub and
+Semantic Scholar, can throttle requests. Crossref receives OneCite's package
+contact in its request identification. Provider access rules can change; see
+:doc:`external_services`.
 
 Output Format Questions
 -----------------------
@@ -159,19 +177,23 @@ Output Format Questions
 What output formats are supported?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite currently writes **BibTeX** only.  Earlier versions also offered
-APA and MLA, but those renderers were removed (see issues #31 and #32)
-because they produced inconsistent output.
+OneCite writes **BibTeX** and **CSL-JSON**. Use
+``--output-format csl-json`` for a JSON array compatible with tools such as
+pandoc, Quarto, and citeproc. Earlier versions also offered direct APA and MLA
+renderers, but those were removed (see issues #31 and #32) because they
+produced inconsistent output.
 
-For APA or MLA, post-process the BibTeX with a dedicated tool such as
+For APA or MLA, post-process BibTeX or CSL-JSON with a dedicated tool such as
 `pandoc <https://pandoc.org/>`_ or
 `citeproc-py <https://github.com/brechtm/citeproc-py>`_.
 
 Can I customize which fields end up in the BibTeX output?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes — templates control which fields OneCite tries to collect and which
-entry type it falls back to when classification is ambiguous.  See
+Not as a strict include/exclude filter. Templates declare expected fields and
+provide the fallback entry type when classification is ambiguous, but the
+current enricher can emit other fields returned by the selected source and
+does not run broad completion merely because a template lists a source. See
 :doc:`templates` for details.
 
 How do I re-run OneCite on an existing BibTeX file?
@@ -193,7 +215,6 @@ Yes, when using the Python API::
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0
     )
     
     print('\n\n'.join(result['results']))
@@ -213,7 +234,6 @@ Yes! Import and use it like any Python library::
         input_type="txt",
         template_name="journal_article_full",
         output_format="bibtex",
-        interactive_callback=lambda candidates: 0
     )
     print('\n\n'.join(result['results']))
 
@@ -229,24 +249,37 @@ How do I handle errors in the API?
     try:
         result = process_references(
             input_content="invalid_reference",
-            output_format="bibtex"
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
         )
     except ValidationError as e:
         print(f"Validation error: {e}")
     except ParseError as e:
         print(f"Parse error: {e}")
+    else:
+        # Ordinary unresolved entries are returned, not raised.
+        for failed in result["report"]["failed_entries"]:
+            print(failed["reason"], failed["raw_text"])
 
-Can I use callbacks for custom handling?
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Can I use callbacks to auto-select candidates?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Yes! Use the ``interactive_callback`` parameter::
+No — ``process_references`` is strictly non-interactive and fail-closed.
+The ``interactive_callback`` parameter is accepted for backward
+compatibility but never invoked. For ambiguous references, get ranked
+candidates with ``suggest_references``, review them, and resolve the chosen
+candidate's DOI through ``process_references``::
 
-    def my_selector(candidates):
-        return 0  # Always select first match
-    
+    from onecite import suggest_references, process_references
+
+    candidates = suggest_references("ambiguous reference title")
+    # ...review candidates, pick a DOI...
     result = process_references(
-        input_content="ambiguous reference",
-        interactive_callback=my_selector
+        input_content="10.1234/chosen.doi",
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="bibtex",
     )
 
 Troubleshooting Questions
@@ -258,9 +291,11 @@ OneCite keeps skipping my references. Why?
 Possible reasons:
 
 1. **Empty or malformed references** - Check input formatting
-2. **Unrecognized format** - Try using more specific identifiers (DOI instead of title)
+2. **No strong identifier** - Use a DOI/PMID/arXiv ID/ISBN/URL when available,
+   or send ordinary title text to ``suggest``
 3. **Data source unavailable** - Try again later
-4. **Too broad reference** - Add more details (author, year, etc.)
+4. **Too broad suggestion query** - Add author/year context to ``suggest``;
+   adding it to ``process`` does not enable fuzzy acceptance
 
 **Solution:** Run with verbose output to see warnings::
 
@@ -269,13 +304,16 @@ Possible reasons:
 I'm getting "Connection Error". What does it mean?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-This means OneCite couldn't connect to one or more data sources. Check:
+This means OneCite could not complete one or more external routes. Check:
 
 1. **Internet connection** - Ensure you're online
 2. **Data source status** - Some services may be temporarily down
 3. **Firewall/Proxy** - Corporate proxies may block external APIs
 
-Try again later or contact support if the issue persists.
+For ``suggest``, inspect ``--json``: the ``sources`` list reports Crossref,
+Semantic Scholar, and arXiv health for that query. Conditional sources are not
+all represented there. For ``process``, inspect failure reason codes and
+verbose logs. See :doc:`external_services` before retrying large jobs.
 
 Why are my references incomplete?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -283,13 +321,21 @@ Why are my references incomplete?
 OneCite retrieves what's available in the data sources. Some references may have limited metadata. To improve results:
 
 1. Use more specific identifiers (DOI vs. title)
-2. Add more context (author names, year)
-3. Check if the paper exists in multiple data sources
+2. If the input is ordinary text, search it with ``suggest`` and review the
+   candidate rather than expecting ``process`` to choose a title match
+3. Compare the result with the provider record; source resolution does not
+   guarantee complete or correct upstream metadata
 
 Can I use OneCite offline?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite requires internet access to query academic databases. However, once you've processed references, the output can be used offline.
+Ordinary live ``process`` and ``suggest`` lookups require access to the
+applicable external services. ``onecite benchmark`` is fixture-backed and
+offline by default; ``onecite doctor``, ``onecite templates``, and
+``onecite --version`` are also local after installation. ``benchmark --live``
+opts back into external requests. Passing the offline benchmark or doctor does
+not prove that live services are reachable. Previously written output can be
+used offline.
 
 Performance and Limitations
 ---------------------------
@@ -297,12 +343,10 @@ Performance and Limitations
 How many references can I process at once?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite can handle large batches. For optimal performance:
-
-- Up to 100 references: Use normal mode
-- 100+ references: Use ``--quiet`` mode for faster processing
-
-For very large batches (1000+), split into chunks::
+OneCite processes entries sequentially. ``--quiet`` changes logging, not
+network speed. For long jobs, split inputs into recoverable chunks and retain
+JSON reports; choose a chunk size that is appropriate for the routes and
+provider limits involved::
 
     split -l 100 large_file.txt chunk_
     for chunk in chunk_*; do
@@ -312,22 +356,23 @@ For very large batches (1000+), split into chunks::
 How long does processing take?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Typically:
-
-- Single reference: 1-3 seconds
-- 10 references: 10-30 seconds
-- 100 references: 2-5 minutes
-
-Times vary depending on data source responsiveness and network speed.
+There is no stable per-reference duration. Runtime depends on identifier type,
+fallbacks, timeouts, provider latency, throttling, and whether optional Google
+Scholar scraping is enabled. Measure with representative input in your own
+environment; do not use the offline benchmark as a latency estimate for live
+services.
 
 Is there a rate limit?
 ~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite respects rate limits of data sources. If you hit a rate limit:
-
-1. The tool will wait and retry
-2. Or skip that reference and continue
-3. You can retry later
+Each external provider defines and can change its own limits. OneCite retries
+some specific ``suggest`` routes with short backoff, while other routes fail or
+return no metadata without a common global retry policy. ``suggest --json``
+uses ``rate_limited`` for Semantic Scholar or arXiv when that condition remains
+detectable after their retry path; other provider failures may appear as
+``error`` or only in logs. Do not assume every ``429`` is retried or surfaced
+identically. Reduce request volume and follow the provider's current guidance
+before retrying.
 
 Contributing & Support
 ----------------------
@@ -343,7 +388,7 @@ See :doc:`contributing` for guidelines on:
 - Improving documentation
 
 Where can I report bugs?
-~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Report issues on GitHub: https://github.com/HzaCode/OneCite/issues
 

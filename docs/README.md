@@ -136,7 +136,7 @@ Subsubsection
     
     result = onecite.process_references(
         "10.1038/nature14539", "txt", "journal_article_full",
-        "bibtex", lambda c: 0
+        "bibtex"
     )
 
 - Bullet list
@@ -169,8 +169,7 @@ Use `.. code-block::` for syntax-highlighted code:
         "10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda c: 0
+        output_format="bibtex"
     )
     print('\n\n'.join(result['results']))
 ```
@@ -196,8 +195,11 @@ Documentation builds automatically on:
 
 The documentation is hosted at:
 
-- **Development:** https://hzacode.github.io/OneCite/ (built from main branch)
-- **Latest:** https://hzacode.github.io/OneCite/ (built from latest release)
+- **Main-branch documentation:** https://hezhiang.com/OneCite/
+
+The current workflow deploys this site from the `main` branch. It is not a
+separate, version-pinned “latest release” site; release documentation must not
+be inferred from this URL unless a release-specific deployment is added.
 
 ## Contributing to Documentation
 
