@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Frequently Asked Questions (FAQ) &mdash; OneCite 0.1.1 documentation</title>
+  <title>Frequently Asked Questions (FAQ) &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -62,7 +63,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -107,7 +108,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#python-api-questions">Python API Questions</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#can-i-use-onecite-in-my-python-project">Can I use OneCite in my Python project?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#how-do-i-handle-errors-in-the-api">How do I handle errors in the API?</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#can-i-use-callbacks-for-custom-handling">Can I use callbacks for custom handling?</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#can-i-use-callbacks-to-auto-select-candidates">Can I use callbacks to auto-select candidates?</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting-questions">Troubleshooting Questions</a><ul>
@@ -172,7 +173,10 @@
 <h2>General Questions<a class="headerlink" href="#general-questions" title="Link to this heading"></a></h2>
 <section id="what-is-onecite">
 <h3>What is OneCite?<a class="headerlink" href="#what-is-onecite" title="Link to this heading"></a></h3>
-<p>OneCite is a citation and academic reference toolkit that helps you manage bibliographic data. It converts reference formats (DOI, titles, arXiv IDs, etc.) into properly formatted BibTeX entries.</p>
+<p>OneCite is a citation-normalization toolkit. It routes supported identifiers to
+metadata services and emits BibTeX or CSL-JSON. Ordinary title/author text is
+searched with <code class="docutils literal notranslate"><span class="pre">suggest</span></code> and remains a candidate for review rather than being
+silently accepted by <code class="docutils literal notranslate"><span class="pre">process</span></code>.</p>
 </section>
 <section id="how-much-does-onecite-cost">
 <h3>How much does OneCite cost?<a class="headerlink" href="#how-much-does-onecite-cost" title="Link to this heading"></a></h3>
@@ -184,9 +188,11 @@
 <ul class="simple">
 <li><p>Python 3.10 or higher</p></li>
 <li><p>pip (Python package manager)</p></li>
-<li><p>An internet connection (for data source access)</p></li>
+<li><p>Network access for ordinary live <code class="docutils literal notranslate"><span class="pre">process</span></code> and <code class="docutils literal notranslate"><span class="pre">suggest</span></code> lookups</p></li>
 </ul>
-<p>That’s it! Just run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">onecite</span></code> and you’re ready to go.</p>
+<p>After installation, local commands such as <code class="docutils literal notranslate"><span class="pre">templates</span></code>, <code class="docutils literal notranslate"><span class="pre">doctor</span></code>, and the
+default offline <code class="docutils literal notranslate"><span class="pre">benchmark</span></code> do not require provider access. See
+<a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a> for the live/offline boundary.</p>
 </section>
 </section>
 <section id="installation-questions">
@@ -256,13 +262,15 @@
 </section>
 <section id="how-do-i-handle-ambiguous-references">
 <h3>How do I handle ambiguous references?<a class="headerlink" href="#how-do-i-handle-ambiguous-references" title="Link to this heading"></a></h3>
-<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> only resolves strong identifiers and never guesses from an
-ambiguous plain-text reference. Use <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> to get candidate matches
-and review them yourself:</p>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> does not fuzzy-match an ordinary ambiguous plain-text
+reference. Use <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> to get candidate matches and review them
+yourself:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">suggest</span> <span class="s2">&quot;deep learning hinton 2015&quot;</span>
 </pre></div>
 </div>
-<p>Candidates are returned for human review, not emitted as verified BibTeX.</p>
+<p>Candidates are returned for human review, not promoted to source-resolved
+bibliography output. Explicitly labelled thesis/dissertation citations are a
+separate <code class="docutils literal notranslate"><span class="pre">process</span></code> route; see <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a>.</p>
 </section>
 <section id="can-i-process-multiple-files-at-once">
 <h3>Can I process multiple files at once?<a class="headerlink" href="#can-i-process-multiple-files-at-once" title="Link to this heading"></a></h3>
@@ -284,7 +292,7 @@ Get-ChildItem *.txt | ForEach-Object {
 <h2>Data Source Questions<a class="headerlink" href="#data-source-questions" title="Link to this heading"></a></h2>
 <section id="what-data-sources-does-onecite-use">
 <h3>What data sources does OneCite use?<a class="headerlink" href="#what-data-sources-does-onecite-use" title="Link to this heading"></a></h3>
-<p>OneCite integrates with:</p>
+<p>OneCite has input-dependent routes for:</p>
 <ul class="simple">
 <li><p>CrossRef (DOI metadata)</p></li>
 <li><p>Semantic Scholar (keyword search)</p></li>
@@ -293,44 +301,58 @@ Get-ChildItem *.txt | ForEach-Object {
 <li><p>DataCite (datasets)</p></li>
 <li><p>Zenodo (open research)</p></li>
 <li><p>Google Books (book metadata)</p></li>
-<li><p>external providerRE / BASE (theses &amp; grey literature)</p></li>
+<li><p>OpenAIRE / BASE (theses &amp; grey literature)</p></li>
 <li><p>GitHub (software repositories)</p></li>
-<li><p>Google Scholar (optional <code class="docutils literal notranslate"><span class="pre">suggest</span></code>-only best-effort fallback, off by default)</p></li>
+<li><p>Google Scholar (optional scraping-based <code class="docutils literal notranslate"><span class="pre">suggest</span></code> fallback, off by default)</p></li>
 </ul>
+<p>Not every source is queried for every input. <code class="docutils literal notranslate"><span class="pre">process</span></code> routes identifiers;
+<code class="docutils literal notranslate"><span class="pre">suggest</span></code> always consults Crossref, Semantic Scholar, and arXiv when it has a
+usable query and conditionally consults the other sources. The precise triggers
+and data sent are documented in <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a>.</p>
 </section>
 <section id="which-data-source-is-best-for-my-field">
 <h3>Which data source is best for my field?<a class="headerlink" href="#which-data-source-is-best-for-my-field" title="Link to this heading"></a></h3>
 <p><strong>For Biomedical Research:</strong>
 - Use PMID when available
-- OneCite additionally queries PubMed when it detects strong medical cues in the query</p>
+- <code class="docutils literal notranslate"><span class="pre">suggest</span></code> additionally queries PubMed when it detects strong medical cues</p>
 <p><strong>For Computer Science:</strong>
 - Use arXiv ID for preprints
 - Use DOI when available
 - CrossRef and Semantic Scholar cover most CS venues</p>
 <p><strong>For General Academic Work:</strong>
 - Use DOI (most reliable)
-- Fall back to title + author for identification</p>
+- Use title + author with <code class="docutils literal notranslate"><span class="pre">suggest</span></code> for candidates; review one, then resolve its trusted identifier with <code class="docutils literal notranslate"><span class="pre">process</span></code></p>
 </section>
 <section id="do-i-need-api-keys">
 <h3>Do I need API keys?<a class="headerlink" href="#do-i-need-api-keys" title="Link to this heading"></a></h3>
-<p>No! OneCite works without any API keys or authentication. All data sources are accessed through public APIs.</p>
+<p>The currently implemented default routes do not require users to configure API
+keys. That does not mean every route is a public API: the optional Google
+Scholar fallback uses the <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> scraper, and it can be blocked or
+challenged by a CAPTCHA. Other unauthenticated services, including GitHub and
+Semantic Scholar, can throttle requests. Crossref receives OneCite’s package
+contact in its request identification. Provider access rules can change; see
+<a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a>.</p>
 </section>
 </section>
 <section id="output-format-questions">
 <h2>Output Format Questions<a class="headerlink" href="#output-format-questions" title="Link to this heading"></a></h2>
 <section id="what-output-formats-are-supported">
 <h3>What output formats are supported?<a class="headerlink" href="#what-output-formats-are-supported" title="Link to this heading"></a></h3>
-<p>OneCite currently writes <strong>BibTeX</strong> only.  Earlier versions also offered
-APA and MLA, but those renderers were removed (see issues #31 and #32)
-because they produced inconsistent output.</p>
-<p>For APA or MLA, post-process the BibTeX with a dedicated tool such as
+<p>OneCite writes <strong>BibTeX</strong> and <strong>CSL-JSON</strong>. Use
+<code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">csl-json</span></code> for a JSON array compatible with tools such as
+pandoc, Quarto, and citeproc. Earlier versions also offered direct APA and MLA
+renderers, but those were removed (see issues #31 and #32) because they
+produced inconsistent output.</p>
+<p>For APA or MLA, post-process BibTeX or CSL-JSON with a dedicated tool such as
 <a class="reference external" href="https://pandoc.org/">pandoc</a> or
 <a class="reference external" href="https://github.com/brechtm/citeproc-py">citeproc-py</a>.</p>
 </section>
 <section id="can-i-customize-which-fields-end-up-in-the-bibtex-output">
 <h3>Can I customize which fields end up in the BibTeX output?<a class="headerlink" href="#can-i-customize-which-fields-end-up-in-the-bibtex-output" title="Link to this heading"></a></h3>
-<p>Yes — templates control which fields OneCite tries to collect and which
-entry type it falls back to when classification is ambiguous.  See
+<p>Not as a strict include/exclude filter. Templates declare expected fields and
+provide the fallback entry type when classification is ambiguous, but the
+current enricher can emit other fields returned by the selected source and
+does not run broad completion merely because a template lists a source. See
 <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for details.</p>
 </section>
 <section id="how-do-i-re-run-onecite-on-an-existing-bibtex-file">
@@ -349,7 +371,6 @@ entry type it falls back to when classification is ambiguous.  See
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -369,7 +390,6 @@ entry type it falls back to when classification is ambiguous.  See
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
     <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
 <span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
 </pre></div>
@@ -383,24 +403,37 @@ entry type it falls back to when classification is ambiguous.  See
 <span class="k">try</span><span class="p">:</span>
     <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
         <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;invalid_reference&quot;</span><span class="p">,</span>
-        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 <span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Ordinary unresolved entries are returned, not raised.</span>
+    <span class="k">for</span> <span class="n">failed</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;report&quot;</span><span class="p">][</span><span class="s2">&quot;failed_entries&quot;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">failed</span><span class="p">[</span><span class="s2">&quot;reason&quot;</span><span class="p">],</span> <span class="n">failed</span><span class="p">[</span><span class="s2">&quot;raw_text&quot;</span><span class="p">])</span>
 </pre></div>
 </div>
 </section>
-<section id="can-i-use-callbacks-for-custom-handling">
-<h3>Can I use callbacks for custom handling?<a class="headerlink" href="#can-i-use-callbacks-for-custom-handling" title="Link to this heading"></a></h3>
-<p>Yes! Use the <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> parameter:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">my_selector</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
-    <span class="k">return</span> <span class="mi">0</span>  <span class="c1"># Always select first match</span>
+<section id="can-i-use-callbacks-to-auto-select-candidates">
+<h3>Can I use callbacks to auto-select candidates?<a class="headerlink" href="#can-i-use-callbacks-to-auto-select-candidates" title="Link to this heading"></a></h3>
+<p>No — <code class="docutils literal notranslate"><span class="pre">process_references</span></code> is strictly non-interactive and fail-closed.
+The <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> parameter is accepted for backward
+compatibility but never invoked. For ambiguous references, get ranked
+candidates with <code class="docutils literal notranslate"><span class="pre">suggest_references</span></code>, review them, and resolve the chosen
+candidate’s DOI through <code class="docutils literal notranslate"><span class="pre">process_references</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">suggest_references</span><span class="p">,</span> <span class="n">process_references</span>
 
+<span class="n">candidates</span> <span class="o">=</span> <span class="n">suggest_references</span><span class="p">(</span><span class="s2">&quot;ambiguous reference title&quot;</span><span class="p">)</span>
+<span class="c1"># ...review candidates, pick a DOI...</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;ambiguous reference&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">my_selector</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1234/chosen.doi&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
 <span class="p">)</span>
 </pre></div>
 </div>
@@ -413,9 +446,11 @@ entry type it falls back to when classification is ambiguous.  See
 <p>Possible reasons:</p>
 <ol class="arabic simple">
 <li><p><strong>Empty or malformed references</strong> - Check input formatting</p></li>
-<li><p><strong>Unrecognized format</strong> - Try using more specific identifiers (DOI instead of title)</p></li>
+<li><p><strong>No strong identifier</strong> - Use a DOI/PMID/arXiv ID/ISBN/URL when available,
+or send ordinary title text to <code class="docutils literal notranslate"><span class="pre">suggest</span></code></p></li>
 <li><p><strong>Data source unavailable</strong> - Try again later</p></li>
-<li><p><strong>Too broad reference</strong> - Add more details (author, year, etc.)</p></li>
+<li><p><strong>Too broad suggestion query</strong> - Add author/year context to <code class="docutils literal notranslate"><span class="pre">suggest</span></code>;
+adding it to <code class="docutils literal notranslate"><span class="pre">process</span></code> does not enable fuzzy acceptance</p></li>
 </ol>
 <p><strong>Solution:</strong> Run with verbose output to see warnings:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span>  <span class="c1"># Remove --quiet flag</span>
@@ -424,38 +459,47 @@ entry type it falls back to when classification is ambiguous.  See
 </section>
 <section id="i-m-getting-connection-error-what-does-it-mean">
 <h3>I’m getting “Connection Error”. What does it mean?<a class="headerlink" href="#i-m-getting-connection-error-what-does-it-mean" title="Link to this heading"></a></h3>
-<p>This means OneCite couldn’t connect to one or more data sources. Check:</p>
+<p>This means OneCite could not complete one or more external routes. Check:</p>
 <ol class="arabic simple">
 <li><p><strong>Internet connection</strong> - Ensure you’re online</p></li>
 <li><p><strong>Data source status</strong> - Some services may be temporarily down</p></li>
 <li><p><strong>Firewall/Proxy</strong> - Corporate proxies may block external APIs</p></li>
 </ol>
-<p>Try again later or contact support if the issue persists.</p>
+<p>For <code class="docutils literal notranslate"><span class="pre">suggest</span></code>, inspect <code class="docutils literal notranslate"><span class="pre">--json</span></code>: the <code class="docutils literal notranslate"><span class="pre">sources</span></code> list reports Crossref,
+Semantic Scholar, and arXiv health for that query. Conditional sources are not
+all represented there. For <code class="docutils literal notranslate"><span class="pre">process</span></code>, inspect failure reason codes and
+verbose logs. See <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a> before retrying large jobs.</p>
 </section>
 <section id="why-are-my-references-incomplete">
 <h3>Why are my references incomplete?<a class="headerlink" href="#why-are-my-references-incomplete" title="Link to this heading"></a></h3>
 <p>OneCite retrieves what’s available in the data sources. Some references may have limited metadata. To improve results:</p>
 <ol class="arabic simple">
 <li><p>Use more specific identifiers (DOI vs. title)</p></li>
-<li><p>Add more context (author names, year)</p></li>
-<li><p>Check if the paper exists in multiple data sources</p></li>
+<li><p>If the input is ordinary text, search it with <code class="docutils literal notranslate"><span class="pre">suggest</span></code> and review the
+candidate rather than expecting <code class="docutils literal notranslate"><span class="pre">process</span></code> to choose a title match</p></li>
+<li><p>Compare the result with the provider record; source resolution does not
+guarantee complete or correct upstream metadata</p></li>
 </ol>
 </section>
 <section id="can-i-use-onecite-offline">
 <h3>Can I use OneCite offline?<a class="headerlink" href="#can-i-use-onecite-offline" title="Link to this heading"></a></h3>
-<p>OneCite requires internet access to query academic databases. However, once you’ve processed references, the output can be used offline.</p>
+<p>Ordinary live <code class="docutils literal notranslate"><span class="pre">process</span></code> and <code class="docutils literal notranslate"><span class="pre">suggest</span></code> lookups require access to the
+applicable external services. <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">benchmark</span></code> is fixture-backed and
+offline by default; <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">doctor</span></code>, <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">templates</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">--version</span></code> are also local after installation. <code class="docutils literal notranslate"><span class="pre">benchmark</span> <span class="pre">--live</span></code>
+opts back into external requests. Passing the offline benchmark or doctor does
+not prove that live services are reachable. Previously written output can be
+used offline.</p>
 </section>
 </section>
 <section id="performance-and-limitations">
 <h2>Performance and Limitations<a class="headerlink" href="#performance-and-limitations" title="Link to this heading"></a></h2>
 <section id="how-many-references-can-i-process-at-once">
 <h3>How many references can I process at once?<a class="headerlink" href="#how-many-references-can-i-process-at-once" title="Link to this heading"></a></h3>
-<p>OneCite can handle large batches. For optimal performance:</p>
-<ul class="simple">
-<li><p>Up to 100 references: Use normal mode</p></li>
-<li><p>100+ references: Use <code class="docutils literal notranslate"><span class="pre">--quiet</span></code> mode for faster processing</p></li>
-</ul>
-<p>For very large batches (1000+), split into chunks:</p>
+<p>OneCite processes entries sequentially. <code class="docutils literal notranslate"><span class="pre">--quiet</span></code> changes logging, not
+network speed. For long jobs, split inputs into recoverable chunks and retain
+JSON reports; choose a chunk size that is appropriate for the routes and
+provider limits involved:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">split</span> <span class="o">-</span><span class="n">l</span> <span class="mi">100</span> <span class="n">large_file</span><span class="o">.</span><span class="n">txt</span> <span class="n">chunk_</span>
 <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunk_</span><span class="o">*</span><span class="p">;</span> <span class="n">do</span>
     <span class="n">onecite</span> <span class="n">process</span> <span class="s2">&quot;$chunk&quot;</span> <span class="o">-</span><span class="n">o</span> <span class="s2">&quot;$</span><span class="si">{chunk}</span><span class="s2">.bib&quot;</span> <span class="o">--</span><span class="n">quiet</span>
@@ -465,22 +509,22 @@ entry type it falls back to when classification is ambiguous.  See
 </section>
 <section id="how-long-does-processing-take">
 <h3>How long does processing take?<a class="headerlink" href="#how-long-does-processing-take" title="Link to this heading"></a></h3>
-<p>Typically:</p>
-<ul class="simple">
-<li><p>Single reference: 1-3 seconds</p></li>
-<li><p>10 references: 10-30 seconds</p></li>
-<li><p>100 references: 2-5 minutes</p></li>
-</ul>
-<p>Times vary depending on data source responsiveness and network speed.</p>
+<p>There is no stable per-reference duration. Runtime depends on identifier type,
+fallbacks, timeouts, provider latency, throttling, and whether optional Google
+Scholar scraping is enabled. Measure with representative input in your own
+environment; do not use the offline benchmark as a latency estimate for live
+services.</p>
 </section>
 <section id="is-there-a-rate-limit">
 <h3>Is there a rate limit?<a class="headerlink" href="#is-there-a-rate-limit" title="Link to this heading"></a></h3>
-<p>OneCite respects rate limits of data sources. If you hit a rate limit:</p>
-<ol class="arabic simple">
-<li><p>The tool will wait and retry</p></li>
-<li><p>Or skip that reference and continue</p></li>
-<li><p>You can retry later</p></li>
-</ol>
+<p>Each external provider defines and can change its own limits. OneCite retries
+some specific <code class="docutils literal notranslate"><span class="pre">suggest</span></code> routes with short backoff, while other routes fail or
+return no metadata without a common global retry policy. <code class="docutils literal notranslate"><span class="pre">suggest</span> <span class="pre">--json</span></code>
+uses <code class="docutils literal notranslate"><span class="pre">rate_limited</span></code> for Semantic Scholar or arXiv when that condition remains
+detectable after their retry path; other provider failures may appear as
+<code class="docutils literal notranslate"><span class="pre">error</span></code> or only in logs. Do not assume every <code class="docutils literal notranslate"><span class="pre">429</span></code> is retried or surfaced
+identically. Reduce request volume and follow the provider’s current guidance
+before retrying.</p>
 </section>
 </section>
 <section id="contributing-support">

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Quick Start Guide &mdash; OneCite 0.1.1 documentation</title>
+  <title>Quick Start Guide &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -61,6 +61,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -71,7 +72,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -185,8 +186,11 @@
 <section id="common-command-line-options">
 <h2>Common Command-Line Options<a class="headerlink" href="#common-command-line-options" title="Link to this heading"></a></h2>
 <p><strong>Output Format</strong>:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX is the only supported output format</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX is the default</span>
 <span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
+
+<span class="c1"># CSL-JSON is also supported</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">csl</span><span class="o">-</span><span class="n">json</span> <span class="o">-</span><span class="n">o</span> <span class="n">refs</span><span class="o">.</span><span class="n">json</span>
 </pre></div>
 </div>
 <p><strong>Batch Processing</strong>:</p>
@@ -205,8 +209,7 @@
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="c1"># Print formatted citations</span>
@@ -223,6 +226,7 @@
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Learn more about <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced Usage</span></a></p></li>
+<li><p>Review <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a> for network and privacy boundaries</p></li>
 <li><p>Check <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> to customize field requirements and fallback entry types</p></li>
 <li><p>See <a class="reference internal" href="api/core.html"><span class="doc">Core API Reference</span></a> for Python API reference</p></li>
 </ul>

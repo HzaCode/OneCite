@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Python API Reference &mdash; OneCite 0.1.1 documentation</title>
+  <title>Python API Reference &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Custom Templates" href="templates.html" />
-    <link rel="prev" title="Advanced Usage" href="advanced_usage.html" /> 
+    <link rel="prev" title="Privacy and External Services" href="external_services.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Python API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#basic-usage">Basic Usage</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#simple-citation-processing">Simple Citation Processing</a></li>
@@ -64,8 +65,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#output-formats">Output Formats</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#interactive-selection-with-callbacks">Interactive Selection with Callbacks</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#custom-callback-logic">Custom Callback Logic</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#candidate-suggestions-for-ambiguous-references">Candidate Suggestions for Ambiguous References</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#a-note-on-interactive-callback">A note on <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#advanced-data-structures">Advanced Data Structures</a><ul>
@@ -98,7 +99,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -155,8 +156,7 @@
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="c1"># Print results</span>
@@ -169,12 +169,19 @@
 <h3>The Result Dictionary<a class="headerlink" href="#the-result-dictionary" title="Link to this heading"></a></h3>
 <p>The <code class="docutils literal notranslate"><span class="pre">process_references</span></code> function returns a dictionary containing:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">results</span></code> (List[str]): List of formatted citation strings</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">results</span></code> (List[str]): List of formatted citation strings, one per
+unique resolved work</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">report</span></code> (dict): Processing report with keys:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">total</span></code> (int): Total number of entries processed</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">succeeded</span></code> (int): Number of successfully processed entries</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">failed_entries</span></code> (List[Dict]): List of failed entries with error details</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">failed_entries</span></code> (List[Dict]): Failed entries, each with the original
+input text (<code class="docutils literal notranslate"><span class="pre">raw_text</span></code>) and a <code class="docutils literal notranslate"><span class="pre">reason</span></code> code</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">warnings</span></code> (List[Dict]): Non-blocking review warnings, e.g.
+<code class="docutils literal notranslate"><span class="pre">text_metadata_mismatch</span></code> when the input text appears to describe a
+different work than the resolved DOI</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">duplicates</span></code> (List[Dict]): Entries whose DOI already resolved earlier
+in the batch</p></li>
 </ul>
 </li>
 </ul>
@@ -182,8 +189,7 @@
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Total: </span><span class="si">{</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;report&#39;</span><span class="p">][</span><span class="s1">&#39;total&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -211,8 +217,7 @@
     <span class="n">input_content</span><span class="o">=</span><span class="n">txt_content</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="c1"># Access results</span>
@@ -237,8 +242,7 @@
     <span class="n">input_content</span><span class="o">=</span><span class="n">bibtex_content</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -248,23 +252,31 @@
 </section>
 <section id="output-formats">
 <h2>Output Formats<a class="headerlink" href="#output-formats" title="Link to this heading"></a></h2>
-<p>OneCite currently supports BibTeX output only:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX format — the only supported output format</span>
+<p>OneCite supports BibTeX and CSL-JSON output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># BibTeX (default)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
+<span class="p">)</span>
+
+<span class="c1"># CSL-JSON — each result string is one CSL item (JSON object),</span>
+<span class="c1"># ready for pandoc, Quarto, citeproc, or reference-manager import</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
+    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;csl-json&quot;</span>
 <span class="p">)</span>
 </pre></div>
 </div>
 <p>Passing any other value (such as <code class="docutils literal notranslate"><span class="pre">&quot;apa&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;mla&quot;</span></code>) raises
-<code class="docutils literal notranslate"><span class="pre">FormatError</span></code>; that support was removed in favour of dedicated
-BibTeX-to-APA/MLA tools like pandoc or citeproc-py.</p>
+<code class="docutils literal notranslate"><span class="pre">FormatError</span></code>; styled rendering belongs to dedicated tools like pandoc
+or citeproc-py, which consume the CSL-JSON that OneCite emits.</p>
 </section>
-<section id="interactive-selection-with-callbacks">
-<h2>Interactive Selection with Callbacks<a class="headerlink" href="#interactive-selection-with-callbacks" title="Link to this heading"></a></h2>
+<section id="candidate-suggestions-for-ambiguous-references">
+<h2>Candidate Suggestions for Ambiguous References<a class="headerlink" href="#candidate-suggestions-for-ambiguous-references" title="Link to this heading"></a></h2>
 <p>For plain-text title searches, use the suggestion API instead of resolving
 directly to BibTeX:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">suggest_references</span>
@@ -275,36 +287,19 @@ directly to BibTeX:</p>
     <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span>
 <span class="p">)</span>
 
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
+<span class="k">for</span> <span class="n">suggestion</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;suggestions&#39;</span><span class="p">]:</span>
+    <span class="k">for</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="n">suggestion</span><span class="p">[</span><span class="s1">&#39;candidates&#39;</span><span class="p">]:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">candidate</span><span class="p">[</span><span class="s1">&#39;title&#39;</span><span class="p">],</span> <span class="n">candidate</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;doi&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<section id="custom-callback-logic">
-<h3>Custom Callback Logic<a class="headerlink" href="#custom-callback-logic" title="Link to this heading"></a></h3>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span><span class="w"> </span><span class="nf">pick_most_complete</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Pick the candidate with the most filled-in fields.&quot;&quot;&quot;</span>
-    <span class="n">best_idx</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">best_score</span> <span class="o">=</span> <span class="mi">0</span>
-
-    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">candidate</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">candidates</span><span class="p">):</span>
-        <span class="c1"># Score based on number of fields</span>
-        <span class="n">score</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">candidate</span><span class="o">.</span><span class="n">values</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">score</span> <span class="o">&gt;</span> <span class="n">best_score</span><span class="p">:</span>
-            <span class="n">best_score</span> <span class="o">=</span> <span class="n">score</span>
-            <span class="n">best_idx</span> <span class="o">=</span> <span class="n">idx</span>
-
-    <span class="k">return</span> <span class="n">best_idx</span>
-
-<span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-    <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;Deep learning nature 2015&quot;</span><span class="p">,</span>
-    <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
-    <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="n">pick_most_complete</span>
-<span class="p">)</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
-</pre></div>
-</div>
+<section id="a-note-on-interactive-callback">
+<h3>A note on <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code><a class="headerlink" href="#a-note-on-interactive-callback" title="Link to this heading"></a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">process_references</span></code> accepts an <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> keyword for
+backward compatibility, but it is <strong>never invoked</strong>: <code class="docutils literal notranslate"><span class="pre">process</span></code> is strictly
+non-interactive and fail-closed. Entries without a verifiable strong
+identifier stay unresolved and are reported. To review candidates for an
+ambiguous reference and then resolve one, take the DOI from the chosen
+suggestion and pass it back through <code class="docutils literal notranslate"><span class="pre">process_references</span></code>.</p>
 </section>
 </section>
 <section id="advanced-data-structures">
@@ -340,7 +335,9 @@ directly to BibTeX:</p>
 </section>
 <section id="completedentry">
 <h3>CompletedEntry<a class="headerlink" href="#completedentry" title="Link to this heading"></a></h3>
-<p>A TypedDict representing a fully processed entry with all metadata (Stage 3):</p>
+<p>A TypedDict representing a completed or failed Stage-3 entry. A completed entry
+contains the metadata available to the formatter; it is not guaranteed to have
+every possible field:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">CompletedEntry</span>
 
 <span class="c1"># CompletedEntry includes fields like:</span>
@@ -382,8 +379,7 @@ directly to BibTeX:</p>
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -402,8 +398,7 @@ directly to BibTeX:</p>
         <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;invalid_reference&quot;</span><span class="p">,</span>
         <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
         <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
     <span class="p">)</span>
 <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -429,8 +424,7 @@ directly to BibTeX:</p>
     <span class="n">input_content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="c1"># Write to file</span>
@@ -454,8 +448,7 @@ directly to BibTeX:</p>
     <span class="n">input_content</span><span class="o">=</span><span class="n">references</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="c1"># Check results</span>
@@ -495,7 +488,7 @@ directly to BibTeX:</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="advanced_usage.html" class="btn btn-neutral float-left" title="Advanced Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="external_services.html" class="btn btn-neutral float-left" title="Privacy and External Services" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="templates.html" class="btn btn-neutral float-right" title="Custom Templates" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

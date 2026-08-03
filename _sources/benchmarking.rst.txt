@@ -103,3 +103,33 @@ accuracy. It currently covers:
 - GitHub repository URLs as software citations.
 - Zenodo and DataCite DOI paths as dataset citations.
 - Mixed valid/invalid batches where unresolved entries must be reported.
+
+Anti-Hallucination Evaluation
+-----------------------------
+
+``onecite benchmark --anti-hallucination`` runs a separate, labelled,
+fully-offline evaluation of OneCite's covered safety contract for AI-assisted
+workflows: ``process`` resolves fixture-backed strong identifiers and does not
+emit citations for the bundled ambiguous or non-existent inputs. The dataset
+(``src/onecite/benchmarks/anti_hallucination_cases.json``) labels each input into
+one of four classes:
+
+- ``A_strong_identifier`` — a real DOI / PMID / arXiv id / repository URL,
+  expected to **resolve** into a source-resolved entry;
+- ``B_ambiguous_text`` — a plain-text title or snippet, expected to stay
+  **unresolved** (these belong to ``onecite suggest``);
+- ``C_fabricated_identifier`` — a syntactically valid but non-existent DOI of
+  the kind a language model may hallucinate, expected to be **rejected**;
+- ``D_mismatched_pairing`` — a real DOI paired with a *different* work's
+  title (the most common hallucinated-citation shape), expected to **resolve**
+  from the supplied DOI **with** a ``text_metadata_mismatch`` warning
+  attached, reported as the *mismatch detection rate*.
+
+The report exposes three metrics: the *resolution rate* over class A, the
+*non-fabrication rate* over classes B and C — the fraction of
+ambiguous or fabricated inputs that OneCite correctly left unresolved instead
+of emitting a wrong citation — and the *mismatch detection rate* over class D.
+A pipeline crash is recorded as ``error`` and never counts as correct — a clean
+rejection and a broken pipeline are different outcomes. The suite is a small
+regression fixture, not a population estimate. It is also available from Python
+via ``onecite.run_anti_hallucination_eval()``.

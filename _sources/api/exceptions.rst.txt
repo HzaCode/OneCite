@@ -1,12 +1,15 @@
-Exceptions Reference
-====================
+Exceptions and Per-Entry Failures
+=================================
 
 Overview
 --------
 
-OneCite provides a hierarchy of custom exceptions for different error scenarios. All exceptions inherit from ``OneCiteError``.
+OneCite defines custom exceptions for invalid calls and malformed input. Normal
+identifier-resolution failure is different: the high-level processing pipeline
+usually records it in ``report["failed_entries"]`` and continues instead of
+raising an exception.
 
-Exception Hierarchy
+Exception hierarchy
 ~~~~~~~~~~~~~~~~~~~
 
 ::
@@ -15,242 +18,167 @@ Exception Hierarchy
     └── OneCiteError
         ├── ValidationError
         ├── ParseError
-        └── ResolverError
+        ├── ResolverError
+        ├── FormatError
+        ├── DataImportError
+        └── ExportError
 
-OneCiteError
-------------
+``OneCiteError``
+----------------
 
-Base exception for all OneCite errors.
+Base class for OneCite's custom exceptions. Catch it only after the more
+specific exception types relevant to the call.
 
-**Inheritance:** ``Exception``
+``ValidationError``
+-------------------
 
-**Usage:**
-
-.. code-block:: python
-
-    from onecite import OneCiteError
-    
-    try:
-        # OneCite operation
-        pass
-    except OneCiteError as e:
-        print(f"OneCite error occurred: {e}")
-
-ValidationError
----------------
-
-Raised when entry validation fails.
-
-**Inheritance:** ``OneCiteError``
-
-**Common Causes:**
-
-- Empty or null input
-- Missing required fields
-- Invalid data format
-- Malformed identifiers
-
-**Example:**
+The public ``process_references`` and ``suggest_references`` functions raise
+``ValidationError`` when ``input_content`` is empty or whitespace-only.
 
 .. code-block:: python
 
     from onecite import process_references, ValidationError
-    
+
     try:
-        result = process_references(
-            input_content="",  # Empty input
-            input_type="txt"
+        process_references(
+            input_content="",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="bibtex",
         )
-    except ValidationError as e:
-        print(f"Validation error: {e}")
+    except ValidationError as exc:
+        print(f"Invalid call: {exc}")
 
-**Handling:**
+A syntactically plausible but nonexistent DOI is not an exception at this
+level. It is a per-entry failure such as ``doi_not_found``.
 
-.. code-block:: python
+``ParseError``
+--------------
 
-    try:
-        result = process_references(reference)
-    except ValidationError:
-        print("Invalid reference format")
-        # Provide user feedback or skip this entry
-        continue
-
-ParseError
-----------
-
-Raised when parsing input fails.
-
-**Inheritance:** ``OneCiteError``
-
-**Common Causes:**
-
-- Invalid BibTeX syntax
-- Unrecognized file format
-- Corrupted data
-- Incompatible encoding
-
-**Example:**
+``ParseError`` is raised when the parser cannot interpret the requested input
+type. Current examples include an unsupported ``input_type`` and malformed,
+empty, or duplicate-field BibTeX input.
 
 .. code-block:: python
 
-    from onecite import process_references, ParseError
-    
+    from onecite import ParseError, process_references
+
     try:
-        result = process_references(
+        process_references(
             input_content="@article{broken syntax",
-            input_type="bib"
+            input_type="bib",
+            template_name="journal_article_full",
+            output_format="bibtex",
         )
-    except ParseError as e:
-        print(f"Parse error: {e}")
+    except ParseError as exc:
+        print(f"Could not parse BibTeX: {exc}")
 
-**Handling:**
+``FormatError``
+---------------
 
-.. code-block:: python
-
-    try:
-        result = process_references(content, input_type="bib")
-    except ParseError:
-        print("Failed to parse BibTeX file")
-        print("Ensure the file is valid BibTeX format")
-
-ResolverError
--------------
-
-Raised when data source resolution fails.
-
-**Inheritance:** ``OneCiteError``
-
-**Common Causes:**
-
-- Network connectivity issues
-- Data source unavailable
-- API rate limiting
-- Invalid identifier
-- No matches found
-
-**Example:**
+The formatter raises ``FormatError`` for an unsupported output format or a
+serialization failure. The command-line parser rejects unsupported choices
+before the pipeline; the Python API exposes the exception directly.
 
 .. code-block:: python
 
-    from onecite import process_references, ResolverError
-    
+    from onecite import FormatError, process_references
+
     try:
-        result = process_references(
-            input_content="10.invalid/doi",
-            input_type="txt"
+        process_references(
+            input_content="10.1038/nature14539",
+            input_type="txt",
+            template_name="journal_article_full",
+            output_format="apa",  # supported values: bibtex, csl-json
         )
-    except ResolverError as e:
-        print(f"Resolver error: {e}")
+    except FormatError as exc:
+        print(f"Unsupported output: {exc}")
 
-**Handling:**
+``ResolverError``
+-----------------
+
+``ResolverError`` remains part of the public exception hierarchy, but the
+current ``process_references`` path does not raise it for ordinary lookup
+misses, unavailable sources, ambiguous references, or rate limiting. Those
+conditions are caught within the pipeline and returned as per-entry failures.
+Do not write code that relies on catching ``ResolverError`` to detect an
+unresolved citation.
+
+``DataImportError`` and ``ExportError``
+---------------------------------------
+
+These exception types remain available for API compatibility. The current
+``process_references`` / ``suggest_references`` paths do not raise them.
+
+Inspecting resolution failures
+------------------------------
+
+Inspect the returned report even when the function call itself succeeded:
 
 .. code-block:: python
 
-    try:
-        result = process_references(reference)
-    except ResolverError:
-        print("Could not find the reference in data sources")
-        print("Check your internet connection or try again later")
+    from onecite import OneCiteError, process_references
 
-Error Handling
------------------------------
-
-Handling All Exceptions
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-    from onecite import (
-        process_references,
-        OneCiteError,
-        ValidationError,
-        ParseError,
-        ResolverError
-    )
-    
-    def process_safely(content, input_type="txt"):
+    def process_safely(content: str):
         try:
             result = process_references(
                 input_content=content,
-                input_type=input_type
+                input_type="txt",
+                template_name="journal_article_full",
+                output_format="bibtex",
             )
-            return result
-        except ValidationError as e:
-            print(f"❌ Validation failed: {e}")
-            return None
-        except ParseError as e:
-            print(f"❌ Parse failed: {e}")
-            return None
-        except ResolverError as e:
-            print(f"❌ Resolver failed: {e}")
-            return None
-        except OneCiteError as e:
-            print(f"❌ Unexpected error: {e}")
-            return None
+        except OneCiteError as exc:
+            return {"call_error": str(exc), "result": None}
 
-Batch Processing with Error Recovery
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        return {
+            "call_error": None,
+            "result": result,
+            "failed_entries": result["report"]["failed_entries"],
+            "warnings": result["report"]["warnings"],
+        }
 
-.. code-block:: python
+Important per-entry reason codes include:
 
-    from onecite import process_references, OneCiteError
-    
-    references = [
-        "10.1038/nature14539",
-        "invalid/doi",
-        "Vaswani et al., 2017"
-    ]
-    
-    results = []
-    errors = []
-    
-    for ref in references:
-        try:
-            result = process_references(ref)
-            results.append(result)
-        except OneCiteError as e:
-            errors.append({
-                'reference': ref,
-                'error': str(e)
-            })
-    
-    print(f"Successfully processed: {len(results)}")
-    print(f"Failed: {len(errors)}")
-    
-    if errors:
-        print("\nErrors:")
-        for err in errors:
-            print(f"  - {err['reference']}: {err['error']}")
+- ``doi_not_found`` — Crossref returned ``404`` and the DataCite fallback did
+  not return a record. The current fallback does not distinguish every DataCite
+  miss from every caught DataCite request error, so this reason alone is not
+  definitive proof that the DOI does not exist;
+- ``source_error`` — Crossref verification failed outside the ``404`` fallback
+  path or returned an inconsistent DOI identity;
+- ``no_strong_identifier`` — ordinary ambiguous text belongs in ``suggest``;
+- ``pmid_unresolved`` or ``isbn_unresolved`` — that identifier route returned
+  no usable record; these routes also collapse some provider errors into the
+  same reason; and
+- ``metadata_unavailable`` / ``enrichment_error`` — identification succeeded
+  but enrichment did not produce a completed record.
 
-Best Practices
+The reason taxonomy is operational evidence, not a complete provider trace.
+For network/privacy behavior and ``suggest`` source-health coverage, see
+:doc:`../external_services`.
+
+Batch handling
 --------------
 
-1. **Be Specific** - Catch specific exceptions rather than generic Exception
-2. **Log Errors** - Record error details for debugging
-3. **Provide Feedback** - Give users clear feedback on what went wrong
-4. **Retry on Resolver Errors** - Network issues may be temporary
-5. **Validate Input** - Pre-validate input to catch ValidationErrors early
+One call can contain multiple blank-line-separated entries. The pipeline keeps
+completed results and reports unresolved entries in the same response. At the
+CLI, combine ``--json`` with ``--fail-on-unresolved`` when automation needs
+both the report and exit code ``2`` for a partial failure.
 
-.. code-block:: python
+Best practices
+--------------
 
-    import logging
-    from onecite import process_references, OneCiteError
-    
-    logging.basicConfig(level=logging.INFO)
-    logger = logging.getLogger(__name__)
-    
-    def process_with_logging(reference):
-        try:
-            result = process_references(reference)
-            logger.info(f"Successfully processed: {reference}")
-            return result
-        except OneCiteError as e:
-            logger.error(f"Error processing {reference}: {e}")
-            raise
+1. Catch ``ValidationError``, ``ParseError``, and ``FormatError`` for invalid
+   calls or malformed input.
+2. Always inspect ``failed_entries`` and ``warnings`` after a successful call.
+3. Treat ``source_error`` as potentially retryable, but do not assume every
+   other reason is a network problem.
+4. Use ``suggest`` for ordinary title/author queries; do not retry them through
+   ``process`` expecting fuzzy acceptance.
+5. Follow provider guidance before retrying throttled bulk jobs.
 
-Next Steps
+Next steps
 ----------
 
-- See :doc:`../api/core` for core API reference
-- Check :doc:`../python_api` for usage examples
-- Review :doc:`../faq` for error handling patterns
+- See :doc:`core` for the function signatures.
+- Check :doc:`../python_api` for usage examples.
+- Review :doc:`../external_services` for external-service boundaries.

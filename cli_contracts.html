@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CLI Contracts &mdash; OneCite 0.1.1 documentation</title>
+  <title>CLI Contracts &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -71,7 +72,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -128,15 +129,26 @@ should prefer the JSON or NDJSON modes below.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">tool</span></code> and <code class="docutils literal notranslate"><span class="pre">command</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;onecite&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;process&quot;</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">status</span></code>: <code class="docutils literal notranslate"><span class="pre">&quot;passed&quot;</span></code> when all entries resolved, otherwise
 <code class="docutils literal notranslate"><span class="pre">&quot;failed&quot;</span></code>.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: total, succeeded, failed, and success rate.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: total, succeeded, failed, duplicates, and success rate
+(duplicates count as resolved for the success rate).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: the effective CLI options that affect processing.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">failed_entries</span></code>: unresolved entries with their error payloads.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">results</span></code>: formatted BibTeX strings.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">failed_entries</span></code>: unresolved entries with their error payloads; each
+carries the original input excerpt (<code class="docutils literal notranslate"><span class="pre">raw_text</span></code>) and a <code class="docutils literal notranslate"><span class="pre">reason</span></code> code
+(e.g. <code class="docutils literal notranslate"><span class="pre">doi_not_found</span></code>, <code class="docutils literal notranslate"><span class="pre">no_strong_identifier</span></code>, <code class="docutils literal notranslate"><span class="pre">source_error</span></code>).
+Reasons distinguish several important paths, but are not a complete provider
+trace: some DataCite, PMID, and ISBN provider errors currently collapse into
+the same unresolved reason as a lookup miss. See <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">warnings</span></code>: non-blocking review warnings attached to resolved entries,
+e.g. <code class="docutils literal notranslate"><span class="pre">text_metadata_mismatch</span></code> when the input text appears to describe
+a different work than the resolved DOI.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">duplicates</span></code>: entries whose DOI already resolved earlier in the batch;
+each points at the emitted entry (<code class="docutils literal notranslate"><span class="pre">duplicate_of</span></code>, <code class="docutils literal notranslate"><span class="pre">bib_key</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">results</span></code>: formatted citation strings, one per unique resolved work (BibTeX entries, or CSL-JSON item objects when <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">csl-json</span></code> is used; the plain-text CLI output then assembles them into one valid JSON array).</p></li>
 </ul>
 <p>The current top-level contract is exactly <code class="docutils literal notranslate"><span class="pre">schema_version</span></code>, <code class="docutils literal notranslate"><span class="pre">tool</span></code>,
 <code class="docutils literal notranslate"><span class="pre">command</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">options</span></code>, <code class="docutils literal notranslate"><span class="pre">failed_entries</span></code>,
-and <code class="docutils literal notranslate"><span class="pre">results</span></code>. Additive fields should be treated as a contract change
-and covered by tests.</p>
+<code class="docutils literal notranslate"><span class="pre">warnings</span></code>, <code class="docutils literal notranslate"><span class="pre">duplicates</span></code>, and <code class="docutils literal notranslate"><span class="pre">results</span></code>. Additive fields should be
+treated as a contract change and covered by tests.</p>
 <p>Use <code class="docutils literal notranslate"><span class="pre">--fail-on-unresolved</span></code> when unresolved entries should make the
 process exit with code <code class="docutils literal notranslate"><span class="pre">2</span></code>.</p>
 <p>If a hard processing error happens before per-entry results can be built,
@@ -149,7 +161,9 @@ process exit with code <code class="docutils literal notranslate"><span class="p
 <p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span> <span class="pre">INPUT</span> <span class="pre">--ndjson</span></code> emits newline-delimited JSON events:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">summary</span></code>: one event containing status, summary, and options.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">result</span></code>: one event per formatted BibTeX result.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">result</span></code>: one event per formatted BibTeX or CSL-JSON result.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">warning</span></code>: one event per non-blocking review warning.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">duplicate</span></code>: one event per repeated-DOI entry.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">failure</span></code>: one event per unresolved entry.</p></li>
 </ul>
 <p>This mode is intended for streaming automation workflows that want partial
@@ -176,7 +190,13 @@ candidates.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">options</span></code>: input type, per-entry limit, and whether Google Scholar was
 enabled.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">suggestions</span></code>: one item per input entry with raw text, query string,
-status, and a candidate list.</p></li>
+status, a candidate list, and a <code class="docutils literal notranslate"><span class="pre">sources</span></code> list disclosing the health of
+the always-consulted scholarly indexes (<code class="docutils literal notranslate"><span class="pre">crossref</span></code>,
+<code class="docutils literal notranslate"><span class="pre">semantic_scholar</span></code>, <code class="docutils literal notranslate"><span class="pre">arxiv</span></code>) with per-source candidate counts. When a source was
+rate-limited or errored, the entry status becomes
+<code class="docutils literal notranslate"><span class="pre">candidates_found_incomplete</span></code> / <code class="docutils literal notranslate"><span class="pre">no_candidates_incomplete</span></code> — the
+candidate list may be missing the correct match and must not be treated
+as exhaustive.</p></li>
 </ul>
 <p>The current top-level contract is exactly <code class="docutils literal notranslate"><span class="pre">schema_version</span></code>, <code class="docutils literal notranslate"><span class="pre">tool</span></code>,
 <code class="docutils literal notranslate"><span class="pre">command</span></code>, <code class="docutils literal notranslate"><span class="pre">status</span></code>, <code class="docutils literal notranslate"><span class="pre">summary</span></code>, <code class="docutils literal notranslate"><span class="pre">options</span></code>, and <code class="docutils literal notranslate"><span class="pre">suggestions</span></code>.</p>

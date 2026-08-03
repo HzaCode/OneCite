@@ -18,8 +18,7 @@ Simple Citation Processing
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: -1
+        output_format="bibtex"
     )
     
     # Print results
@@ -31,12 +30,19 @@ The Result Dictionary
 
 The ``process_references`` function returns a dictionary containing:
 
-- ``results`` (List[str]): List of formatted citation strings
+- ``results`` (List[str]): List of formatted citation strings, one per
+  unique resolved work
 - ``report`` (dict): Processing report with keys:
   
   - ``total`` (int): Total number of entries processed
   - ``succeeded`` (int): Number of successfully processed entries
-  - ``failed_entries`` (List[Dict]): List of failed entries with error details
+  - ``failed_entries`` (List[Dict]): Failed entries, each with the original
+    input text (``raw_text``) and a ``reason`` code
+  - ``warnings`` (List[Dict]): Non-blocking review warnings, e.g.
+    ``text_metadata_mismatch`` when the input text appears to describe a
+    different work than the resolved DOI
+  - ``duplicates`` (List[Dict]): Entries whose DOI already resolved earlier
+    in the batch
 
 ::
 
@@ -44,8 +50,7 @@ The ``process_references`` function returns a dictionary containing:
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     print(f"Total: {result['report']['total']}")
@@ -74,8 +79,7 @@ Plain Text Input
         input_content=txt_content,
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     # Access results
@@ -101,8 +105,7 @@ BibTeX Input
         input_content=bibtex_content,
         input_type="bib",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     print('\n\n'.join(result['results']))
@@ -110,23 +113,31 @@ BibTeX Input
 Output Formats
 --------------
 
-OneCite currently supports BibTeX output only::
+OneCite supports BibTeX and CSL-JSON output::
 
-    # BibTeX format — the only supported output format
+    # BibTeX (default)
     result = process_references(
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
+    )
+
+    # CSL-JSON — each result string is one CSL item (JSON object),
+    # ready for pandoc, Quarto, citeproc, or reference-manager import
+    result = process_references(
+        input_content="10.1038/nature14539",
+        input_type="txt",
+        template_name="journal_article_full",
+        output_format="csl-json"
     )
 
 Passing any other value (such as ``"apa"`` or ``"mla"``) raises
-``FormatError``; that support was removed in favour of dedicated
-BibTeX-to-APA/MLA tools like pandoc or citeproc-py.
+``FormatError``; styled rendering belongs to dedicated tools like pandoc
+or citeproc-py, which consume the CSL-JSON that OneCite emits.
 
-Interactive Selection with Callbacks
--------------------------------------
+Candidate Suggestions for Ambiguous References
+----------------------------------------------
 
 For plain-text title searches, use the suggestion API instead of resolving
 directly to BibTeX:
@@ -141,36 +152,19 @@ directly to BibTeX:
         limit=5,
     )
     
-    print('\n\n'.join(result['results']))
+    for suggestion in result['suggestions']:
+        for candidate in suggestion['candidates']:
+            print(candidate['title'], candidate.get('doi', ''))
 
-Custom Callback Logic
-~~~~~~~~~~~~~~~~~~~~~
+A note on ``interactive_callback``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-::
-
-    def pick_most_complete(candidates):
-        """Pick the candidate with the most filled-in fields."""
-        best_idx = 0
-        best_score = 0
-        
-        for idx, candidate in enumerate(candidates):
-            # Score based on number of fields
-            score = sum(1 for v in candidate.values() if v)
-            if score > best_score:
-                best_score = score
-                best_idx = idx
-        
-        return best_idx
-    
-    result = process_references(
-        input_content="Deep learning nature 2015",
-        input_type="txt",
-        template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=pick_most_complete
-    )
-    
-    print('\n\n'.join(result['results']))
+``process_references`` accepts an ``interactive_callback`` keyword for
+backward compatibility, but it is **never invoked**: ``process`` is strictly
+non-interactive and fail-closed. Entries without a verifiable strong
+identifier stay unresolved and are reported. To review candidates for an
+ambiguous reference and then resolve one, take the DOI from the chosen
+suggestion and pass it back through ``process_references``.
 
 Advanced Data Structures
 ------------------------
@@ -212,7 +206,9 @@ A TypedDict representing an entry after identification from data sources (Stage 
 CompletedEntry
 ~~~~~~~~~~~~~~~
 
-A TypedDict representing a fully processed entry with all metadata (Stage 3):
+A TypedDict representing a completed or failed Stage-3 entry. A completed entry
+contains the metadata available to the formatter; it is not guaranteed to have
+every possible field:
 
 ::
 
@@ -259,8 +255,7 @@ For advanced use cases requiring more control over the processing pipeline:
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     print('\n\n'.join(result['results']))
@@ -282,8 +277,7 @@ Handling Exceptions
             input_content="invalid_reference",
             input_type="txt",
             template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda candidates: 0
+            output_format="bibtex"
         )
     except ValidationError as e:
         print(f"Validation error: {e}")
@@ -310,8 +304,7 @@ Reading from File
         input_content=content,
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     # Write to file
@@ -335,8 +328,7 @@ Complete Example
         input_content=references,
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: -1
+        output_format="bibtex"
     )
     
     # Check results

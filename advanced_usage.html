@@ -6,20 +6,20 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Advanced Usage &mdash; OneCite 0.1.1 documentation</title>
+  <title>Advanced Usage &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Python API Reference" href="python_api.html" />
+    <link rel="next" title="Privacy and External Services" href="external_services.html" />
     <link rel="prev" title="Basic Usage" href="basic_usage.html" /> 
 </head>
 
@@ -71,6 +71,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -81,7 +82,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -128,16 +129,18 @@
 <h1>Advanced Usage<a class="headerlink" href="#advanced-usage" title="Link to this heading"></a></h1>
 <section id="reviewing-candidates-for-ambiguous-references">
 <h2>Reviewing Candidates for Ambiguous References<a class="headerlink" href="#reviewing-candidates-for-ambiguous-references" title="Link to this heading"></a></h2>
-<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> only resolves strong identifiers (DOI, PMID, arXiv ID,
-ISBN, URLs) and never guesses from an ambiguous plain-text reference. To
-inspect candidate matches for a messy or incomplete reference, use
-<code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>:</p>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> generally resolves supported identifiers (DOI, PMID,
+arXiv ID, ISBN, and URLs) and never fuzzy-matches an ordinary ambiguous
+plain-text reference. Explicitly labelled thesis/dissertation citations are a
+documented exception: they use the OpenAIRE/BASE route and can fall back to
+fields parsed from the input. To inspect candidate matches for any other messy
+or incomplete reference, use <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">suggest</span> <span class="s2">&quot;deep learning hinton 2015&quot;</span>
 </pre></div>
 </div>
 <p>Candidates are returned for human review (with match scores and sources) and
-are not emitted as verified BibTeX. Add <code class="docutils literal notranslate"><span class="pre">--json</span></code> for a machine-readable
-envelope.</p>
+are not promoted to source-resolved bibliography output. Add <code class="docutils literal notranslate"><span class="pre">--json</span></code> for a
+machine-readable envelope.</p>
 </section>
 <section id="batch-processing-multiple-files">
 <h2>Batch Processing Multiple Files<a class="headerlink" href="#batch-processing-multiple-files" title="Link to this heading"></a></h2>
@@ -150,24 +153,37 @@ envelope.</p>
 </section>
 <section id="working-with-different-data-sources">
 <h2>Working with Different Data Sources<a class="headerlink" href="#working-with-different-data-sources" title="Link to this heading"></a></h2>
-<p>OneCite queries multiple data sources (CrossRef, PubMed, arXiv, Semantic Scholar, Google Books, and others) and selects the best match. All sources are tried for every reference — you do not need to configure routing manually:</p>
+<p>Routing depends on the input; OneCite does <strong>not</strong> query every source for every
+reference. For example, a DOI goes to Crossref and conditional fallbacks, a
+PMID goes to NCBI, an ISBN-bearing entry goes to Google Books, and an arXiv ID
+goes to arXiv. <code class="docutils literal notranslate"><span class="pre">suggest</span></code> is broader: Crossref, Semantic Scholar, and arXiv
+are consulted for each usable query, with PubMed, Google Books, OpenAIRE/BASE,
+and Google Scholar used only under documented conditions:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
+<p>These are outbound requests. See <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a> before using
+confidential or embargoed input; that page lists what each route sends and
+which source-health signals are (and are not) available.</p>
 </section>
 <section id="custom-templates">
 <h2>Custom Templates<a class="headerlink" href="#custom-templates" title="Link to this heading"></a></h2>
-<p>OneCite uses YAML-based templates for output formatting. See <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for detailed information.</p>
+<p>OneCite uses YAML-based templates to declare fields and supply fallback entry
+types. Templates do not select the serialized output format. See
+<a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for details.</p>
 </section>
 <section id="working-with-large-reference-lists">
 <h2>Working with Large Reference Lists<a class="headerlink" href="#working-with-large-reference-lists" title="Link to this heading"></a></h2>
-<p>For large files (100+ entries), use quiet mode to improve performance:</p>
+<p>OneCite processes entries sequentially. <code class="docutils literal notranslate"><span class="pre">--quiet</span></code> suppresses logging but
+does not make network calls faster. Use it when concise output is useful:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">large_file</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">quiet</span> <span class="o">-</span><span class="n">o</span> <span class="n">output</span><span class="o">.</span><span class="n">bib</span>
 </pre></div>
 </div>
 <section id="memory-efficient-processing">
 <h3>Memory-Efficient Processing<a class="headerlink" href="#memory-efficient-processing" title="Link to this heading"></a></h3>
-<p>OneCite processes references sequentially, so it should handle files with thousands of entries. If you encounter memory issues, split your input file:</p>
+<p>For long jobs, split input into recoverable chunks and retain the JSON report.
+Choose chunk size based on the selected routes and provider behavior rather
+than a fixed reference-count rule:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Split into chunks</span>
 <span class="n">split</span> <span class="o">-</span><span class="n">l</span> <span class="mi">100</span> <span class="n">large_file</span><span class="o">.</span><span class="n">txt</span> <span class="n">chunk_</span>
 
@@ -183,7 +199,12 @@ envelope.</p>
 <h2>Error Handling and Recovery<a class="headerlink" href="#error-handling-and-recovery" title="Link to this heading"></a></h2>
 <section id="handling-failed-entries">
 <h3>Handling Failed Entries<a class="headerlink" href="#handling-failed-entries" title="Link to this heading"></a></h3>
-<p>If OneCite cannot process a reference, it will skip it and continue. Check the output for warnings.</p>
+<p>If OneCite cannot resolve an entry, it reports that entry and continues. Use
+JSON plus the strict exit-code option to distinguish unresolved identifiers,
+ambiguous text, and source errors:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">json</span> <span class="o">--</span><span class="n">fail</span><span class="o">-</span><span class="n">on</span><span class="o">-</span><span class="n">unresolved</span>
+</pre></div>
+</div>
 <p><strong>To debug specific entries</strong>, process them individually:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">echo</span> <span class="s2">&quot;your_reference_here&quot;</span> <span class="o">&gt;</span> <span class="n">test</span><span class="o">.</span><span class="n">txt</span>
 <span class="n">onecite</span> <span class="n">process</span> <span class="n">test</span><span class="o">.</span><span class="n">txt</span>
@@ -231,7 +252,8 @@ envelope.</p>
 <section id="next-steps">
 <h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>Explore <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for custom output formats</p></li>
+<li><p>Explore <a class="reference internal" href="templates.html"><span class="doc">Custom Templates</span></a> for field declarations and fallback entry types</p></li>
+<li><p>Review <a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a> for network, privacy, and reproducibility boundaries</p></li>
 <li><p>Check <a class="reference internal" href="api/core.html"><span class="doc">Core API Reference</span></a> for complete API reference</p></li>
 <li><p>See <a class="reference internal" href="faq.html"><span class="doc">Frequently Asked Questions (FAQ)</span></a> for common questions</p></li>
 </ul>
@@ -243,7 +265,7 @@ envelope.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="basic_usage.html" class="btn btn-neutral float-left" title="Basic Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="python_api.html" class="btn btn-neutral float-right" title="Python API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="external_services.html" class="btn btn-neutral float-right" title="Privacy and External Services" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Changelog &mdash; OneCite 0.1.1 documentation</title>
+  <title>Changelog &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -51,6 +51,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -61,7 +62,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -154,6 +155,12 @@
 <h1>Changelog<a class="headerlink" href="#changelog" title="Link to this heading"></a></h1>
 <p>All notable changes to this project will be documented in this file.</p>
 <p>The format is based on <a class="reference external" href="https://keepachangelog.com/">Keep a Changelog</a>, and this project adheres to <a class="reference external" href="https://semver.org/">Semantic Versioning</a>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The complete, canonical changelog is <a class="reference external" href="https://github.com/HzaCode/OneCite/blob/main/CHANGELOG.md">CHANGELOG.md</a> in the
+repository root. The unreleased section below is a selected documentation
+summary and intentionally does not duplicate every development-only entry.</p>
+</div>
 <section id="unreleased">
 <h2>Unreleased<a class="headerlink" href="#unreleased" title="Link to this heading"></a></h2>
 <section id="added">
@@ -180,6 +187,22 @@ operating instructions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">templates</span></code> CLI command for listing bundled fallback BibTeX
 templates, including machine-readable <code class="docutils literal notranslate"><span class="pre">--json</span></code> output for tools
 that need to inspect available presets.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">benchmark</span> <span class="pre">--anti-hallucination</span></code>: a labelled, fully-offline
+evaluation of OneCite’s non-fabrication property (resolution rate on real
+identifiers; non-fabrication rate on ambiguous text and fabricated DOIs;
+mismatch detection rate on real DOIs paired with a different paper’s
+title), also exposed as <code class="docutils literal notranslate"><span class="pre">onecite.run_anti_hallucination_eval()</span></code>.
+Pipeline crashes are recorded as <code class="docutils literal notranslate"><span class="pre">error</span></code> and never count as correct.</p></li>
+<li><p>Text/DOI consistency warning: when the descriptive text around a resolved
+DOI clearly describes a different work, <code class="docutils literal notranslate"><span class="pre">process</span></code> still resolves from
+the resolved DOI but attaches a non-blocking
+<code class="docutils literal notranslate"><span class="pre">text_metadata_mismatch</span></code> warning, surfaced in the report, the
+JSON/NDJSON envelopes, and the CLI summary.</p></li>
+<li><p>Auditable failure reports: failed entries now carry the original input
+text (<code class="docutils literal notranslate"><span class="pre">raw_text</span></code>) and a <code class="docutils literal notranslate"><span class="pre">reason</span></code> code so a safely rejected
+identifier, an ambiguous reference, and an unavailable source can be
+told apart; identification-stage failures are no longer mislabelled as
+<code class="docutils literal notranslate"><span class="pre">enrichment_failed</span></code>.</p></li>
 </ul>
 </section>
 <section id="changed">
@@ -195,7 +218,7 @@ default suite is deterministic and offline.</p></li>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code> no longer accepts <code class="docutils literal notranslate"><span class="pre">--google-scholar</span></code>, and
 <code class="docutils literal notranslate"><span class="pre">process_references()</span></code> no longer accepts the <code class="docutils literal notranslate"><span class="pre">use_google_scholar</span></code>
-parameter (both were no-ops on the authoritative <code class="docutils literal notranslate"><span class="pre">process</span></code> path).
+parameter (both were no-ops on the strong-identifier <code class="docutils literal notranslate"><span class="pre">process</span></code> path).
 Google Scholar remains an opt-in, best-effort fallback on
 <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span> <span class="pre">--google-scholar</span></code>.</p></li>
 <li><p>Removed the non-functional <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> flag from <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span></code>
@@ -209,6 +232,62 @@ now trusts only publisher-declared meta-tag / schema.org identifiers.</p></li>
 <section id="fixed">
 <h3>Fixed<a class="headerlink" href="#fixed" title="Link to this heading"></a></h3>
 <ul class="simple">
+<li><p>The bundled DataCite and Zenodo fixtures used a dead Dryad DOI and a
+fabricated Zenodo title, so <code class="docutils literal notranslate"><span class="pre">benchmark</span> <span class="pre">--live</span></code> failed on the real APIs
+even though the offline run passed. Both now mirror real, long-lived
+records, and the golden and anti-hallucination suites pass live; live
+baseline records were added to <code class="docutils literal notranslate"><span class="pre">benchmarks/</span></code>.</p></li>
+<li><p>The test-suite mock responses are now derived from the bundled offline
+fixtures instead of hand-maintaining a second drifting copy of the same
+DOIs’ metadata; consistency tests pin the derivation.</p></li>
+<li><p>The documentation changelog no longer claims to be a complete mirror of
+<code class="docutils literal notranslate"><span class="pre">CHANGELOG.md</span></code>; the root file is the canonical, exhaustive release record.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">process_references</span></code> no longer requires the <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code>
+argument; it was never invoked by the strictly non-interactive pipeline
+and is now optional, retained only for backward compatibility.</p></li>
+<li><p>Google Books lookups now retry with backoff on HTTP 429/5xx instead of
+failing the ISBN entry on the first rate-limit response.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">process</span> <span class="pre">--template</span></code> now rejects unknown template names with
+the list of valid presets instead of silently falling back to the
+default template.</p></li>
+<li><p>Explicitly labelled PMIDs embedded in citation text now resolve,
+matching the long-standing behavior for DOIs embedded in text.</p></li>
+<li><p>The arXiv suggestion source queries the <code class="docutils literal notranslate"><span class="pre">https</span></code> endpoint directly,
+retries transient 429/5xx responses with a short backoff, and
+truthfully discloses a still-throttled source as <code class="docutils literal notranslate"><span class="pre">rate_limited</span></code>
+instead of <code class="docutils literal notranslate"><span class="pre">error</span></code>.</p></li>
+<li><p>The test suite fails loudly on any unmocked network call from a
+non-<code class="docutils literal notranslate"><span class="pre">live</span></code> test; this exposed unit tests silently hitting live APIs
+and cut the full-suite runtime from ~43s to ~6s.</p></li>
+<li><p>Eliminated a duplicate CrossRef API call per DOI entry by reusing the
+work object fetched during DOI verification for enrichment.</p></li>
+<li><p>Cite-key generation is LaTeX-safe and crash-free: accented names are
+ASCII-folded, CJK characters are dropped instead of emitted into
+<code class="docutils literal notranslate"><span class="pre">\cite{...}</span></code> keys, and an integer year no longer raises
+<code class="docutils literal notranslate"><span class="pre">TypeError</span></code>.</p></li>
+<li><p>CSL-JSON values strip <em>all</em> LaTeX case-protection braces instead of
+mangling inner ones, and BibTeX <code class="docutils literal notranslate"><span class="pre">--</span></code> page ranges are normalized to
+plain <code class="docutils literal notranslate"><span class="pre">-</span></code>.</p></li>
+<li><p>An unwritable <code class="docutils literal notranslate"><span class="pre">--output</span></code> path no longer discards computed results:
+<code class="docutils literal notranslate"><span class="pre">process</span></code> and <code class="docutils literal notranslate"><span class="pre">suggest</span></code> emit the output to stdout with a clear
+error on stderr and exit <code class="docutils literal notranslate"><span class="pre">1</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">doctor</span></code> verifies the bundled anti-hallucination dataset as
+part of the <code class="docutils literal notranslate"><span class="pre">benchmark_resources</span></code> check.</p></li>
+<li><p>Removed the undocumented <code class="docutils literal notranslate"><span class="pre">sugget</span></code> CLI alias (a development-time typo
+for <code class="docutils literal notranslate"><span class="pre">suggest</span></code>).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span> <span class="pre">--input-type</span> <span class="pre">bib</span></code> no longer sends a Python dict repr
+as the search query when a BibTeX entry carries a DOI; the query is
+always built from the structured title/author/year fields.</p></li>
+<li><p>OneCite’s own BibTeX output survives re-processing through
+<code class="docutils literal notranslate"><span class="pre">--input-type</span> <span class="pre">bib</span></code> byte-identically for all entry kinds: bibtexparser
+no longer drops the non-standard <code class="docutils literal notranslate"><span class="pre">&#64;software</span></code> type, and a non-empty
+BibTeX file parsing to zero entries raises a loud <code class="docutils literal notranslate"><span class="pre">ParseError</span></code>
+instead of an empty success.</p></li>
+<li><p>The Sphinx documentation builds with zero warnings and the docs CI
+build runs with <code class="docutils literal notranslate"><span class="pre">-W</span></code> so new warnings fail the build.</p></li>
+<li><p>The mypy configuration declared in <code class="docutils literal notranslate"><span class="pre">pyproject.toml</span></code> is now enforced
+in CI; fixing the 70 outstanding errors closed several latent crash
+paths in HTTP error handling and metadata access.</p></li>
 <li><p>Corrected the benchmark Nature DQN DOI fixture from
 <code class="docutils literal notranslate"><span class="pre">10.1038/nature14539</span></code> to <code class="docutils literal notranslate"><span class="pre">10.1038/nature14236</span></code>, and added
 regression coverage to catch future DOI-title-author mismatches in
@@ -458,14 +537,16 @@ fabricating invented metadata</p></li>
 <section id="from-0-0-10-to-0-0-11">
 <h2>From 0.0.10 to 0.0.11<a class="headerlink" href="#from-0-0-10-to-0-0-11" title="Link to this heading"></a></h2>
 <p><strong>Breaking Changes:</strong> None</p>
-<p><strong>New Features:</strong></p>
+<p><strong>Historical features:</strong></p>
 <ul class="simple">
-<li><p>Custom template support - create YAML templates for custom formats</p></li>
-<li><p>APA and MLA formats - use <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">apa</span></code> or <code class="docutils literal notranslate"><span class="pre">--output-format</span> <span class="pre">mla</span></code></p></li>
-<li><p>Interactive mode - use <code class="docutils literal notranslate"><span class="pre">--interactive</span></code> flag for ambiguous references</p></li>
+<li><p>Custom template support introduced YAML fallback presets.</p></li>
+<li><p>Experimental APA/MLA output and <code class="docutils literal notranslate"><span class="pre">process</span> <span class="pre">--interactive</span></code> were removed in
+later releases. Current outputs are BibTeX and CSL-JSON; ambiguous
+references should be handled with <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>.</p></li>
 </ul>
 <p><strong>Migration:</strong></p>
-<p>No migration needed. All existing functionality is backward compatible. New features are opt-in.</p>
+<p>For current releases, replace historical APA/MLA output with downstream
+formatting and replace <code class="docutils literal notranslate"><span class="pre">process</span> <span class="pre">--interactive</span></code> with <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>.</p>
 </section>
 </section>
 <section id="version-history">

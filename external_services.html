@@ -1,0 +1,382 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy and External Services &mdash; OneCite 0.2.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Python API Reference" href="python_api.html" />
+    <link rel="prev" title="Advanced Usage" href="advanced_usage.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search"  style="background: #2980B9" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            OneCite
+              <img src="_static/logo_.jpg" class="logo" alt="Logo"/>
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="quick_start.html">Quick Start Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_usage.html">Basic Usage</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Privacy and External Services</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#process-routes"><code class="docutils literal notranslate"><span class="pre">process</span></code> routes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#suggest-routes"><code class="docutils literal notranslate"><span class="pre">suggest</span></code> routes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#google-scholar-is-off-by-default">Google Scholar is off by default</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#source-health-and-rate-limits">Source health and rate limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#offline-checks-are-not-live-service-checks">Offline checks are not live-service checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#caching-snapshots-and-local-traces">Caching, snapshots, and local traces</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
+<li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
+<li class="toctree-l1"><a class="reference internal" href="cli_contracts.html">CLI Contracts</a></li>
+<li class="toctree-l1"><a class="reference internal" href="onecite_skill.html">OneCite Skill</a></li>
+<li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#error-handling">Error Handling</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#testing-hooks">Testing Hooks</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Resources</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">Frequently Asked Questions (FAQ)</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contributing.html">Contributing to OneCite</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#upgrade-guide">Upgrade Guide</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#version-history">Version History</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#getting-help">Getting Help</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#release-strategy">Release Strategy</a></li>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html#credits">Credits</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu"  style="background: #2980B9" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OneCite</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Privacy and External Services</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/external_services.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="privacy-and-external-services">
+<h1>Privacy and External Services<a class="headerlink" href="#privacy-and-external-services" title="Link to this heading"></a></h1>
+<p>OneCite performs local parsing and formatting, but ordinary <code class="docutils literal notranslate"><span class="pre">process</span></code> and
+<code class="docutils literal notranslate"><span class="pre">suggest</span></code> runs can make outbound requests to different services according to
+the input. OneCite does <strong>not</strong> send every reference to every service.</p>
+<p>Before processing confidential, embargoed, or personally identifying text,
+decide whether it is appropriate to disclose the relevant identifier, query,
+or URL to the services listed below. Redact unrelated text and never place
+credentials or private tokens in an input URL. The project does not claim that
+using OneCite makes a workflow compliant with any privacy or regulatory
+framework. Each provider, network proxy, and execution environment may log or
+retain requests under its own policy.</p>
+<p>When accepting untrusted input in a server or agent, validate or allow-list
+URLs before invoking <code class="docutils literal notranslate"><span class="pre">process</span></code>. The non-GitHub/non-arXiv URL route fetches the
+user-supplied host to inspect DOI metadata; OneCite does not itself provide a
+deployment network sandbox or URL allow-list.</p>
+<section id="process-routes">
+<h2><code class="docutils literal notranslate"><span class="pre">process</span></code> routes<a class="headerlink" href="#process-routes" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">process</span></code> does not run a general title search for an ordinary ambiguous
+reference. Its live routes are input-dependent:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Outbound requests made by <code class="docutils literal notranslate"><span class="pre">process</span></code></span><a class="headerlink" href="#id1" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 23.0%" />
+<col style="width: 32.0%" />
+<col style="width: 25.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Input or trigger</p></th>
+<th class="head"><p>Service</p></th>
+<th class="head"><p>Data sent</p></th>
+<th class="head"><p>Boundary</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>DOI</p></td>
+<td><p>Crossref; DataCite after a Crossref <code class="docutils literal notranslate"><span class="pre">404</span></code>; an exact Zenodo DOI may
+additionally fall back to Zenodo</p></td>
+<td><p>The DOI in the request path. Crossref also receives OneCite’s package
+contact in the <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code> and <code class="docutils literal notranslate"><span class="pre">mailto</span></code> parameter.</p></td>
+<td><p>A successful registry response is checked against the requested DOI.
+Returned metadata can still be incomplete or wrong upstream.</p></td>
+</tr>
+<tr class="row-odd"><td><p>DOI record with no abstract</p></td>
+<td><p>Semantic Scholar, then NCBI E-utilities if needed</p></td>
+<td><p>Semantic Scholar receives the DOI. NCBI receives a DOI search term and,
+when found, the resulting PMID.</p></td>
+<td><p>This fallback runs only when the original input carried a DOI and the
+resolved record still lacks an abstract. It does not title-search for an
+abstract.</p></td>
+</tr>
+<tr class="row-even"><td><p>PMID</p></td>
+<td><p>NCBI E-utilities; Crossref may then receive a DOI returned by PubMed</p></td>
+<td><p>The PMID, followed by the returned DOI when one is available.</p></td>
+<td><p>A PMID lookup is identifier-based. Failure does not fall through to a
+fuzzy title match.</p></td>
+</tr>
+<tr class="row-odd"><td><p>arXiv identifier or arXiv URL</p></td>
+<td><p>arXiv</p></td>
+<td><p>The arXiv identifier.</p></td>
+<td><p>Metadata comes from the matching arXiv feed entry.</p></td>
+</tr>
+<tr class="row-even"><td><p>ISBN-bearing reference</p></td>
+<td><p>Google Books</p></td>
+<td><p>A derived book query made from the input, which can include ISBN, title,
+or author text.</p></td>
+<td><p>The current route uses a search result rather than an exact ISBN
+identity assertion. Review the resulting book metadata.</p></td>
+</tr>
+<tr class="row-odd"><td><p>GitHub repository URL</p></td>
+<td><p>GitHub REST API</p></td>
+<td><p>Repository owner/name, followed by a tags request for that repository.</p></td>
+<td><p>Requests are unauthenticated and therefore subject to GitHub’s
+unauthenticated limits.</p></td>
+</tr>
+<tr class="row-even"><td><p>Other URL</p></td>
+<td><p>The host named by the supplied URL, then a DOI registry if a DOI is
+found</p></td>
+<td><p>The complete URL path and query string, plus OneCite’s <code class="docutils literal notranslate"><span class="pre">User-Agent</span></code>.</p></td>
+<td><p>The request follows redirects and reads at most 5 MiB. Only a
+publisher-declared DOI meta tag or schema.org identifier is accepted;
+body-text DOI scraping is not used.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Explicit thesis or dissertation citation</p></td>
+<td><p>OpenAIRE, then BASE when OpenAIRE returns no result</p></td>
+<td><p>OpenAIRE receives the parsed thesis title and fixed publication-type
+filters. The BASE fallback receives a derived thesis query plus the year
+when one was parsed.</p></td>
+<td><p>If neither provider returns a record, OneCite can format explicit
+author/title/year/school fields parsed from the input and marks the
+internal source as <code class="docutils literal notranslate"><span class="pre">manual</span></code>. That fallback is input-derived, not
+independently source-resolved.</p></td>
+</tr>
+<tr class="row-even"><td><p>Ordinary title or author text with no supported route</p></td>
+<td><p>None</p></td>
+<td><p>Nothing is sent by <code class="docutils literal notranslate"><span class="pre">process</span></code> for candidate search.</p></td>
+<td><p>The entry remains unresolved with <code class="docutils literal notranslate"><span class="pre">no_strong_identifier</span></code>. Use
+<code class="docutils literal notranslate"><span class="pre">suggest</span></code> for candidates.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Some DOI, dataset, and software inputs can take more than one route as a
+fallback. A route being labelled “source-resolved” means a service returned a
+record for the identifier; it does not prove that the work is authentic,
+unretracted, or correctly described by the provider.</p>
+</section>
+<section id="suggest-routes">
+<h2><code class="docutils literal notranslate"><span class="pre">suggest</span></code> routes<a class="headerlink" href="#suggest-routes" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">suggest</span></code> is deliberately broader because its output is a candidate list for
+review, not resolved bibliography output.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">Outbound requests made by <code class="docutils literal notranslate"><span class="pre">suggest</span></code></span><a class="headerlink" href="#id2" title="Link to this table"></a></caption>
+<colgroup>
+<col style="width: 24.0%" />
+<col style="width: 26.0%" />
+<col style="width: 50.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>When used</p></th>
+<th class="head"><p>Service</p></th>
+<th class="head"><p>Data sent</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p>Every non-empty query</p></td>
+<td><p>Crossref</p></td>
+<td><p>The normalized citation query. Crossref search may try bibliographic,
+general, and title/author query strategies.</p></td>
+</tr>
+<tr class="row-odd"><td><p>Every non-empty query</p></td>
+<td><p>Semantic Scholar</p></td>
+<td><p>The normalized citation query and requested result fields.</p></td>
+</tr>
+<tr class="row-even"><td><p>Every non-empty query with usable title terms</p></td>
+<td><p>arXiv</p></td>
+<td><p>Title terms derived from the text before the first comma.</p></td>
+</tr>
+<tr class="row-odd"><td><p>PMID-shaped input or strong medical cues</p></td>
+<td><p>NCBI E-utilities</p></td>
+<td><p>The PMID or the full normalized medical query, followed by PMIDs returned
+from search.</p></td>
+</tr>
+<tr class="row-even"><td><p>ISBN, edition, or configured publisher cues</p></td>
+<td><p>Google Books</p></td>
+<td><p>A derived query containing relevant book/title/author text.</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="docutils literal notranslate"><span class="pre">thesis</span></code> or <code class="docutils literal notranslate"><span class="pre">dissertation</span></code> cue</p></td>
+<td><p>OpenAIRE, then BASE as a fallback</p></td>
+<td><p>The normalized citation query and a derived thesis query.</p></td>
+</tr>
+<tr class="row-even"><td><p>Explicit <code class="docutils literal notranslate"><span class="pre">--google-scholar</span></code> opt-in, when both Crossref and Semantic
+Scholar return no candidates</p></td>
+<td><p>Google Scholar through the optional <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package</p></td>
+<td><p>The normalized citation query.</p></td>
+</tr>
+</tbody>
+</table>
+<p>Candidate scores are similarity and ranking signals, not verification. Review
+the candidate, then pass a trusted identifier (normally its DOI) back through
+<code class="docutils literal notranslate"><span class="pre">process</span></code>. A candidate list can be incomplete even when some sources
+succeeded.</p>
+</section>
+<section id="google-scholar-is-off-by-default">
+<h2>Google Scholar is off by default<a class="headerlink" href="#google-scholar-is-off-by-default" title="Link to this heading"></a></h2>
+<p>The Google Scholar fallback is available only after installing
+<code class="docutils literal notranslate"><span class="pre">onecite[scholar]</span></code> and opting in with <code class="docutils literal notranslate"><span class="pre">suggest</span> <span class="pre">--google-scholar</span></code> (or
+<code class="docutils literal notranslate"><span class="pre">suggest_references(...,</span> <span class="pre">use_google_scholar=True)</span></code>). It automates Scholar
+through <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> rather than using a documented API route in OneCite.
+Automated requests can be throttled, blocked, or challenged by a CAPTCHA, can
+take substantially longer than the API-backed routes, and are not a
+reproducible dependency. It is never used by <code class="docutils literal notranslate"><span class="pre">process</span></code>.</p>
+</section>
+<section id="source-health-and-rate-limits">
+<h2>Source health and rate limits<a class="headerlink" href="#source-health-and-rate-limits" title="Link to this heading"></a></h2>
+<p>For each query, <code class="docutils literal notranslate"><span class="pre">suggest</span> <span class="pre">--json</span></code> reports a <code class="docutils literal notranslate"><span class="pre">sources</span></code> list for the three
+always-consulted indexes: <code class="docutils literal notranslate"><span class="pre">crossref</span></code>, <code class="docutils literal notranslate"><span class="pre">semantic_scholar</span></code>, and <code class="docutils literal notranslate"><span class="pre">arxiv</span></code>.
+Each item contains a status and candidate count. Persistent throttling is
+reported as <code class="docutils literal notranslate"><span class="pre">rate_limited</span></code> where the route distinguishes it; other failures
+are reported as <code class="docutils literal notranslate"><span class="pre">error</span></code>. If any reported source is degraded, the suggestion
+status ends in <code class="docutils literal notranslate"><span class="pre">_incomplete</span></code>. Human-readable output prints a warning for each
+degraded reported source.</p>
+<p>This is not a complete network trace. Conditional sources such as PubMed,
+Google Books, OpenAIRE, BASE, and Google Scholar do not currently have the same
+per-source health entries. <code class="docutils literal notranslate"><span class="pre">process</span></code> also has no equivalent source-health
+list; inspect failure reason codes and logs instead. Those reasons are also
+coarse: the current DataCite, PMID, and ISBN helpers collapse some caught
+provider errors into the same unresolved outcome as a lookup miss. Retry and
+backoff behavior varies by route, so do not assume that every service is
+retried, that every <code class="docutils literal notranslate"><span class="pre">429</span></code> is surfaced the same way, or that a fixed runtime
+applies. Provider limits can change independently of OneCite. The reported
+<code class="docutils literal notranslate"><span class="pre">suggest</span></code> status is not a per-request trace either; for example, Crossref can
+remain <code class="docutils literal notranslate"><span class="pre">ok</span></code> when one search strategy failed but another produced usable
+candidates. See the current <a class="reference external" href="https://www.crossref.org/documentation/retrieve-metadata/rest-api/access-and-authentication/">Crossref access
+guidance</a>
+and <a class="reference external" href="https://eutilities.github.io/site/API_Key/usageandkey/">NCBI E-utilities usage guidance</a> when operating large
+jobs.</p>
+</section>
+<section id="offline-checks-are-not-live-service-checks">
+<h2>Offline checks are not live-service checks<a class="headerlink" href="#offline-checks-are-not-live-service-checks" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">benchmark</span></code> uses bundled fixtures by default and patches the HTTP
+source calls. It does not contact the services above. <code class="docutils literal notranslate"><span class="pre">--live</span></code> opts into
+live external requests.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">doctor</span></code> checks the installed package, templates, bundled
+resources, Skill file, and the offline benchmark gate. It does not test live
+provider reachability or current metadata.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">templates</span></code> and <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">--version</span></code> are local commands after the
+package is installed.</p></li>
+</ul>
+<p>Passing an offline benchmark proves only that the bundled cases passed against
+their fixed fixtures. It does not establish current service availability,
+current metadata quality, or general citation accuracy.</p>
+</section>
+<section id="caching-snapshots-and-local-traces">
+<h2>Caching, snapshots, and local traces<a class="headerlink" href="#caching-snapshots-and-local-traces" title="Link to this heading"></a></h2>
+<p>Ordinary live lookups do not have a persistent OneCite HTTP-response cache or
+source snapshot. Therefore, a later run can change when a provider changes its
+metadata, ranking, availability, or limits. The bundled benchmark fixtures are
+test data, not a cache of a user’s previous lookups.</p>
+<p>This boundary is not a promise that no data is stored anywhere. In particular:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">-o</span></code> intentionally writes the selected output; JSON reports can include
+original input text, queries, failures, and candidates;</p></li>
+<li><p>terminal capture, application logs, proxies, and provider logs may retain
+request or response details; and</p></li>
+<li><p>OneCite does not control retention by external services.</p></li>
+</ul>
+<p>For a reproducible audit, preserve the input you are allowed to retain, the
+OneCite version, command options, output/report, and run time. Treat live
+metadata as time-varying evidence rather than a pinned snapshot.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="advanced_usage.html" class="btn btn-neutral float-left" title="Advanced Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="python_api.html" class="btn btn-neutral float-right" title="Python API Reference" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, OneCite Team.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

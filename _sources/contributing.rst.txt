@@ -48,14 +48,14 @@ Code Style
 
 We follow PEP 8 style guidelines. Use ``black`` for formatting::
 
-    black onecite/ tests/
+    black src/onecite/ tests/
 
 Linting
 ~~~~~~~
 
 Use ``flake8`` to check code quality::
 
-    flake8 onecite/ tests/
+    flake8 src/onecite/ tests/
 
 Running Tests
 ~~~~~~~~~~~~~
@@ -267,8 +267,7 @@ Tests should be:
             input_content="10.1038/nature14539",
             input_type="txt",
             template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda candidates: 0
+            output_format="bibtex"
         )
         assert result['report']['total'] == 1
         assert any('10.1038/nature14539' in r for r in result['results'])

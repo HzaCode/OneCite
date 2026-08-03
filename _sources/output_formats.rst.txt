@@ -1,15 +1,15 @@
 Output Formats
 ==============
 
-OneCite currently writes **BibTeX only**.  Earlier versions also advertised
-APA and MLA output, but those renderers produced inconsistent results and
-have been removed (see issues #31 and #32).  The CLI now rejects any
-``--output-format`` other than ``bibtex``.
+OneCite writes **BibTeX** (the default) and **CSL-JSON**. Earlier versions
+also advertised APA and MLA output, but those renderers produced
+inconsistent results and have been removed (see issues #31 and #32). The
+CLI rejects any ``--output-format`` other than ``bibtex`` or ``csl-json``.
 
-If you need APA or MLA output, run OneCite first to get a clean BibTeX
-file and then pipe it through a dedicated renderer such as
-`pandoc <https://pandoc.org/>`_, `citeproc-py <https://github.com/brechtm/citeproc-py>`_
-or `bibtex2html <https://www.lri.fr/~filliatr/bibtex2html/>`_.
+If you need styled output (APA, MLA, …), emit CSL-JSON and pipe it through
+a dedicated renderer such as `pandoc <https://pandoc.org/>`_ or
+`citeproc-py <https://github.com/brechtm/citeproc-py>`_ — these consume
+CSL-JSON directly.
 
 BibTeX Format
 -------------
@@ -50,8 +50,7 @@ Using BibTeX Format
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
 
     for citation in result['results']:
@@ -79,6 +78,45 @@ Integration with LaTeX
     bibtex document
     pdflatex document.tex
     pdflatex document.tex
+
+CSL-JSON Format
+---------------
+
+CSL-JSON is the interchange format consumed by pandoc, Quarto, citeproc,
+and reference-manager imports. The CLI emits one valid JSON array::
+
+    onecite process references.txt --output-format csl-json -o references.json
+
+::
+
+    [
+      {
+        "id": "LeCun2015Deep",
+        "type": "article-journal",
+        "title": "Deep learning",
+        "author": [
+          {"family": "LeCun", "given": "Yann"},
+          {"family": "Bengio", "given": "Yoshua"},
+          {"family": "Hinton", "given": "Geoffrey"}
+        ],
+        "container-title": "Nature",
+        "issued": {"date-parts": [[2015]]},
+        "volume": "521",
+        "issue": "7553",
+        "page": "436-444",
+        "DOI": "10.1038/nature14539"
+      }
+    ]
+
+Values are plain Unicode (no LaTeX escapes). Author names are structured
+``family``/``given`` pairs when the source metadata provides them;
+organization names stay as ``literal`` names rather than being guessed
+apart. In the Python API, ``output_format="csl-json"`` returns one CSL
+item (a JSON object string) per entry in ``results``.
+
+Use CSL-JSON with pandoc::
+
+    pandoc paper.md --citeproc --bibliography references.json -o paper.pdf
 
 BibTeX Entry Types
 ~~~~~~~~~~~~~~~~~~

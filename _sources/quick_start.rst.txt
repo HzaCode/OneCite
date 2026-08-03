@@ -76,8 +76,11 @@ Common Command-Line Options
 
 **Output Format**::
 
-    # BibTeX is the only supported output format
+    # BibTeX is the default
     onecite process refs.txt --output-format bibtex
+
+    # CSL-JSON is also supported
+    onecite process refs.txt --output-format csl-json -o refs.json
 
 **Batch Processing**::
 
@@ -97,8 +100,7 @@ You can also use OneCite directly in your Python scripts::
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: -1
+        output_format="bibtex"
     )
     
     # Print formatted citations
@@ -114,5 +116,6 @@ Next Steps
 ----------
 
 - Learn more about :doc:`advanced_usage`
+- Review :doc:`external_services` for network and privacy boundaries
 - Check :doc:`templates` to customize field requirements and fallback entry types
 - See :doc:`api/core` for Python API reference

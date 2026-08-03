@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OneCite - Citation &amp; Academic Reference Toolkit &mdash; OneCite 0.1.1 documentation</title>
+  <title>OneCite - Auditable Citation Normalization &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -51,6 +51,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -61,7 +62,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -94,7 +95,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="#" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">OneCite - Citation &amp; Academic Reference Toolkit</li>
+      <li class="breadcrumb-item active">OneCite - Auditable Citation Normalization</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -104,15 +105,19 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="onecite-citation-academic-reference-toolkit">
-<h1>OneCite - Citation &amp; Academic Reference Toolkit<a class="headerlink" href="#onecite-citation-academic-reference-toolkit" title="Link to this heading"></a></h1>
+  <section id="onecite-auditable-citation-normalization">
+<h1>OneCite - Auditable Citation Normalization<a class="headerlink" href="#onecite-auditable-citation-normalization" title="Link to this heading"></a></h1>
 <a class="reference external image-reference" href="https://pypi.org/project/onecite/"><img alt="PyPI Version" src="https://img.shields.io/pypi/v/onecite?color=306998&amp;logo=pypi&amp;style=flat-square" />
 </a>
 <a class="reference external image-reference" href="https://www.python.org"><img alt="Python Version" src="https://img.shields.io/badge/Python-3.10+-blue?logo=python&amp;style=flat-square" />
 </a>
 <a class="reference external image-reference" href="https://github.com/HzaCode/OneCite/blob/main/LICENSE"><img alt="License" src="https://img.shields.io/badge/License-MIT-green.svg?style=flat-square" />
 </a>
-<p><strong>OneCite</strong> is a command-line tool and Python library for citation management. It resolves strong identifiers such as DOIs, PMIDs, arXiv IDs, ISBNs, GitHub URLs, and data DOIs into formatted bibliographic entries. Plain-text title searches are handled by <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> as candidate suggestions.</p>
+<p><strong>OneCite</strong> is a command-line tool and Python library for auditable citation
+normalization. It routes strong identifiers such as DOIs, PMIDs, arXiv IDs,
+ISBNs, GitHub URLs, and data DOIs to applicable metadata services. Ordinary
+plain-text title searches are handled by <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> as candidates for
+review; explicitly labelled thesis citations have a separate documented route.</p>
 <div class="toctree-wrapper compound">
 <p class="caption" role="heading"><span class="caption-text">Getting Started</span></p>
 <ul>
@@ -163,11 +168,20 @@
 <li class="toctree-l2"><a class="reference internal" href="advanced_usage.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="external_services.html#process-routes"><code class="docutils literal notranslate"><span class="pre">process</span></code> routes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="external_services.html#suggest-routes"><code class="docutils literal notranslate"><span class="pre">suggest</span></code> routes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="external_services.html#google-scholar-is-off-by-default">Google Scholar is off by default</a></li>
+<li class="toctree-l2"><a class="reference internal" href="external_services.html#source-health-and-rate-limits">Source health and rate limits</a></li>
+<li class="toctree-l2"><a class="reference internal" href="external_services.html#offline-checks-are-not-live-service-checks">Offline checks are not live-service checks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="external_services.html#caching-snapshots-and-local-traces">Caching, snapshots, and local traces</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#basic-usage">Basic Usage</a></li>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#processing-different-input-formats">Processing Different Input Formats</a></li>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#output-formats">Output Formats</a></li>
-<li class="toctree-l2"><a class="reference internal" href="python_api.html#interactive-selection-with-callbacks">Interactive Selection with Callbacks</a></li>
+<li class="toctree-l2"><a class="reference internal" href="python_api.html#candidate-suggestions-for-ambiguous-references">Candidate Suggestions for Ambiguous References</a></li>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#advanced-data-structures">Advanced Data Structures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#working-with-templates">Working with Templates</a></li>
 <li class="toctree-l2"><a class="reference internal" href="python_api.html#using-the-pipeline-controller">Using the Pipeline Controller</a></li>
@@ -198,6 +212,7 @@
 <li class="toctree-l2"><a class="reference internal" href="benchmarking.html#suite-format">Suite Format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="benchmarking.html#what-a-passing-run-means">What a Passing Run Means</a></li>
 <li class="toctree-l2"><a class="reference internal" href="benchmarking.html#bundled-coverage">Bundled Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="benchmarking.html#anti-hallucination-evaluation">Anti-Hallucination Evaluation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli_contracts.html">CLI Contracts</a><ul>
@@ -213,6 +228,7 @@
 <li class="toctree-l1"><a class="reference internal" href="onecite_skill.html">OneCite Skill</a></li>
 <li class="toctree-l1"><a class="reference internal" href="output_formats.html">Output Formats</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="output_formats.html#bibtex-format">BibTeX Format</a></li>
+<li class="toctree-l2"><a class="reference internal" href="output_formats.html#csl-json-format">CSL-JSON Format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="output_formats.html#tips">Tips</a></li>
 <li class="toctree-l2"><a class="reference internal" href="output_formats.html#next-steps">Next Steps</a></li>
 </ul>
@@ -231,15 +247,18 @@
 <li class="toctree-l2"><a class="reference internal" href="api/core.html#next-steps">Next Steps</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a><ul>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#overview">Overview</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#oneciteerror">OneCiteError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#validationerror">ValidationError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#parseerror">ParseError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#resolvererror">ResolverError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#error-handling">Error Handling</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#best-practices">Best Practices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#oneciteerror"><code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#validationerror"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#parseerror"><code class="docutils literal notranslate"><span class="pre">ParseError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#formaterror"><code class="docutils literal notranslate"><span class="pre">FormatError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#resolvererror"><code class="docutils literal notranslate"><span class="pre">ResolverError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#dataimporterror-and-exporterror"><code class="docutils literal notranslate"><span class="pre">DataImportError</span></code> and <code class="docutils literal notranslate"><span class="pre">ExportError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#inspecting-resolution-failures">Inspecting resolution failures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#batch-handling">Batch handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#best-practices">Best practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/exceptions.html#next-steps">Next steps</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a><ul>
@@ -325,8 +344,8 @@
 <section id="key-features">
 <h1>Key Features<a class="headerlink" href="#key-features" title="Link to this heading"></a></h1>
 <ul class="simple">
-<li><p><strong>Candidate Suggestions</strong> - Search incomplete references with <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> without resolving them to BibTeX</p></li>
-<li><p><strong>BibTeX Output</strong> - Standards-compliant <code class="docutils literal notranslate"><span class="pre">.bib</span></code> files rendered with <code class="docutils literal notranslate"><span class="pre">bibtexparser</span></code></p></li>
+<li><p><strong>Candidate Suggestions</strong> - Search incomplete references with <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code> without promoting them to resolved bibliography output</p></li>
+<li><p><strong>BibTeX and CSL-JSON Output</strong> - Emit <code class="docutils literal notranslate"><span class="pre">.bib</span></code> or structured citation records</p></li>
 <li><p><strong>4-stage Pipeline</strong> - 4-stage process for consistent output</p></li>
 <li><p><strong>Field Completion</strong> - Enrich entries with missing metadata</p></li>
 <li><p>🎓 <strong>7+ Citation Types</strong> - Handles journal articles, conference papers, books, software, datasets, theses, and preprints</p></li>
@@ -335,7 +354,10 @@
 </section>
 <section id="data-sources">
 <h1>Data Sources<a class="headerlink" href="#data-sources" title="Link to this heading"></a></h1>
-<p>OneCite integrates with multiple authoritative academic data sources:</p>
+<p>OneCite uses input-dependent routes across multiple scholarly metadata
+sources; it does not query every source for every reference. See
+<a class="reference internal" href="external_services.html"><span class="doc">Privacy and External Services</span></a> for the exact routes, transmitted data, privacy
+boundary, and offline behavior.</p>
 <ul class="simple">
 <li><p><a class="reference external" href="https://www.crossref.org/">CrossRef</a> - Academic publication metadata</p></li>
 <li><p><a class="reference external" href="https://www.semanticscholar.org/">Semantic Scholar</a> - Literature search</p></li>
@@ -344,9 +366,9 @@
 <li><p><a class="reference external" href="https://datacite.org/">DataCite</a> - Scientific datasets</p></li>
 <li><p><a class="reference external" href="https://zenodo.org/">Zenodo</a> - Open research data</p></li>
 <li><p><a class="reference external" href="https://books.google.com/">Google Books</a> - Book metadata</p></li>
-<li><p><a class="reference external" href="https://www.openaire.eu/">external providerRE</a> / <a class="reference external" href="https://www.base-search.net/">BASE</a> - Theses &amp; grey literature</p></li>
+<li><p><a class="reference external" href="https://www.openaire.eu/">OpenAIRE</a> / <a class="reference external" href="https://www.base-search.net/">BASE</a> - Theses &amp; grey literature</p></li>
 <li><p><a class="reference external" href="https://github.com/">GitHub</a> - Software repositories</p></li>
-<li><p>Google Scholar (optional <code class="docutils literal notranslate"><span class="pre">suggest</span></code>-only best-effort fallback, via the <code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package)</p></li>
+<li><p>Google Scholar (optional scraping-based <code class="docutils literal notranslate"><span class="pre">suggest</span></code> fallback, off by default)</p></li>
 </ul>
 </section>
 <section id="quick-start">

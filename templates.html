@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Custom Templates &mdash; OneCite 0.1.1 documentation</title>
+  <title>Custom Templates &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Custom Templates</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#template-basics">Template Basics</a><ul>
@@ -99,7 +100,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -164,7 +165,7 @@ prefer <code class="docutils literal notranslate"><span class="pre">journal_arti
 as deprecated.</p>
 <section id="default-templates-location">
 <h3>Default Templates Location<a class="headerlink" href="#default-templates-location" title="Link to this heading"></a></h3>
-<p>Built-in templates are located in the <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code> directory:</p>
+<p>Built-in templates are located in the <code class="docutils literal notranslate"><span class="pre">src/onecite/templates/</span></code> directory:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">journal_article_full.yaml</span></code></p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">journal_article_with_abstract.yaml</span></code> <em>(deprecated alias of the above)</em></p></li>
@@ -191,8 +192,9 @@ their required / optional fields:</p>
 <section id="what-templates-actually-do">
 <h2>What Templates Actually Do<a class="headerlink" href="#what-templates-actually-do" title="Link to this heading"></a></h2>
 <p>OneCite templates define <strong>metadata field requirements</strong>, not output formatting.</p>
-<p>Output formatting (BibTeX) is implemented in the Python code, not in the YAML templates.</p>
-<p>Templates control:</p>
+<p>Output formatting (BibTeX or CSL-JSON) is implemented in the Python code, not
+in the YAML templates.</p>
+<p>Templates declare:</p>
 <ol class="arabic simple">
 <li><p><strong>Which fields</strong> are required or optional for a citation type</p></li>
 <li><p><strong>BibTeX entry type</strong> (e.g., &#64;article, &#64;book, &#64;inproceedings)</p></li>
@@ -200,7 +202,7 @@ their required / optional fields:</p>
 </ol>
 <p>Templates DO NOT control:</p>
 <ul class="simple">
-<li><p>Output format style (BibTeX formatting)</p></li>
+<li><p>Serialized output format or style (BibTeX/CSL-JSON formatting)</p></li>
 <li><p>Field ordering in the output</p></li>
 <li><p>Punctuation or capitalization rules</p></li>
 </ul>
@@ -273,7 +275,8 @@ their required / optional fields:</p>
 <ul class="simple">
 <li><p><strong>Software:</strong> GitHub repositories via GitHub API</p></li>
 <li><p><strong>Dataset:</strong> Zenodo/Figshare via their APIs</p></li>
-<li><p><strong>Thesis:</strong> Via external providerRE/BASE APIs</p></li>
+<li><p><strong>Thesis:</strong> Via OpenAIRE/BASE APIs, with an input-derived fallback when no
+provider record is returned</p></li>
 <li><p><strong>Books:</strong> Via Google Books API</p></li>
 </ul>
 </section>
@@ -360,7 +363,7 @@ their required / optional fields:</p>
 <h2>Creating Custom Templates<a class="headerlink" href="#creating-custom-templates" title="Link to this heading"></a></h2>
 <p>To create a custom template:</p>
 <ol class="arabic simple">
-<li><p>Create a new YAML file in <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code></p></li>
+<li><p>Create a new YAML file in <code class="docutils literal notranslate"><span class="pre">src/onecite/templates/</span></code></p></li>
 <li><p>Define the name, entry_type, and fields</p></li>
 <li><p>Specify required fields and source priorities</p></li>
 <li><p>Use the template by its name (without .yaml extension)</p></li>
@@ -397,8 +400,7 @@ their required / optional fields:</p>
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;minimal_article&quot;</span><span class="p">,</span>  <span class="c1"># Your custom template</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -427,13 +429,15 @@ their required / optional fields:</p>
 </section>
 <section id="output-format-control">
 <h2>Output Format Control<a class="headerlink" href="#output-format-control" title="Link to this heading"></a></h2>
-<p>OneCite currently writes BibTeX only.  The <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> option exists
-for forward compatibility but accepts <code class="docutils literal notranslate"><span class="pre">bibtex</span></code> as the sole value:</p>
+<p>OneCite writes BibTeX or CSL-JSON. The template does not select between them;
+use <code class="docutils literal notranslate"><span class="pre">--output-format</span></code>:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">bibtex</span>
+<span class="n">onecite</span> <span class="n">process</span> <span class="n">refs</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">csl</span><span class="o">-</span><span class="n">json</span> <span class="o">-</span><span class="n">o</span> <span class="n">refs</span><span class="o">.</span><span class="n">json</span>
 </pre></div>
 </div>
-<p>The template only affects which fields are collected and from where, not how
-they are formatted in the final output.</p>
+<p>The template supplies field declarations and a fallback entry type. It does
+not control the serialized output format or trigger broad multi-source field
+completion.</p>
 </section>
 <section id="best-practices">
 <h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
@@ -474,7 +478,7 @@ they are formatted in the final output.</p>
 <h3>Template Not Found<a class="headerlink" href="#template-not-found" title="Link to this heading"></a></h3>
 <p>If you get “template not found” error:</p>
 <ol class="arabic simple">
-<li><p>Check the template file is in <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code> directory</p></li>
+<li><p>Check the template file is in <code class="docutils literal notranslate"><span class="pre">src/onecite/templates/</span></code> directory</p></li>
 <li><p>Verify the filename matches (e.g., <code class="docutils literal notranslate"><span class="pre">my_template.yaml</span></code>)</p></li>
 <li><p>Use the template name without <code class="docutils literal notranslate"><span class="pre">.yaml</span></code> extension</p></li>
 <li><p>Ensure YAML syntax is valid</p></li>
@@ -517,7 +521,7 @@ they are formatted in the final output.</p>
 <li><p>See <a class="reference internal" href="quick_start.html"><span class="doc">Quick Start Guide</span></a> for basic usage</p></li>
 <li><p>Learn <a class="reference internal" href="python_api.html"><span class="doc">Python API Reference</span></a> for programmatic access</p></li>
 <li><p>Check <a class="reference internal" href="advanced_usage.html"><span class="doc">Advanced Usage</span></a> for complex scenarios</p></li>
-<li><p>View the <code class="docutils literal notranslate"><span class="pre">onecite/templates/</span></code> directory for more examples</p></li>
+<li><p>View the <code class="docutils literal notranslate"><span class="pre">src/onecite/templates/</span></code> directory for more examples</p></li>
 </ul>
 </section>
 </section>

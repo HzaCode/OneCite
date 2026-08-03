@@ -6,7 +6,9 @@ System Requirements
 
 - Python 3.10 or higher
 - pip package manager
-- Internet connection (for accessing data sources)
+- Network access for installation and ordinary live metadata lookups; local
+  doctor/template commands and the default fixture-backed benchmark can run
+  without provider access after installation
 
 Installing from PyPI (Recommended)
 ----------------------------------
@@ -34,6 +36,9 @@ Optional Dependencies
 For Google Scholar support (disabled by default)::
 
     pip install onecite[scholar]
+
+This optional route scrapes Google Scholar and can be throttled, blocked, or
+challenged by a CAPTCHA. Review :doc:`external_services` before enabling it.
 
 For development and testing::
 

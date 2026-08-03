@@ -5,14 +5,14 @@ Overview
 --------
 
 The OneCite pipeline is a 4-stage process that transforms raw references
-into formatted BibTeX:
+into formatted BibTeX or CSL-JSON:
 
 1. **Parse** — read the raw input and produce ``RawEntry`` objects
 2. **Identify** — look up each entry in external APIs and fill in a DOI / basic metadata
 3. **Enrich** — fetch full metadata for the identified entries
-4. **Format** — render the completed entries as BibTeX
+4. **Format** — render the completed entries as BibTeX or CSL-JSON
 
-The implementation lives in the ``onecite/pipeline/`` package with one
+The implementation lives in the ``src/onecite/pipeline/`` package with one
 module per stage.  For backwards-compatibility all public symbols remain
 importable from ``onecite.pipeline``:
 
@@ -30,7 +30,7 @@ Package Layout
 
 .. code-block:: text
 
-    onecite/pipeline/
+    src/onecite/pipeline/
         __init__.py     - re-exports + ``requests`` at package level
         _utils.py       - _safe_year helper
         parser.py       - ParserModule
@@ -72,10 +72,11 @@ parsing fails.
 Stage 2: Identify (``IdentifierModule``)
 ----------------------------------------
 
-**Purpose:** resolve each ``RawEntry`` with strong identifiers into an
-``IdentifiedEntry`` with a DOI / arXiv ID / URL plus basic metadata.
-Plain-text title searches are not resolved by the processing pipeline; use
-the suggestion workflow for candidate search.
+**Purpose:** route supported identifiers into an ``IdentifiedEntry`` with a
+DOI / arXiv ID / URL plus basic metadata. Ordinary plain-text title searches
+are not resolved by the processing pipeline; use the suggestion workflow for
+candidate search. Explicitly labelled thesis/dissertation text is a separate
+exception described below.
 
 **Input:** ``List[RawEntry]`` and an ``interactive_callback`` kept for API
 compatibility.
@@ -84,24 +85,22 @@ compatibility.
 
 **Data sources actually queried by the code:**
 
-- CrossRef (DOI-based lookup; candidate search in suggest mode)
-- Semantic Scholar (candidate search in suggest mode)
-- arXiv (via feedparser)
-- PubMed (biomedical, queried when strong cues are present)
-- DataCite / Zenodo (datasets)
-- Google Books (books — triggered by ISBN or publisher cues)
-- external providerRE / BASE (theses)
-- GitHub (software repositories)
-- Google Scholar (optional, ``suggest``-only best-effort fallback, disabled by
-  default; opt-in via ``suggest --google-scholar`` or
-  ``suggest_references(use_google_scholar=True)`` and requires the
-  ``scholarly`` package; never used by ``process``)
+- ``process`` uses input-specific routes: Crossref/DataCite/Zenodo for DOIs,
+  NCBI for PMIDs and DOI-based abstract fallback, arXiv for arXiv IDs, Google
+  Books for ISBN-bearing references, GitHub for repository URLs, and the host
+  supplied by an ordinary URL to inspect publisher-declared DOI metadata.
+- Explicit thesis/dissertation text is sent to OpenAIRE and then BASE. If
+  neither returns a record, explicit author/title/year/school fields parsed
+  from the input can be formatted with an internal ``manual`` source marker.
+- ``suggest`` always consults Crossref, Semantic Scholar, and arXiv for a
+  usable query. It conditionally adds PubMed, Google Books, OpenAIRE/BASE, and
+  the opt-in Google Scholar fallback.
 
-There is **no runtime routing based on filename** and no fixed priority
-for "medical", "CS" or "general" queries. Signal-based heuristics in
-suggestion mode decide when to *additionally* query PubMed, Google Books,
-external providerRE/BASE, etc. Text-only entries in process mode are
-reported as unresolved instead of being guessed.
+There is **no runtime routing based on filename** and no fixed priority for
+"medical", "CS" or "general" queries. Text-only entries in ``process`` are
+reported as unresolved rather than guessed, except for the explicit thesis
+route above. See :doc:`../external_services` for exact triggers, transmitted
+data, privacy boundaries, and source-health limitations.
 
 **Confidence model:**
 
@@ -110,23 +109,26 @@ assigns each candidate a ``match_score`` (0–100) based on title / author /
 year / venue similarity to the query. Scores are returned for human or
 downstream review; they are not treated as validation proof.
 
-Fallback paths never fabricate data: an entry that cannot be resolved is
-marked ``identification_failed`` rather than filled with invented
-metadata.
+OneCite does not synthesize missing source fields. Unresolved ordinary entries
+are marked ``identification_failed`` rather than filled with guessed metadata;
+the thesis exception copies fields that are explicitly present in the user's
+input. This is not a guarantee that upstream metadata is correct, complete, or
+current. A source can return the wrong work or inaccurate fields, and
+source-resolution does not check authenticity or retraction status.
 
 .. code-block:: python
 
     from onecite.pipeline import IdentifierModule
 
     identifier = IdentifierModule(use_google_scholar=False)
-    identified = identifier.identify(entries, interactive_callback=lambda c: 0)
+    identified = identifier.identify(entries)
 
 Stage 3: Enrich (``EnricherModule``)
 ------------------------------------
 
 **Purpose:** take each ``IdentifiedEntry`` and produce a
-``CompletedEntry`` with the BibTeX fields the selected template
-requires.
+``CompletedEntry``. The selected template supplies a fallback entry type and a
+declared field set; it does not cause every declared source to be queried.
 
 **Input:** ``List[IdentifiedEntry]`` and the loaded template.
 
@@ -155,11 +157,11 @@ completion: abstract back-fill, through a DOI-only cascade
     PubMed ESearch (DOI → PMID) + EFetch (PMID → abstract)
 
 The cascade is gated by ``allow_abstract_fallback`` and is only invoked
-when the caller's **raw input** carried a DOI; DOIs inferred by fuzzy
-search never trigger it, so a possibly-wrong candidate does not cost
-extra roundtrips.  Title-based fallback is intentionally not used
-anywhere on this path — in testing it silently returned the abstract
-of an unrelated paper for at least one DOI
+when the caller's **raw input** carried a DOI. A DOI returned by another
+route does not trigger it, and ``process`` does not accept fuzzy candidates.
+Title-based fallback is intentionally not used anywhere on this path — in
+testing it silently returned the abstract of an unrelated paper for at least
+one DOI
 (``10.1007/s10462-019-09792-7``), which is strictly worse than
 returning ``None`` for downstream semantic cross-checks.
 
@@ -181,15 +183,15 @@ Semantic-Scholar + PubMed cascade, not just PubMed.
 Stage 4: Format (``FormatterModule``)
 -------------------------------------
 
-**Purpose:** render each ``CompletedEntry`` as a BibTeX string.
+**Purpose:** render each ``CompletedEntry`` as a BibTeX or CSL-JSON string.
 
 **Input:** ``List[CompletedEntry]`` and an ``output_format``.
 
 **Output:** a dict with ``results`` (list of formatted strings) and
 ``report`` (``total`` / ``succeeded`` / ``failed_entries``).
 
-Only ``"bibtex"`` is accepted; passing any other value raises
-``FormatError``.  The previous APA and MLA renderers were removed in
+``"bibtex"`` and ``"csl-json"`` are accepted; passing any other value raises
+``FormatError``. The previous APA and MLA renderers were removed in
 response to issues #31 and #32; for APA / MLA output, post-process the
 BibTeX file with pandoc or citeproc-py.
 
@@ -213,8 +215,7 @@ high-level ``process_references`` function:
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="journal_article_full",
-        output_format="bibtex",
-        interactive_callback=lambda candidates: -1
+        output_format="bibtex"
     )
 
     print('\n\n'.join(result['results']))
@@ -247,7 +248,7 @@ modules directly:
     formatter = FormatterModule()
 
     raw = parser.parse("10.1038/nature14539", "txt")
-    identified = identifier.identify(raw, interactive_callback=lambda c: 0)
+    identified = identifier.identify(raw)
     completed = enricher.enrich(identified, template, raw)
     result = formatter.format(completed, "bibtex")
 
@@ -258,12 +259,18 @@ Error Handling
 
 All pipeline errors inherit from ``OneCiteError``:
 
-- ``ValidationError`` — empty / malformed input
-- ``ParseError`` — ``ParserModule`` could not split the input
-- ``ResolverError`` — raised by helpers when a data source cannot
-  resolve an identifier; generally caught internally and recorded as
-  ``identification_failed`` on the entry instead of propagating
-- ``FormatError`` — the requested ``output_format`` is not ``"bibtex"``
+- ``ValidationError`` — the high-level call received empty input
+- ``ParseError`` — ``ParserModule`` rejected the input type or BibTeX content
+- ``ResolverError`` — retained for API compatibility, but ordinary resolution
+  misses in the current high-level pipeline are recorded in
+  ``report["failed_entries"]`` rather than raised
+- ``FormatError`` — the requested ``output_format`` is neither ``"bibtex"``
+  nor ``"csl-json"``
+
+Inspect the returned ``failed_entries`` even when no exception was raised. A
+reason such as ``no_strong_identifier`` is not a network error; it directs the
+entry to ``suggest``. See :doc:`exceptions` for the current exception/report
+boundary.
 
 .. code-block:: python
 
@@ -274,8 +281,7 @@ All pipeline errors inherit from ``OneCiteError``:
             input_content="",
             input_type="txt",
             template_name="journal_article_full",
-            output_format="bibtex",
-            interactive_callback=lambda c: 0,
+            output_format="bibtex"
         )
     except ValidationError:
         print("Empty input")
@@ -286,7 +292,6 @@ All pipeline errors inherit from ``OneCiteError``:
             input_type="txt",
             template_name="journal_article_full",
             output_format="apa",   # no longer supported
-            interactive_callback=lambda c: 0,
         )
     except FormatError as exc:
         print(exc)
@@ -294,7 +299,7 @@ All pipeline errors inherit from ``OneCiteError``:
 Testing Hooks
 =============
 
-Because ``onecite/pipeline/__init__.py`` imports ``requests`` at the
+Because ``src/onecite/pipeline/__init__.py`` imports ``requests`` at the
 package level, tests that mock the network can continue to use the
 original patch target:
 

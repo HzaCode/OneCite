@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Output Formats &mdash; OneCite 0.1.1 documentation</title>
+  <title>Output Formats &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="benchmarking.html">Benchmarking</a></li>
@@ -62,6 +63,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#format-specification">Format Specification</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#using-bibtex-format">Using BibTeX Format</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#integration-with-latex">Integration with LaTeX</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#csl-json-format">CSL-JSON Format</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#bibtex-entry-types">BibTeX Entry Types</a></li>
 </ul>
 </li>
@@ -73,7 +77,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -118,14 +122,14 @@
              
   <section id="output-formats">
 <h1>Output Formats<a class="headerlink" href="#output-formats" title="Link to this heading"></a></h1>
-<p>OneCite currently writes <strong>BibTeX only</strong>.  Earlier versions also advertised
-APA and MLA output, but those renderers produced inconsistent results and
-have been removed (see issues #31 and #32).  The CLI now rejects any
-<code class="docutils literal notranslate"><span class="pre">--output-format</span></code> other than <code class="docutils literal notranslate"><span class="pre">bibtex</span></code>.</p>
-<p>If you need APA or MLA output, run OneCite first to get a clean BibTeX
-file and then pipe it through a dedicated renderer such as
-<a class="reference external" href="https://pandoc.org/">pandoc</a>, <a class="reference external" href="https://github.com/brechtm/citeproc-py">citeproc-py</a>
-or <a class="reference external" href="https://www.lri.fr/~filliatr/bibtex2html/">bibtex2html</a>.</p>
+<p>OneCite writes <strong>BibTeX</strong> (the default) and <strong>CSL-JSON</strong>. Earlier versions
+also advertised APA and MLA output, but those renderers produced
+inconsistent results and have been removed (see issues #31 and #32). The
+CLI rejects any <code class="docutils literal notranslate"><span class="pre">--output-format</span></code> other than <code class="docutils literal notranslate"><span class="pre">bibtex</span></code> or <code class="docutils literal notranslate"><span class="pre">csl-json</span></code>.</p>
+<p>If you need styled output (APA, MLA, …), emit CSL-JSON and pipe it through
+a dedicated renderer such as <a class="reference external" href="https://pandoc.org/">pandoc</a> or
+<a class="reference external" href="https://github.com/brechtm/citeproc-py">citeproc-py</a> — these consume
+CSL-JSON directly.</p>
 <section id="bibtex-format">
 <h2>BibTeX Format<a class="headerlink" href="#bibtex-format" title="Link to this heading"></a></h2>
 <p>BibTeX is the standard format for LaTeX documents.</p>
@@ -159,8 +163,7 @@ or <a class="reference external" href="https://www.lri.fr/~filliatr/bibtex2html/
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="mi">0</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="k">for</span> <span class="n">citation</span> <span class="ow">in</span> <span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]:</span>
@@ -195,6 +198,43 @@ or <a class="reference external" href="https://www.lri.fr/~filliatr/bibtex2html/
 </li>
 </ol>
 </section>
+</section>
+<section id="csl-json-format">
+<h2>CSL-JSON Format<a class="headerlink" href="#csl-json-format" title="Link to this heading"></a></h2>
+<p>CSL-JSON is the interchange format consumed by pandoc, Quarto, citeproc,
+and reference-manager imports. The CLI emits one valid JSON array:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">onecite</span> <span class="n">process</span> <span class="n">references</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="nb">format</span> <span class="n">csl</span><span class="o">-</span><span class="n">json</span> <span class="o">-</span><span class="n">o</span> <span class="n">references</span><span class="o">.</span><span class="n">json</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;LeCun2015Deep&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;article-journal&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Deep learning&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;author&quot;</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">{</span><span class="s2">&quot;family&quot;</span><span class="p">:</span> <span class="s2">&quot;LeCun&quot;</span><span class="p">,</span> <span class="s2">&quot;given&quot;</span><span class="p">:</span> <span class="s2">&quot;Yann&quot;</span><span class="p">},</span>
+      <span class="p">{</span><span class="s2">&quot;family&quot;</span><span class="p">:</span> <span class="s2">&quot;Bengio&quot;</span><span class="p">,</span> <span class="s2">&quot;given&quot;</span><span class="p">:</span> <span class="s2">&quot;Yoshua&quot;</span><span class="p">},</span>
+      <span class="p">{</span><span class="s2">&quot;family&quot;</span><span class="p">:</span> <span class="s2">&quot;Hinton&quot;</span><span class="p">,</span> <span class="s2">&quot;given&quot;</span><span class="p">:</span> <span class="s2">&quot;Geoffrey&quot;</span><span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s2">&quot;container-title&quot;</span><span class="p">:</span> <span class="s2">&quot;Nature&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;issued&quot;</span><span class="p">:</span> <span class="p">{</span><span class="s2">&quot;date-parts&quot;</span><span class="p">:</span> <span class="p">[[</span><span class="mi">2015</span><span class="p">]]},</span>
+    <span class="s2">&quot;volume&quot;</span><span class="p">:</span> <span class="s2">&quot;521&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;issue&quot;</span><span class="p">:</span> <span class="s2">&quot;7553&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;page&quot;</span><span class="p">:</span> <span class="s2">&quot;436-444&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;DOI&quot;</span><span class="p">:</span> <span class="s2">&quot;10.1038/nature14539&quot;</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Values are plain Unicode (no LaTeX escapes). Author names are structured
+<code class="docutils literal notranslate"><span class="pre">family</span></code>/<code class="docutils literal notranslate"><span class="pre">given</span></code> pairs when the source metadata provides them;
+organization names stay as <code class="docutils literal notranslate"><span class="pre">literal</span></code> names rather than being guessed
+apart. In the Python API, <code class="docutils literal notranslate"><span class="pre">output_format=&quot;csl-json&quot;</span></code> returns one CSL
+item (a JSON object string) per entry in <code class="docutils literal notranslate"><span class="pre">results</span></code>.</p>
+<p>Use CSL-JSON with pandoc:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pandoc</span> <span class="n">paper</span><span class="o">.</span><span class="n">md</span> <span class="o">--</span><span class="n">citeproc</span> <span class="o">--</span><span class="n">bibliography</span> <span class="n">references</span><span class="o">.</span><span class="n">json</span> <span class="o">-</span><span class="n">o</span> <span class="n">paper</span><span class="o">.</span><span class="n">pdf</span>
+</pre></div>
+</div>
 <section id="bibtex-entry-types">
 <h3>BibTeX Entry Types<a class="headerlink" href="#bibtex-entry-types" title="Link to this heading"></a></h3>
 <p>Common entry types produced by OneCite:</p>

@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on `Keep a Changelog <https://keepachangelog.com/>`_, and this project adheres to `Semantic Versioning <https://semver.org/>`_.
 
+.. note::
+
+   The complete, canonical changelog is `CHANGELOG.md
+   <https://github.com/HzaCode/OneCite/blob/main/CHANGELOG.md>`_ in the
+   repository root. The unreleased section below is a selected documentation
+   summary and intentionally does not duplicate every development-only entry.
+
 Unreleased
 ----------
 
@@ -32,6 +39,22 @@ Added
 - ``onecite templates`` CLI command for listing bundled fallback BibTeX
   templates, including machine-readable ``--json`` output for tools
   that need to inspect available presets.
+- ``onecite benchmark --anti-hallucination``: a labelled, fully-offline
+  evaluation of OneCite's non-fabrication property (resolution rate on real
+  identifiers; non-fabrication rate on ambiguous text and fabricated DOIs;
+  mismatch detection rate on real DOIs paired with a different paper's
+  title), also exposed as ``onecite.run_anti_hallucination_eval()``.
+  Pipeline crashes are recorded as ``error`` and never count as correct.
+- Text/DOI consistency warning: when the descriptive text around a resolved
+  DOI clearly describes a different work, ``process`` still resolves from
+  the resolved DOI but attaches a non-blocking
+  ``text_metadata_mismatch`` warning, surfaced in the report, the
+  JSON/NDJSON envelopes, and the CLI summary.
+- Auditable failure reports: failed entries now carry the original input
+  text (``raw_text``) and a ``reason`` code so a safely rejected
+  identifier, an ambiguous reference, and an unavailable source can be
+  told apart; identification-stage failures are no longer mislabelled as
+  ``enrichment_failed``.
 
 Changed
 ~~~~~~~
@@ -45,7 +68,7 @@ Removed
 
 - ``onecite process`` no longer accepts ``--google-scholar``, and
   ``process_references()`` no longer accepts the ``use_google_scholar``
-  parameter (both were no-ops on the authoritative ``process`` path).
+  parameter (both were no-ops on the strong-identifier ``process`` path).
   Google Scholar remains an opt-in, best-effort fallback on
   ``onecite suggest --google-scholar``.
 - Removed the non-functional ``--interactive`` flag from ``onecite process``
@@ -58,6 +81,62 @@ Removed
 Fixed
 ~~~~~
 
+- The bundled DataCite and Zenodo fixtures used a dead Dryad DOI and a
+  fabricated Zenodo title, so ``benchmark --live`` failed on the real APIs
+  even though the offline run passed. Both now mirror real, long-lived
+  records, and the golden and anti-hallucination suites pass live; live
+  baseline records were added to ``benchmarks/``.
+- The test-suite mock responses are now derived from the bundled offline
+  fixtures instead of hand-maintaining a second drifting copy of the same
+  DOIs' metadata; consistency tests pin the derivation.
+- The documentation changelog no longer claims to be a complete mirror of
+  ``CHANGELOG.md``; the root file is the canonical, exhaustive release record.
+- ``process_references`` no longer requires the ``interactive_callback``
+  argument; it was never invoked by the strictly non-interactive pipeline
+  and is now optional, retained only for backward compatibility.
+- Google Books lookups now retry with backoff on HTTP 429/5xx instead of
+  failing the ISBN entry on the first rate-limit response.
+- ``onecite process --template`` now rejects unknown template names with
+  the list of valid presets instead of silently falling back to the
+  default template.
+- Explicitly labelled PMIDs embedded in citation text now resolve,
+  matching the long-standing behavior for DOIs embedded in text.
+- The arXiv suggestion source queries the ``https`` endpoint directly,
+  retries transient 429/5xx responses with a short backoff, and
+  truthfully discloses a still-throttled source as ``rate_limited``
+  instead of ``error``.
+- The test suite fails loudly on any unmocked network call from a
+  non-``live`` test; this exposed unit tests silently hitting live APIs
+  and cut the full-suite runtime from ~43s to ~6s.
+- Eliminated a duplicate CrossRef API call per DOI entry by reusing the
+  work object fetched during DOI verification for enrichment.
+- Cite-key generation is LaTeX-safe and crash-free: accented names are
+  ASCII-folded, CJK characters are dropped instead of emitted into
+  ``\cite{...}`` keys, and an integer year no longer raises
+  ``TypeError``.
+- CSL-JSON values strip *all* LaTeX case-protection braces instead of
+  mangling inner ones, and BibTeX ``--`` page ranges are normalized to
+  plain ``-``.
+- An unwritable ``--output`` path no longer discards computed results:
+  ``process`` and ``suggest`` emit the output to stdout with a clear
+  error on stderr and exit ``1``.
+- ``onecite doctor`` verifies the bundled anti-hallucination dataset as
+  part of the ``benchmark_resources`` check.
+- Removed the undocumented ``sugget`` CLI alias (a development-time typo
+  for ``suggest``).
+- ``onecite suggest --input-type bib`` no longer sends a Python dict repr
+  as the search query when a BibTeX entry carries a DOI; the query is
+  always built from the structured title/author/year fields.
+- OneCite's own BibTeX output survives re-processing through
+  ``--input-type bib`` byte-identically for all entry kinds: bibtexparser
+  no longer drops the non-standard ``@software`` type, and a non-empty
+  BibTeX file parsing to zero entries raises a loud ``ParseError``
+  instead of an empty success.
+- The Sphinx documentation builds with zero warnings and the docs CI
+  build runs with ``-W`` so new warnings fail the build.
+- The mypy configuration declared in ``pyproject.toml`` is now enforced
+  in CI; fixing the 70 outstanding errors closed several latent crash
+  paths in HTTP error handling and metadata access.
 - Corrected the benchmark Nature DQN DOI fixture from
   ``10.1038/nature14539`` to ``10.1038/nature14236``, and added
   regression coverage to catch future DOI-title-author mismatches in
@@ -249,7 +328,7 @@ Added
 - Test suite
 
 Changed
-~~~~~
+~~~~~~~
 
 - Refactored core processing pipeline
 - Reordered data source priority (CrossRef first for DOI queries)
@@ -273,7 +352,7 @@ Added
 - Support for journal articles and conference papers
 
 Changed
-~~~~~
+~~~~~~~
 
 - Better title matching for fuzzy searches
 
@@ -296,15 +375,17 @@ From 0.0.10 to 0.0.11
 
 **Breaking Changes:** None
 
-**New Features:**
+**Historical features:**
 
-- Custom template support - create YAML templates for custom formats
-- APA and MLA formats - use ``--output-format apa`` or ``--output-format mla``
-- Interactive mode - use ``--interactive`` flag for ambiguous references
+- Custom template support introduced YAML fallback presets.
+- Experimental APA/MLA output and ``process --interactive`` were removed in
+  later releases. Current outputs are BibTeX and CSL-JSON; ambiguous
+  references should be handled with ``onecite suggest``.
 
 **Migration:**
 
-No migration needed. All existing functionality is backward compatible. New features are opt-in.
+For current releases, replace historical APA/MLA output with downstream
+formatting and replace ``process --interactive`` with ``onecite suggest``.
 
 Version History
 ===============

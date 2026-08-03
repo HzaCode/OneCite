@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Exceptions Reference &mdash; OneCite 0.1.1 documentation</title>
+  <title>Exceptions and Per-Entry Failures &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../benchmarking.html">Benchmarking</a></li>
@@ -62,22 +63,21 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core API Reference</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Exceptions Reference</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Exceptions and Per-Entry Failures</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#exception-hierarchy">Exception Hierarchy</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#exception-hierarchy">Exception hierarchy</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#oneciteerror">OneCiteError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#validationerror">ValidationError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#parseerror">ParseError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#resolvererror">ResolverError</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#error-handling">Error Handling</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#handling-all-exceptions">Handling All Exceptions</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#batch-processing-with-error-recovery">Batch Processing with Error Recovery</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best Practices</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next Steps</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#oneciteerror"><code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validationerror"><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#parseerror"><code class="docutils literal notranslate"><span class="pre">ParseError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#formaterror"><code class="docutils literal notranslate"><span class="pre">FormatError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#resolvererror"><code class="docutils literal notranslate"><span class="pre">ResolverError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#dataimporterror-and-exporterror"><code class="docutils literal notranslate"><span class="pre">DataImportError</span></code> and <code class="docutils literal notranslate"><span class="pre">ExportError</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="#inspecting-resolution-failures">Inspecting resolution failures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#batch-handling">Batch handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#best-practices">Best practices</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#next-steps">Next steps</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="pipeline.html">Pipeline Processing Reference</a></li>
@@ -112,7 +112,7 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">Exceptions Reference</li>
+      <li class="breadcrumb-item active">Exceptions and Per-Entry Failures</li>
       <li class="wy-breadcrumbs-aside">
             <a href="../_sources/api/exceptions.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -122,235 +122,174 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="exceptions-reference">
-<h1>Exceptions Reference<a class="headerlink" href="#exceptions-reference" title="Link to this heading"></a></h1>
+  <section id="exceptions-and-per-entry-failures">
+<h1>Exceptions and Per-Entry Failures<a class="headerlink" href="#exceptions-and-per-entry-failures" title="Link to this heading"></a></h1>
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
-<p>OneCite provides a hierarchy of custom exceptions for different error scenarios. All exceptions inherit from <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code>.</p>
+<p>OneCite defines custom exceptions for invalid calls and malformed input. Normal
+identifier-resolution failure is different: the high-level processing pipeline
+usually records it in <code class="docutils literal notranslate"><span class="pre">report[&quot;failed_entries&quot;]</span></code> and continues instead of
+raising an exception.</p>
 <section id="exception-hierarchy">
-<h3>Exception Hierarchy<a class="headerlink" href="#exception-hierarchy" title="Link to this heading"></a></h3>
+<h3>Exception hierarchy<a class="headerlink" href="#exception-hierarchy" title="Link to this heading"></a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>Exception
 └── OneCiteError
     ├── ValidationError
     ├── ParseError
-    └── ResolverError
+    ├── ResolverError
+    ├── FormatError
+    ├── DataImportError
+    └── ExportError
 </pre></div>
 </div>
 </section>
 </section>
 <section id="oneciteerror">
-<h2>OneCiteError<a class="headerlink" href="#oneciteerror" title="Link to this heading"></a></h2>
-<p>Base exception for all OneCite errors.</p>
-<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">Exception</span></code></p>
-<p><strong>Usage:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">OneCiteError</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="c1"># OneCite operation</span>
-    <span class="k">pass</span>
-<span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;OneCite error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<h2><code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code><a class="headerlink" href="#oneciteerror" title="Link to this heading"></a></h2>
+<p>Base class for OneCite’s custom exceptions. Catch it only after the more
+specific exception types relevant to the call.</p>
 </section>
 <section id="validationerror">
-<h2>ValidationError<a class="headerlink" href="#validationerror" title="Link to this heading"></a></h2>
-<p>Raised when entry validation fails.</p>
-<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></p>
-<p><strong>Common Causes:</strong></p>
-<ul class="simple">
-<li><p>Empty or null input</p></li>
-<li><p>Missing required fields</p></li>
-<li><p>Invalid data format</p></li>
-<li><p>Malformed identifiers</p></li>
-</ul>
-<p><strong>Example:</strong></p>
+<h2><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code><a class="headerlink" href="#validationerror" title="Link to this heading"></a></h2>
+<p>The public <code class="docutils literal notranslate"><span class="pre">process_references</span></code> and <code class="docutils literal notranslate"><span class="pre">suggest_references</span></code> functions raise
+<code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> when <code class="docutils literal notranslate"><span class="pre">input_content</span></code> is empty or whitespace-only.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ValidationError</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>  <span class="c1"># Empty input</span>
-        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
+    <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
     <span class="p">)</span>
-<span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Validation error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Invalid call: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p><strong>Handling:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Invalid reference format&quot;</span><span class="p">)</span>
-    <span class="c1"># Provide user feedback or skip this entry</span>
-    <span class="k">continue</span>
+<p>A syntactically plausible but nonexistent DOI is not an exception at this
+level. It is a per-entry failure such as <code class="docutils literal notranslate"><span class="pre">doi_not_found</span></code>.</p>
+</section>
+<section id="parseerror">
+<h2><code class="docutils literal notranslate"><span class="pre">ParseError</span></code><a class="headerlink" href="#parseerror" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ParseError</span></code> is raised when the parser cannot interpret the requested input
+type. Current examples include an unsupported <code class="docutils literal notranslate"><span class="pre">input_type</span></code> and malformed,
+empty, or duplicate-field BibTeX input.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">ParseError</span><span class="p">,</span> <span class="n">process_references</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;@article{broken syntax&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+<span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Could not parse BibTeX: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
-<section id="parseerror">
-<h2>ParseError<a class="headerlink" href="#parseerror" title="Link to this heading"></a></h2>
-<p>Raised when parsing input fails.</p>
-<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></p>
-<p><strong>Common Causes:</strong></p>
-<ul class="simple">
-<li><p>Invalid BibTeX syntax</p></li>
-<li><p>Unrecognized file format</p></li>
-<li><p>Corrupted data</p></li>
-<li><p>Incompatible encoding</p></li>
-</ul>
-<p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ParseError</span>
+<section id="formaterror">
+<h2><code class="docutils literal notranslate"><span class="pre">FormatError</span></code><a class="headerlink" href="#formaterror" title="Link to this heading"></a></h2>
+<p>The formatter raises <code class="docutils literal notranslate"><span class="pre">FormatError</span></code> for an unsupported output format or a
+serialization failure. The command-line parser rejects unsupported choices
+before the pipeline; the Python API exposes the exception directly.</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">FormatError</span><span class="p">,</span> <span class="n">process_references</span>
 
 <span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;@article{broken syntax&quot;</span><span class="p">,</span>
-        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span>
+    <span class="n">process_references</span><span class="p">(</span>
+        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
+        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+        <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>  <span class="c1"># supported values: bibtex, csl-json</span>
     <span class="p">)</span>
-<span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Parse error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Handling:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;bib&quot;</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">ParseError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed to parse BibTeX file&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Ensure the file is valid BibTeX format&quot;</span><span class="p">)</span>
+<span class="k">except</span> <span class="n">FormatError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Unsupported output: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="resolvererror">
-<h2>ResolverError<a class="headerlink" href="#resolvererror" title="Link to this heading"></a></h2>
-<p>Raised when data source resolution fails.</p>
-<p><strong>Inheritance:</strong> <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code></p>
-<p><strong>Common Causes:</strong></p>
-<ul class="simple">
-<li><p>Network connectivity issues</p></li>
-<li><p>Data source unavailable</p></li>
-<li><p>API rate limiting</p></li>
-<li><p>Invalid identifier</p></li>
-<li><p>No matches found</p></li>
-</ul>
-<p><strong>Example:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ResolverError</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
-        <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.invalid/doi&quot;</span><span class="p">,</span>
-        <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span>
-    <span class="p">)</span>
-<span class="k">except</span> <span class="n">ResolverError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Resolver error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p><strong>Handling:</strong></p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="k">try</span><span class="p">:</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
-<span class="k">except</span> <span class="n">ResolverError</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Could not find the reference in data sources&quot;</span><span class="p">)</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Check your internet connection or try again later&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<h2><code class="docutils literal notranslate"><span class="pre">ResolverError</span></code><a class="headerlink" href="#resolvererror" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">ResolverError</span></code> remains part of the public exception hierarchy, but the
+current <code class="docutils literal notranslate"><span class="pre">process_references</span></code> path does not raise it for ordinary lookup
+misses, unavailable sources, ambiguous references, or rate limiting. Those
+conditions are caught within the pipeline and returned as per-entry failures.
+Do not write code that relies on catching <code class="docutils literal notranslate"><span class="pre">ResolverError</span></code> to detect an
+unresolved citation.</p>
 </section>
-<section id="error-handling">
-<h2>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h2>
-<section id="handling-all-exceptions">
-<h3>Handling All Exceptions<a class="headerlink" href="#handling-all-exceptions" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
-    <span class="n">process_references</span><span class="p">,</span>
-    <span class="n">OneCiteError</span><span class="p">,</span>
-    <span class="n">ValidationError</span><span class="p">,</span>
-    <span class="n">ParseError</span><span class="p">,</span>
-    <span class="n">ResolverError</span>
-<span class="p">)</span>
+<section id="dataimporterror-and-exporterror">
+<h2><code class="docutils literal notranslate"><span class="pre">DataImportError</span></code> and <code class="docutils literal notranslate"><span class="pre">ExportError</span></code><a class="headerlink" href="#dataimporterror-and-exporterror" title="Link to this heading"></a></h2>
+<p>These exception types remain available for API compatibility. The current
+<code class="docutils literal notranslate"><span class="pre">process_references</span></code> / <code class="docutils literal notranslate"><span class="pre">suggest_references</span></code> paths do not raise them.</p>
+</section>
+<section id="inspecting-resolution-failures">
+<h2>Inspecting resolution failures<a class="headerlink" href="#inspecting-resolution-failures" title="Link to this heading"></a></h2>
+<p>Inspect the returned report even when the function call itself succeeded:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">OneCiteError</span><span class="p">,</span> <span class="n">process_references</span>
 
-<span class="k">def</span><span class="w"> </span><span class="nf">process_safely</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">process_safely</span><span class="p">(</span><span class="n">content</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span>
             <span class="n">input_content</span><span class="o">=</span><span class="n">content</span><span class="p">,</span>
-            <span class="n">input_type</span><span class="o">=</span><span class="n">input_type</span>
+            <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
+            <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
+            <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
         <span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span>
-    <span class="k">except</span> <span class="n">ValidationError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Validation failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">except</span> <span class="n">ParseError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Parse failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">except</span> <span class="n">ResolverError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Resolver failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
-    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;❌ Unexpected error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="kc">None</span>
+    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;call_error&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="p">),</span> <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;call_error&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="s2">&quot;result&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">,</span>
+        <span class="s2">&quot;failed_entries&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;report&quot;</span><span class="p">][</span><span class="s2">&quot;failed_entries&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;warnings&quot;</span><span class="p">:</span> <span class="n">result</span><span class="p">[</span><span class="s2">&quot;report&quot;</span><span class="p">][</span><span class="s2">&quot;warnings&quot;</span><span class="p">],</span>
+    <span class="p">}</span>
 </pre></div>
 </div>
+<p>Important per-entry reason codes include:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">doi_not_found</span></code> — Crossref returned <code class="docutils literal notranslate"><span class="pre">404</span></code> and the DataCite fallback did
+not return a record. The current fallback does not distinguish every DataCite
+miss from every caught DataCite request error, so this reason alone is not
+definitive proof that the DOI does not exist;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">source_error</span></code> — Crossref verification failed outside the <code class="docutils literal notranslate"><span class="pre">404</span></code> fallback
+path or returned an inconsistent DOI identity;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">no_strong_identifier</span></code> — ordinary ambiguous text belongs in <code class="docutils literal notranslate"><span class="pre">suggest</span></code>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pmid_unresolved</span></code> or <code class="docutils literal notranslate"><span class="pre">isbn_unresolved</span></code> — that identifier route returned
+no usable record; these routes also collapse some provider errors into the
+same reason; and</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">metadata_unavailable</span></code> / <code class="docutils literal notranslate"><span class="pre">enrichment_error</span></code> — identification succeeded
+but enrichment did not produce a completed record.</p></li>
+</ul>
+<p>The reason taxonomy is operational evidence, not a complete provider trace.
+For network/privacy behavior and <code class="docutils literal notranslate"><span class="pre">suggest</span></code> source-health coverage, see
+<a class="reference internal" href="../external_services.html"><span class="doc">Privacy and External Services</span></a>.</p>
 </section>
-<section id="batch-processing-with-error-recovery">
-<h3>Batch Processing with Error Recovery<a class="headerlink" href="#batch-processing-with-error-recovery" title="Link to this heading"></a></h3>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">OneCiteError</span>
-
-<span class="n">references</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;invalid/doi&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Vaswani et al., 2017&quot;</span>
-<span class="p">]</span>
-
-<span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="n">errors</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="k">for</span> <span class="n">ref</span> <span class="ow">in</span> <span class="n">references</span><span class="p">:</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">ref</span><span class="p">)</span>
-        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">errors</span><span class="o">.</span><span class="n">append</span><span class="p">({</span>
-            <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">ref</span><span class="p">,</span>
-            <span class="s1">&#39;error&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
-        <span class="p">})</span>
-
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-
-<span class="k">if</span> <span class="n">errors</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">Errors:&quot;</span><span class="p">)</span>
-    <span class="k">for</span> <span class="n">err</span> <span class="ow">in</span> <span class="n">errors</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;  - </span><span class="si">{</span><span class="n">err</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">err</span><span class="p">[</span><span class="s1">&#39;error&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-</section>
+<section id="batch-handling">
+<h2>Batch handling<a class="headerlink" href="#batch-handling" title="Link to this heading"></a></h2>
+<p>One call can contain multiple blank-line-separated entries. The pipeline keeps
+completed results and reports unresolved entries in the same response. At the
+CLI, combine <code class="docutils literal notranslate"><span class="pre">--json</span></code> with <code class="docutils literal notranslate"><span class="pre">--fail-on-unresolved</span></code> when automation needs
+both the report and exit code <code class="docutils literal notranslate"><span class="pre">2</span></code> for a partial failure.</p>
 </section>
 <section id="best-practices">
-<h2>Best Practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
+<h2>Best practices<a class="headerlink" href="#best-practices" title="Link to this heading"></a></h2>
 <ol class="arabic simple">
-<li><p><strong>Be Specific</strong> - Catch specific exceptions rather than generic Exception</p></li>
-<li><p><strong>Log Errors</strong> - Record error details for debugging</p></li>
-<li><p><strong>Provide Feedback</strong> - Give users clear feedback on what went wrong</p></li>
-<li><p><strong>Retry on Resolver Errors</strong> - Network issues may be temporary</p></li>
-<li><p><strong>Validate Input</strong> - Pre-validate input to catch ValidationErrors early</p></li>
+<li><p>Catch <code class="docutils literal notranslate"><span class="pre">ValidationError</span></code>, <code class="docutils literal notranslate"><span class="pre">ParseError</span></code>, and <code class="docutils literal notranslate"><span class="pre">FormatError</span></code> for invalid
+calls or malformed input.</p></li>
+<li><p>Always inspect <code class="docutils literal notranslate"><span class="pre">failed_entries</span></code> and <code class="docutils literal notranslate"><span class="pre">warnings</span></code> after a successful call.</p></li>
+<li><p>Treat <code class="docutils literal notranslate"><span class="pre">source_error</span></code> as potentially retryable, but do not assume every
+other reason is a network problem.</p></li>
+<li><p>Use <code class="docutils literal notranslate"><span class="pre">suggest</span></code> for ordinary title/author queries; do not retry them through
+<code class="docutils literal notranslate"><span class="pre">process</span></code> expecting fuzzy acceptance.</p></li>
+<li><p>Follow provider guidance before retrying throttled bulk jobs.</p></li>
 </ol>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">OneCiteError</span>
-
-<span class="n">logging</span><span class="o">.</span><span class="n">basicConfig</span><span class="p">(</span><span class="n">level</span><span class="o">=</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">)</span>
-<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
-
-<span class="k">def</span><span class="w"> </span><span class="nf">process_with_logging</span><span class="p">(</span><span class="n">reference</span><span class="p">):</span>
-    <span class="k">try</span><span class="p">:</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="n">process_references</span><span class="p">(</span><span class="n">reference</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Successfully processed: </span><span class="si">{</span><span class="n">reference</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span>
-    <span class="k">except</span> <span class="n">OneCiteError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error processing </span><span class="si">{</span><span class="n">reference</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">raise</span>
-</pre></div>
-</div>
 </section>
 <section id="next-steps">
-<h2>Next Steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
+<h2>Next steps<a class="headerlink" href="#next-steps" title="Link to this heading"></a></h2>
 <ul class="simple">
-<li><p>See <a class="reference internal" href="core.html"><span class="doc">Core API Reference</span></a> for core API reference</p></li>
-<li><p>Check <a class="reference internal" href="../python_api.html"><span class="doc">Python API Reference</span></a> for usage examples</p></li>
-<li><p>Review <a class="reference internal" href="../faq.html"><span class="doc">Frequently Asked Questions (FAQ)</span></a> for error handling patterns</p></li>
+<li><p>See <a class="reference internal" href="core.html"><span class="doc">Core API Reference</span></a> for the function signatures.</p></li>
+<li><p>Check <a class="reference internal" href="../python_api.html"><span class="doc">Python API Reference</span></a> for usage examples.</p></li>
+<li><p>Review <a class="reference internal" href="../external_services.html"><span class="doc">Privacy and External Services</span></a> for external-service boundaries.</p></li>
 </ul>
 </section>
 </section>

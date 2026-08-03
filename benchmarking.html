@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Benchmarking &mdash; OneCite 0.1.1 documentation</title>
+  <title>Benchmarking &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="_static/documentation_options.js?v=938c9ccc"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="templates.html">Custom Templates</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Benchmarking</a><ul>
@@ -59,6 +60,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#suite-format">Suite Format</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#what-a-passing-run-means">What a Passing Run Means</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#bundled-coverage">Bundled Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#anti-hallucination-evaluation">Anti-Hallucination Evaluation</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="cli_contracts.html">CLI Contracts</a></li>
@@ -68,7 +70,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="api/core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html">Pipeline Processing Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#pipeline-stages">Pipeline Stages</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/pipeline.html#complete-pipeline">Complete Pipeline</a></li>
@@ -210,6 +212,35 @@ accuracy. It currently covers:</p>
 <li><p>Zenodo and DataCite DOI paths as dataset citations.</p></li>
 <li><p>Mixed valid/invalid batches where unresolved entries must be reported.</p></li>
 </ul>
+</section>
+<section id="anti-hallucination-evaluation">
+<h2>Anti-Hallucination Evaluation<a class="headerlink" href="#anti-hallucination-evaluation" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">benchmark</span> <span class="pre">--anti-hallucination</span></code> runs a separate, labelled,
+fully-offline evaluation of OneCite’s covered safety contract for AI-assisted
+workflows: <code class="docutils literal notranslate"><span class="pre">process</span></code> resolves fixture-backed strong identifiers and does not
+emit citations for the bundled ambiguous or non-existent inputs. The dataset
+(<code class="docutils literal notranslate"><span class="pre">src/onecite/benchmarks/anti_hallucination_cases.json</span></code>) labels each input into
+one of four classes:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">A_strong_identifier</span></code> — a real DOI / PMID / arXiv id / repository URL,
+expected to <strong>resolve</strong> into a source-resolved entry;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">B_ambiguous_text</span></code> — a plain-text title or snippet, expected to stay
+<strong>unresolved</strong> (these belong to <code class="docutils literal notranslate"><span class="pre">onecite</span> <span class="pre">suggest</span></code>);</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">C_fabricated_identifier</span></code> — a syntactically valid but non-existent DOI of
+the kind a language model may hallucinate, expected to be <strong>rejected</strong>;</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">D_mismatched_pairing</span></code> — a real DOI paired with a <em>different</em> work’s
+title (the most common hallucinated-citation shape), expected to <strong>resolve</strong>
+from the supplied DOI <strong>with</strong> a <code class="docutils literal notranslate"><span class="pre">text_metadata_mismatch</span></code> warning
+attached, reported as the <em>mismatch detection rate</em>.</p></li>
+</ul>
+<p>The report exposes three metrics: the <em>resolution rate</em> over class A, the
+<em>non-fabrication rate</em> over classes B and C — the fraction of
+ambiguous or fabricated inputs that OneCite correctly left unresolved instead
+of emitting a wrong citation — and the <em>mismatch detection rate</em> over class D.
+A pipeline crash is recorded as <code class="docutils literal notranslate"><span class="pre">error</span></code> and never counts as correct — a clean
+rejection and a broken pipeline are different outcomes. The suite is a small
+regression fixture, not a population estimate. It is also available from Python
+via <code class="docutils literal notranslate"><span class="pre">onecite.run_anti_hallucination_eval()</span></code>.</p>
 </section>
 </section>
 

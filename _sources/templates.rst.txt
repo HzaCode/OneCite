@@ -25,7 +25,7 @@ as deprecated.
 Default Templates Location
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Built-in templates are located in the ``onecite/templates/`` directory:
+Built-in templates are located in the ``src/onecite/templates/`` directory:
 
 - ``journal_article_full.yaml``
 - ``journal_article_with_abstract.yaml`` *(deprecated alias of the above)*
@@ -52,9 +52,10 @@ What Templates Actually Do
 
 OneCite templates define **metadata field requirements**, not output formatting.
 
-Output formatting (BibTeX) is implemented in the Python code, not in the YAML templates.
+Output formatting (BibTeX or CSL-JSON) is implemented in the Python code, not
+in the YAML templates.
 
-Templates control:
+Templates declare:
 
 1. **Which fields** are required or optional for a citation type
 2. **BibTeX entry type** (e.g., @article, @book, @inproceedings)
@@ -62,7 +63,7 @@ Templates control:
 
 Templates DO NOT control:
 
-- Output format style (BibTeX formatting)
+- Serialized output format or style (BibTeX/CSL-JSON formatting)
 - Field ordering in the output
 - Punctuation or capitalization rules
 
@@ -137,7 +138,8 @@ Some citation types are automatically detected and enriched during identificatio
 
 - **Software:** GitHub repositories via GitHub API
 - **Dataset:** Zenodo/Figshare via their APIs
-- **Thesis:** Via external providerRE/BASE APIs
+- **Thesis:** Via OpenAIRE/BASE APIs, with an input-derived fallback when no
+  provider record is returned
 - **Books:** Via Google Books API
 
 Example Templates
@@ -223,7 +225,7 @@ Creating Custom Templates
 
 To create a custom template:
 
-1. Create a new YAML file in ``onecite/templates/``
+1. Create a new YAML file in ``src/onecite/templates/``
 2. Define the name, entry_type, and fields
 3. Specify required fields and source priorities
 4. Use the template by its name (without .yaml extension)
@@ -262,8 +264,7 @@ Python API::
         input_content="10.1038/nature14539",
         input_type="txt",
         template_name="minimal_article",  # Your custom template
-        output_format="bibtex",
-        interactive_callback=lambda candidates: 0
+        output_format="bibtex"
     )
     
     print('\n\n'.join(result['results']))
@@ -290,13 +291,15 @@ You can load and inspect templates programmatically::
 Output Format Control
 ---------------------
 
-OneCite currently writes BibTeX only.  The ``--output-format`` option exists
-for forward compatibility but accepts ``bibtex`` as the sole value::
+OneCite writes BibTeX or CSL-JSON. The template does not select between them;
+use ``--output-format``::
 
     onecite process refs.txt --output-format bibtex
+    onecite process refs.txt --output-format csl-json -o refs.json
 
-The template only affects which fields are collected and from where, not how
-they are formatted in the final output.
+The template supplies field declarations and a fallback entry type. It does
+not control the serialized output format or trigger broad multi-source field
+completion.
 
 Best Practices
 --------------
@@ -338,7 +341,7 @@ Template Not Found
 
 If you get "template not found" error:
 
-1. Check the template file is in ``onecite/templates/`` directory
+1. Check the template file is in ``src/onecite/templates/`` directory
 2. Verify the filename matches (e.g., ``my_template.yaml``)
 3. Use the template name without ``.yaml`` extension
 4. Ensure YAML syntax is valid
@@ -379,4 +382,4 @@ Next Steps
 - See :doc:`quick_start` for basic usage
 - Learn :doc:`python_api` for programmatic access
 - Check :doc:`advanced_usage` for complex scenarios
-- View the ``onecite/templates/`` directory for more examples
+- View the ``src/onecite/templates/`` directory for more examples

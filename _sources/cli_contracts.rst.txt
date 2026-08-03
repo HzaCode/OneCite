@@ -15,15 +15,26 @@ Process JSON
 - ``tool`` and ``command``: ``"onecite"`` and ``"process"``.
 - ``status``: ``"passed"`` when all entries resolved, otherwise
   ``"failed"``.
-- ``summary``: total, succeeded, failed, and success rate.
+- ``summary``: total, succeeded, failed, duplicates, and success rate
+  (duplicates count as resolved for the success rate).
 - ``options``: the effective CLI options that affect processing.
-- ``failed_entries``: unresolved entries with their error payloads.
-- ``results``: formatted BibTeX strings.
+- ``failed_entries``: unresolved entries with their error payloads; each
+  carries the original input excerpt (``raw_text``) and a ``reason`` code
+  (e.g. ``doi_not_found``, ``no_strong_identifier``, ``source_error``).
+  Reasons distinguish several important paths, but are not a complete provider
+  trace: some DataCite, PMID, and ISBN provider errors currently collapse into
+  the same unresolved reason as a lookup miss. See :doc:`external_services`.
+- ``warnings``: non-blocking review warnings attached to resolved entries,
+  e.g. ``text_metadata_mismatch`` when the input text appears to describe
+  a different work than the resolved DOI.
+- ``duplicates``: entries whose DOI already resolved earlier in the batch;
+  each points at the emitted entry (``duplicate_of``, ``bib_key``).
+- ``results``: formatted citation strings, one per unique resolved work (BibTeX entries, or CSL-JSON item objects when ``--output-format csl-json`` is used; the plain-text CLI output then assembles them into one valid JSON array).
 
 The current top-level contract is exactly ``schema_version``, ``tool``,
 ``command``, ``status``, ``summary``, ``options``, ``failed_entries``,
-and ``results``. Additive fields should be treated as a contract change
-and covered by tests.
+``warnings``, ``duplicates``, and ``results``. Additive fields should be
+treated as a contract change and covered by tests.
 
 Use ``--fail-on-unresolved`` when unresolved entries should make the
 process exit with code ``2``.
@@ -39,7 +50,9 @@ Process NDJSON
 ``onecite process INPUT --ndjson`` emits newline-delimited JSON events:
 
 - ``summary``: one event containing status, summary, and options.
-- ``result``: one event per formatted BibTeX result.
+- ``result``: one event per formatted BibTeX or CSL-JSON result.
+- ``warning``: one event per non-blocking review warning.
+- ``duplicate``: one event per repeated-DOI entry.
 - ``failure``: one event per unresolved entry.
 
 This mode is intended for streaming automation workflows that want partial
@@ -69,7 +82,13 @@ The envelope contains:
 - ``options``: input type, per-entry limit, and whether Google Scholar was
   enabled.
 - ``suggestions``: one item per input entry with raw text, query string,
-  status, and a candidate list.
+  status, a candidate list, and a ``sources`` list disclosing the health of
+  the always-consulted scholarly indexes (``crossref``,
+  ``semantic_scholar``, ``arxiv``) with per-source candidate counts. When a source was
+  rate-limited or errored, the entry status becomes
+  ``candidates_found_incomplete`` / ``no_candidates_incomplete`` — the
+  candidate list may be missing the correct match and must not be treated
+  as exhaustive.
 
 The current top-level contract is exactly ``schema_version``, ``tool``,
 ``command``, ``status``, ``summary``, ``options``, and ``suggestions``.

@@ -4,16 +4,18 @@ Advanced Usage
 Reviewing Candidates for Ambiguous References
 ---------------------------------------------
 
-``onecite process`` only resolves strong identifiers (DOI, PMID, arXiv ID,
-ISBN, URLs) and never guesses from an ambiguous plain-text reference. To
-inspect candidate matches for a messy or incomplete reference, use
-``onecite suggest``::
+``onecite process`` generally resolves supported identifiers (DOI, PMID,
+arXiv ID, ISBN, and URLs) and never fuzzy-matches an ordinary ambiguous
+plain-text reference. Explicitly labelled thesis/dissertation citations are a
+documented exception: they use the OpenAIRE/BASE route and can fall back to
+fields parsed from the input. To inspect candidate matches for any other messy
+or incomplete reference, use ``onecite suggest``::
 
     onecite suggest "deep learning hinton 2015"
 
 Candidates are returned for human review (with match scores and sources) and
-are not emitted as verified BibTeX. Add ``--json`` for a machine-readable
-envelope.
+are not promoted to source-resolved bibliography output. Add ``--json`` for a
+machine-readable envelope.
 
 Batch Processing Multiple Files
 --------------------------------
@@ -27,26 +29,40 @@ Process multiple files sequentially::
 Working with Different Data Sources
 ------------------------------------
 
-OneCite queries multiple data sources (CrossRef, PubMed, arXiv, Semantic Scholar, Google Books, and others) and selects the best match. All sources are tried for every reference — you do not need to configure routing manually::
+Routing depends on the input; OneCite does **not** query every source for every
+reference. For example, a DOI goes to Crossref and conditional fallbacks, a
+PMID goes to NCBI, an ISBN-bearing entry goes to Google Books, and an arXiv ID
+goes to arXiv. ``suggest`` is broader: Crossref, Semantic Scholar, and arXiv
+are consulted for each usable query, with PubMed, Google Books, OpenAIRE/BASE,
+and Google Scholar used only under documented conditions::
 
     onecite process references.txt
+
+These are outbound requests. See :doc:`external_services` before using
+confidential or embargoed input; that page lists what each route sends and
+which source-health signals are (and are not) available.
 
 Custom Templates
 ----------------
 
-OneCite uses YAML-based templates for output formatting. See :doc:`templates` for detailed information.
+OneCite uses YAML-based templates to declare fields and supply fallback entry
+types. Templates do not select the serialized output format. See
+:doc:`templates` for details.
 
 Working with Large Reference Lists
 -----------------------------------
 
-For large files (100+ entries), use quiet mode to improve performance::
+OneCite processes entries sequentially. ``--quiet`` suppresses logging but
+does not make network calls faster. Use it when concise output is useful::
 
     onecite process large_file.txt --quiet -o output.bib
 
 Memory-Efficient Processing
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-OneCite processes references sequentially, so it should handle files with thousands of entries. If you encounter memory issues, split your input file:
+For long jobs, split input into recoverable chunks and retain the JSON report.
+Choose chunk size based on the selected routes and provider behavior rather
+than a fixed reference-count rule:
 
 ::
 
@@ -64,7 +80,11 @@ Error Handling and Recovery
 Handling Failed Entries
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-If OneCite cannot process a reference, it will skip it and continue. Check the output for warnings.
+If OneCite cannot resolve an entry, it reports that entry and continues. Use
+JSON plus the strict exit-code option to distinguish unresolved identifiers,
+ambiguous text, and source errors::
+
+    onecite process references.txt --json --fail-on-unresolved
 
 **To debug specific entries**, process them individually::
 
@@ -111,6 +131,7 @@ For advanced Python usage, see :doc:`python_api`.
 Next Steps
 ----------
 
-- Explore :doc:`templates` for custom output formats
+- Explore :doc:`templates` for field declarations and fallback entry types
+- Review :doc:`external_services` for network, privacy, and reproducibility boundaries
 - Check :doc:`api/core` for complete API reference
 - See :doc:`faq` for common questions

@@ -1,5 +1,5 @@
-OneCite - Citation & Academic Reference Toolkit
-=================================================
+OneCite - Auditable Citation Normalization
+============================================
 
 .. image:: https://img.shields.io/pypi/v/onecite?color=306998&logo=pypi&style=flat-square
    :target: https://pypi.org/project/onecite/
@@ -13,7 +13,11 @@ OneCite - Citation & Academic Reference Toolkit
    :target: https://github.com/HzaCode/OneCite/blob/main/LICENSE
    :alt: License
 
-**OneCite** is a command-line tool and Python library for citation management. It resolves strong identifiers such as DOIs, PMIDs, arXiv IDs, ISBNs, GitHub URLs, and data DOIs into formatted bibliographic entries. Plain-text title searches are handled by ``onecite suggest`` as candidate suggestions.
+**OneCite** is a command-line tool and Python library for auditable citation
+normalization. It routes strong identifiers such as DOIs, PMIDs, arXiv IDs,
+ISBNs, GitHub URLs, and data DOIs to applicable metadata services. Ordinary
+plain-text title searches are handled by ``onecite suggest`` as candidates for
+review; explicitly labelled thesis citations have a separate documented route.
 
 .. toctree::
    :maxdepth: 2
@@ -28,6 +32,7 @@ OneCite - Citation & Academic Reference Toolkit
    :caption: User Guides
 
    advanced_usage
+   external_services
    python_api
    templates
    benchmarking
@@ -54,8 +59,8 @@ OneCite - Citation & Academic Reference Toolkit
 Key Features
 ============
 
-- **Candidate Suggestions** - Search incomplete references with ``onecite suggest`` without resolving them to BibTeX
-- **BibTeX Output** - Standards-compliant ``.bib`` files rendered with ``bibtexparser``
+- **Candidate Suggestions** - Search incomplete references with ``onecite suggest`` without promoting them to resolved bibliography output
+- **BibTeX and CSL-JSON Output** - Emit ``.bib`` or structured citation records
 - **4-stage Pipeline** - 4-stage process for consistent output
 - **Field Completion** - Enrich entries with missing metadata
 - 🎓 **7+ Citation Types** - Handles journal articles, conference papers, books, software, datasets, theses, and preprints
@@ -64,7 +69,10 @@ Key Features
 Data Sources
 ============
 
-OneCite integrates with multiple authoritative academic data sources:
+OneCite uses input-dependent routes across multiple scholarly metadata
+sources; it does not query every source for every reference. See
+:doc:`external_services` for the exact routes, transmitted data, privacy
+boundary, and offline behavior.
 
 - `CrossRef <https://www.crossref.org/>`_ - Academic publication metadata
 - `Semantic Scholar <https://www.semanticscholar.org/>`_ - Literature search
@@ -73,9 +81,9 @@ OneCite integrates with multiple authoritative academic data sources:
 - `DataCite <https://datacite.org/>`_ - Scientific datasets
 - `Zenodo <https://zenodo.org/>`_ - Open research data
 - `Google Books <https://books.google.com/>`_ - Book metadata
-- `external providerRE <https://www.openaire.eu/>`_ / `BASE <https://www.base-search.net/>`_ - Theses & grey literature
+- `OpenAIRE <https://www.openaire.eu/>`_ / `BASE <https://www.base-search.net/>`_ - Theses & grey literature
 - `GitHub <https://github.com/>`_ - Software repositories
-- Google Scholar (optional ``suggest``-only best-effort fallback, via the ``scholarly`` package)
+- Google Scholar (optional scraping-based ``suggest`` fallback, off by default)
 
 Quick Start
 ===========

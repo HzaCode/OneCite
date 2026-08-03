@@ -6,21 +6,21 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pipeline Processing Reference &mdash; OneCite 0.1.1 documentation</title>
+  <title>Pipeline Processing Reference &mdash; OneCite 0.2.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=03e43079" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
   
       <script src="../_static/jquery.js?v=5d32c60e"></script>
       <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../_static/documentation_options.js?v=a58bc63e"></script>
+      <script src="../_static/documentation_options.js?v=938c9ccc"></script>
       <script src="../_static/doctools.js?v=9bcbadda"></script>
       <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Frequently Asked Questions (FAQ)" href="../faq.html" />
-    <link rel="prev" title="Exceptions Reference" href="exceptions.html" /> 
+    <link rel="prev" title="Exceptions and Per-Entry Failures" href="exceptions.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -52,6 +52,7 @@
 <p class="caption" role="heading"><span class="caption-text">User Guides</span></p>
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="../advanced_usage.html">Advanced Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../external_services.html">Privacy and External Services</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../python_api.html">Python API Reference</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../templates.html">Custom Templates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../benchmarking.html">Benchmarking</a></li>
@@ -62,7 +63,7 @@
 <p class="caption" role="heading"><span class="caption-text">API Reference</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="core.html">Core API Reference</a></li>
-<li class="toctree-l1"><a class="reference internal" href="exceptions.html">Exceptions Reference</a></li>
+<li class="toctree-l1"><a class="reference internal" href="exceptions.html">Exceptions and Per-Entry Failures</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Pipeline Processing Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#overview">Overview</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#package-layout">Package Layout</a></li>
@@ -126,14 +127,14 @@
 <section id="overview">
 <h2>Overview<a class="headerlink" href="#overview" title="Link to this heading"></a></h2>
 <p>The OneCite pipeline is a 4-stage process that transforms raw references
-into formatted BibTeX:</p>
+into formatted BibTeX or CSL-JSON:</p>
 <ol class="arabic simple">
 <li><p><strong>Parse</strong> — read the raw input and produce <code class="docutils literal notranslate"><span class="pre">RawEntry</span></code> objects</p></li>
 <li><p><strong>Identify</strong> — look up each entry in external APIs and fill in a DOI / basic metadata</p></li>
 <li><p><strong>Enrich</strong> — fetch full metadata for the identified entries</p></li>
-<li><p><strong>Format</strong> — render the completed entries as BibTeX</p></li>
+<li><p><strong>Format</strong> — render the completed entries as BibTeX or CSL-JSON</p></li>
 </ol>
-<p>The implementation lives in the <code class="docutils literal notranslate"><span class="pre">onecite/pipeline/</span></code> package with one
+<p>The implementation lives in the <code class="docutils literal notranslate"><span class="pre">src/onecite/pipeline/</span></code> package with one
 module per stage.  For backwards-compatibility all public symbols remain
 importable from <code class="docutils literal notranslate"><span class="pre">onecite.pipeline</span></code>:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
@@ -147,7 +148,7 @@ importable from <code class="docutils literal notranslate"><span class="pre">one
 </section>
 <section id="package-layout">
 <h2>Package Layout<a class="headerlink" href="#package-layout" title="Link to this heading"></a></h2>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>onecite/pipeline/
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>src/onecite/pipeline/
     __init__.py     - re-exports + ``requests`` at package level
     _utils.py       - _safe_year helper
     parser.py       - ParserModule
@@ -184,53 +185,55 @@ parsing fails.</p>
 </section>
 <section id="stage-2-identify-identifiermodule">
 <h2>Stage 2: Identify (<code class="docutils literal notranslate"><span class="pre">IdentifierModule</span></code>)<a class="headerlink" href="#stage-2-identify-identifiermodule" title="Link to this heading"></a></h2>
-<p><strong>Purpose:</strong> resolve each <code class="docutils literal notranslate"><span class="pre">RawEntry</span></code> with strong identifiers into an
-<code class="docutils literal notranslate"><span class="pre">IdentifiedEntry</span></code> with a DOI / arXiv ID / URL plus basic metadata.
-Plain-text title searches are not resolved by the processing pipeline; use
-the suggestion workflow for candidate search.</p>
+<p><strong>Purpose:</strong> route supported identifiers into an <code class="docutils literal notranslate"><span class="pre">IdentifiedEntry</span></code> with a
+DOI / arXiv ID / URL plus basic metadata. Ordinary plain-text title searches
+are not resolved by the processing pipeline; use the suggestion workflow for
+candidate search. Explicitly labelled thesis/dissertation text is a separate
+exception described below.</p>
 <p><strong>Input:</strong> <code class="docutils literal notranslate"><span class="pre">List[RawEntry]</span></code> and an <code class="docutils literal notranslate"><span class="pre">interactive_callback</span></code> kept for API
 compatibility.</p>
 <p><strong>Output:</strong> <code class="docutils literal notranslate"><span class="pre">List[IdentifiedEntry]</span></code>.</p>
 <p><strong>Data sources actually queried by the code:</strong></p>
 <ul class="simple">
-<li><p>CrossRef (DOI-based lookup; candidate search in suggest mode)</p></li>
-<li><p>Semantic Scholar (candidate search in suggest mode)</p></li>
-<li><p>arXiv (via feedparser)</p></li>
-<li><p>PubMed (biomedical, queried when strong cues are present)</p></li>
-<li><p>DataCite / Zenodo (datasets)</p></li>
-<li><p>Google Books (books — triggered by ISBN or publisher cues)</p></li>
-<li><p>external providerRE / BASE (theses)</p></li>
-<li><p>GitHub (software repositories)</p></li>
-<li><p>Google Scholar (optional, <code class="docutils literal notranslate"><span class="pre">suggest</span></code>-only best-effort fallback, disabled by
-default; opt-in via <code class="docutils literal notranslate"><span class="pre">suggest</span> <span class="pre">--google-scholar</span></code> or
-<code class="docutils literal notranslate"><span class="pre">suggest_references(use_google_scholar=True)</span></code> and requires the
-<code class="docutils literal notranslate"><span class="pre">scholarly</span></code> package; never used by <code class="docutils literal notranslate"><span class="pre">process</span></code>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">process</span></code> uses input-specific routes: Crossref/DataCite/Zenodo for DOIs,
+NCBI for PMIDs and DOI-based abstract fallback, arXiv for arXiv IDs, Google
+Books for ISBN-bearing references, GitHub for repository URLs, and the host
+supplied by an ordinary URL to inspect publisher-declared DOI metadata.</p></li>
+<li><p>Explicit thesis/dissertation text is sent to OpenAIRE and then BASE. If
+neither returns a record, explicit author/title/year/school fields parsed
+from the input can be formatted with an internal <code class="docutils literal notranslate"><span class="pre">manual</span></code> source marker.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">suggest</span></code> always consults Crossref, Semantic Scholar, and arXiv for a
+usable query. It conditionally adds PubMed, Google Books, OpenAIRE/BASE, and
+the opt-in Google Scholar fallback.</p></li>
 </ul>
-<p>There is <strong>no runtime routing based on filename</strong> and no fixed priority
-for “medical”, “CS” or “general” queries. Signal-based heuristics in
-suggestion mode decide when to <em>additionally</em> query PubMed, Google Books,
-external providerRE/BASE, etc. Text-only entries in process mode are
-reported as unresolved instead of being guessed.</p>
+<p>There is <strong>no runtime routing based on filename</strong> and no fixed priority for
+“medical”, “CS” or “general” queries. Text-only entries in <code class="docutils literal notranslate"><span class="pre">process</span></code> are
+reported as unresolved rather than guessed, except for the explicit thesis
+route above. See <a class="reference internal" href="../external_services.html"><span class="doc">Privacy and External Services</span></a> for exact triggers, transmitted
+data, privacy boundaries, and source-health limitations.</p>
 <p><strong>Confidence model:</strong></p>
 <p>After all suggestion sources have returned candidates, <code class="docutils literal notranslate"><span class="pre">_score_candidates</span></code>
 assigns each candidate a <code class="docutils literal notranslate"><span class="pre">match_score</span></code> (0–100) based on title / author /
 year / venue similarity to the query. Scores are returned for human or
 downstream review; they are not treated as validation proof.</p>
-<p>Fallback paths never fabricate data: an entry that cannot be resolved is
-marked <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> rather than filled with invented
-metadata.</p>
+<p>OneCite does not synthesize missing source fields. Unresolved ordinary entries
+are marked <code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> rather than filled with guessed metadata;
+the thesis exception copies fields that are explicitly present in the user’s
+input. This is not a guarantee that upstream metadata is correct, complete, or
+current. A source can return the wrong work or inaccurate fields, and
+source-resolution does not check authenticity or retraction status.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite.pipeline</span><span class="w"> </span><span class="kn">import</span> <span class="n">IdentifierModule</span>
 
 <span class="n">identifier</span> <span class="o">=</span> <span class="n">IdentifierModule</span><span class="p">(</span><span class="n">use_google_scholar</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
-<span class="n">identified</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">entries</span><span class="p">,</span> <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">identified</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">entries</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>
 <section id="stage-3-enrich-enrichermodule">
 <h2>Stage 3: Enrich (<code class="docutils literal notranslate"><span class="pre">EnricherModule</span></code>)<a class="headerlink" href="#stage-3-enrich-enrichermodule" title="Link to this heading"></a></h2>
 <p><strong>Purpose:</strong> take each <code class="docutils literal notranslate"><span class="pre">IdentifiedEntry</span></code> and produce a
-<code class="docutils literal notranslate"><span class="pre">CompletedEntry</span></code> with the BibTeX fields the selected template
-requires.</p>
+<code class="docutils literal notranslate"><span class="pre">CompletedEntry</span></code>. The selected template supplies a fallback entry type and a
+declared field set; it does not cause every declared source to be queried.</p>
 <p><strong>Input:</strong> <code class="docutils literal notranslate"><span class="pre">List[IdentifiedEntry]</span></code> and the loaded template.</p>
 <p><strong>Output:</strong> <code class="docutils literal notranslate"><span class="pre">List[CompletedEntry]</span></code>.</p>
 <p><strong>Fields typically filled in:</strong></p>
@@ -253,11 +256,11 @@ PubMed ESearch (DOI → PMID) + EFetch (PMID → abstract)
 </pre></div>
 </div>
 <p>The cascade is gated by <code class="docutils literal notranslate"><span class="pre">allow_abstract_fallback</span></code> and is only invoked
-when the caller’s <strong>raw input</strong> carried a DOI; DOIs inferred by fuzzy
-search never trigger it, so a possibly-wrong candidate does not cost
-extra roundtrips.  Title-based fallback is intentionally not used
-anywhere on this path — in testing it silently returned the abstract
-of an unrelated paper for at least one DOI
+when the caller’s <strong>raw input</strong> carried a DOI. A DOI returned by another
+route does not trigger it, and <code class="docutils literal notranslate"><span class="pre">process</span></code> does not accept fuzzy candidates.
+Title-based fallback is intentionally not used anywhere on this path — in
+testing it silently returned the abstract of an unrelated paper for at least
+one DOI
 (<code class="docutils literal notranslate"><span class="pre">10.1007/s10462-019-09792-7</span></code>), which is strictly worse than
 returning <code class="docutils literal notranslate"><span class="pre">None</span></code> for downstream semantic cross-checks.</p>
 <p>Wider template-driven field completion from external scrapers (the
@@ -276,12 +279,12 @@ Semantic-Scholar + PubMed cascade, not just PubMed.</p>
 </section>
 <section id="stage-4-format-formattermodule">
 <h2>Stage 4: Format (<code class="docutils literal notranslate"><span class="pre">FormatterModule</span></code>)<a class="headerlink" href="#stage-4-format-formattermodule" title="Link to this heading"></a></h2>
-<p><strong>Purpose:</strong> render each <code class="docutils literal notranslate"><span class="pre">CompletedEntry</span></code> as a BibTeX string.</p>
+<p><strong>Purpose:</strong> render each <code class="docutils literal notranslate"><span class="pre">CompletedEntry</span></code> as a BibTeX or CSL-JSON string.</p>
 <p><strong>Input:</strong> <code class="docutils literal notranslate"><span class="pre">List[CompletedEntry]</span></code> and an <code class="docutils literal notranslate"><span class="pre">output_format</span></code>.</p>
 <p><strong>Output:</strong> a dict with <code class="docutils literal notranslate"><span class="pre">results</span></code> (list of formatted strings) and
 <code class="docutils literal notranslate"><span class="pre">report</span></code> (<code class="docutils literal notranslate"><span class="pre">total</span></code> / <code class="docutils literal notranslate"><span class="pre">succeeded</span></code> / <code class="docutils literal notranslate"><span class="pre">failed_entries</span></code>).</p>
-<p>Only <code class="docutils literal notranslate"><span class="pre">&quot;bibtex&quot;</span></code> is accepted; passing any other value raises
-<code class="docutils literal notranslate"><span class="pre">FormatError</span></code>.  The previous APA and MLA renderers were removed in
+<p><code class="docutils literal notranslate"><span class="pre">&quot;bibtex&quot;</span></code> and <code class="docutils literal notranslate"><span class="pre">&quot;csl-json&quot;</span></code> are accepted; passing any other value raises
+<code class="docutils literal notranslate"><span class="pre">FormatError</span></code>. The previous APA and MLA renderers were removed in
 response to issues #31 and #32; for APA / MLA output, post-process the
 BibTeX file with pandoc or citeproc-py.</p>
 <p>Rendering uses <code class="xref py py-mod docutils literal notranslate"><span class="pre">bibtexparser</span></code> (<code class="docutils literal notranslate"><span class="pre">bibtexparser.dumps</span></code>) so the
@@ -301,8 +304,7 @@ high-level <code class="docutils literal notranslate"><span class="pre">process_
     <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span>
     <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
     <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-    <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">candidates</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span>
+    <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
 <span class="p">)</span>
 
 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]))</span>
@@ -331,7 +333,7 @@ modules directly:</p>
 <span class="n">formatter</span> <span class="o">=</span> <span class="n">FormatterModule</span><span class="p">()</span>
 
 <span class="n">raw</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="s2">&quot;10.1038/nature14539&quot;</span><span class="p">,</span> <span class="s2">&quot;txt&quot;</span><span class="p">)</span>
-<span class="n">identified</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">)</span>
+<span class="n">identified</span> <span class="o">=</span> <span class="n">identifier</span><span class="o">.</span><span class="n">identify</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span>
 <span class="n">completed</span> <span class="o">=</span> <span class="n">enricher</span><span class="o">.</span><span class="n">enrich</span><span class="p">(</span><span class="n">identified</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="n">raw</span><span class="p">)</span>
 <span class="n">result</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">completed</span><span class="p">,</span> <span class="s2">&quot;bibtex&quot;</span><span class="p">)</span>
 
@@ -344,13 +346,18 @@ modules directly:</p>
 <h1>Error Handling<a class="headerlink" href="#error-handling" title="Link to this heading"></a></h1>
 <p>All pipeline errors inherit from <code class="docutils literal notranslate"><span class="pre">OneCiteError</span></code>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> — empty / malformed input</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ParseError</span></code> — <code class="docutils literal notranslate"><span class="pre">ParserModule</span></code> could not split the input</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">ResolverError</span></code> — raised by helpers when a data source cannot
-resolve an identifier; generally caught internally and recorded as
-<code class="docutils literal notranslate"><span class="pre">identification_failed</span></code> on the entry instead of propagating</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">FormatError</span></code> — the requested <code class="docutils literal notranslate"><span class="pre">output_format</span></code> is not <code class="docutils literal notranslate"><span class="pre">&quot;bibtex&quot;</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ValidationError</span></code> — the high-level call received empty input</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ParseError</span></code> — <code class="docutils literal notranslate"><span class="pre">ParserModule</span></code> rejected the input type or BibTeX content</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ResolverError</span></code> — retained for API compatibility, but ordinary resolution
+misses in the current high-level pipeline are recorded in
+<code class="docutils literal notranslate"><span class="pre">report[&quot;failed_entries&quot;]</span></code> rather than raised</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">FormatError</span></code> — the requested <code class="docutils literal notranslate"><span class="pre">output_format</span></code> is neither <code class="docutils literal notranslate"><span class="pre">&quot;bibtex&quot;</span></code>
+nor <code class="docutils literal notranslate"><span class="pre">&quot;csl-json&quot;</span></code></p></li>
 </ul>
+<p>Inspect the returned <code class="docutils literal notranslate"><span class="pre">failed_entries</span></code> even when no exception was raised. A
+reason such as <code class="docutils literal notranslate"><span class="pre">no_strong_identifier</span></code> is not a network error; it directs the
+entry to <code class="docutils literal notranslate"><span class="pre">suggest</span></code>. See <a class="reference internal" href="exceptions.html"><span class="doc">Exceptions and Per-Entry Failures</span></a> for the current exception/report
+boundary.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">onecite</span><span class="w"> </span><span class="kn">import</span> <span class="n">process_references</span><span class="p">,</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">FormatError</span>
 
 <span class="k">try</span><span class="p">:</span>
@@ -358,8 +365,7 @@ resolve an identifier; generally caught internally and recorded as
         <span class="n">input_content</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
         <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
         <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
-        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span><span class="p">,</span>
-        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;bibtex&quot;</span>
     <span class="p">)</span>
 <span class="k">except</span> <span class="n">ValidationError</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Empty input&quot;</span><span class="p">)</span>
@@ -370,7 +376,6 @@ resolve an identifier; generally caught internally and recorded as
         <span class="n">input_type</span><span class="o">=</span><span class="s2">&quot;txt&quot;</span><span class="p">,</span>
         <span class="n">template_name</span><span class="o">=</span><span class="s2">&quot;journal_article_full&quot;</span><span class="p">,</span>
         <span class="n">output_format</span><span class="o">=</span><span class="s2">&quot;apa&quot;</span><span class="p">,</span>   <span class="c1"># no longer supported</span>
-        <span class="n">interactive_callback</span><span class="o">=</span><span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
     <span class="p">)</span>
 <span class="k">except</span> <span class="n">FormatError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
     <span class="nb">print</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span>
@@ -379,7 +384,7 @@ resolve an identifier; generally caught internally and recorded as
 </section>
 <section id="testing-hooks">
 <h1>Testing Hooks<a class="headerlink" href="#testing-hooks" title="Link to this heading"></a></h1>
-<p>Because <code class="docutils literal notranslate"><span class="pre">onecite/pipeline/__init__.py</span></code> imports <code class="docutils literal notranslate"><span class="pre">requests</span></code> at the
+<p>Because <code class="docutils literal notranslate"><span class="pre">src/onecite/pipeline/__init__.py</span></code> imports <code class="docutils literal notranslate"><span class="pre">requests</span></code> at the
 package level, tests that mock the network can continue to use the
 original patch target:</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">unittest.mock</span><span class="w"> </span><span class="kn">import</span> <span class="n">patch</span>
@@ -411,7 +416,7 @@ reference</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="exceptions.html" class="btn btn-neutral float-left" title="Exceptions Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="exceptions.html" class="btn btn-neutral float-left" title="Exceptions and Per-Entry Failures" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="../faq.html" class="btn btn-neutral float-right" title="Frequently Asked Questions (FAQ)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
