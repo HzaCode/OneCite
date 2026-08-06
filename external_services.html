@@ -293,9 +293,15 @@ reproducible dependency. It is never used by <code class="docutils literal notra
 always-consulted indexes: <code class="docutils literal notranslate"><span class="pre">crossref</span></code>, <code class="docutils literal notranslate"><span class="pre">semantic_scholar</span></code>, and <code class="docutils literal notranslate"><span class="pre">arxiv</span></code>.
 Each item contains a status and candidate count. Persistent throttling is
 reported as <code class="docutils literal notranslate"><span class="pre">rate_limited</span></code> where the route distinguishes it; other failures
-are reported as <code class="docutils literal notranslate"><span class="pre">error</span></code>. If any reported source is degraded, the suggestion
-status ends in <code class="docutils literal notranslate"><span class="pre">_incomplete</span></code>. Human-readable output prints a warning for each
-degraded reported source.</p>
+are reported as <code class="docutils literal notranslate"><span class="pre">error</span></code>. A source that failed terminally on consecutive
+earlier entries of the same run is short-circuited for a cooldown period and
+reported as <code class="docutils literal notranslate"><span class="pre">skipped_unhealthy</span></code> instead of being re-queried — the skip is
+always disclosed, and one probe request is allowed after the cooldown so a
+recovered source rejoins automatically. Applicable sources are queried
+concurrently with bounded retry waits, so one degraded provider slows only
+its own entry in the <code class="docutils literal notranslate"><span class="pre">sources</span></code> list rather than the whole batch. If any
+reported source is degraded, the suggestion status ends in <code class="docutils literal notranslate"><span class="pre">_incomplete</span></code>.
+Human-readable output prints a warning for each degraded reported source.</p>
 <p>This is not a complete network trace. Conditional sources such as PubMed,
 Google Books, OpenAIRE, BASE, and Google Scholar do not currently have the same
 per-source health entries. <code class="docutils literal notranslate"><span class="pre">process</span></code> also has no equivalent source-health
