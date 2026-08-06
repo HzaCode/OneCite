@@ -7,6 +7,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
 ## [Unreleased]
 
 ### Added
+- Per-source circuit breaker for live lookups: a source that fails
+  terminally on consecutive entries of one run is skipped for a cooldown
+  period and disclosed as `skipped_unhealthy` in `suggest` source health,
+  with a single probe request after the cooldown so recovered sources
+  rejoin automatically (`onecite.pipeline.source_health`).
+
+### Changed
+- `suggest` now queries its candidate sources concurrently instead of
+  serially; candidate ordering, scoring, and per-source disclosure are
+  unchanged, so one slow provider no longer serializes the whole lookup.
+- Live-source retry waits use a bounded latency budget: fallback backoff
+  is now 1/3/8 seconds (previously 10/60/300) and Retry-After waits are
+  capped at 20 seconds per attempt. A degraded provider now degrades one
+  source's disclosed completeness instead of stalling the batch.
+- Near-tie candidate ranking now prefers candidates from sources that
+  finished healthy over candidates from sources that reported errors or
+  rate limits during the same lookup.
+
 - Enhanced CLI modes for automated workflows: `onecite process --json`,
   `onecite process --ndjson`, and `--fail-on-unresolved` exit code `2`
   for unresolved-entry handling in scripts.
@@ -89,6 +107,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/), and this
   exhaustive. Semantic Scholar rate limits are retried once with backoff.
 
 ### Changed
+- `suggest` now queries applicable sources concurrently and merges
+  candidates in the frozen historical source order, so collection
+  wall-clock time is bounded by the slowest single source instead of the
+  sum of every source's retry budget.
+- Transient-error retry waits are latency-budgeted: fallback backoff is
+  now 1 s / 3 s / 8 s (previously 10 s / 60 s / 300 s) and honoured
+  `Retry-After` waits are capped at 20 s per wait (previously 600 s). A
+  degraded provider now degrades one disclosed source's completeness
+  instead of stalling the batch.
+- Candidate tie-breaking prefers, at equal lexical evidence, a candidate
+  returned by a source whose queries completed cleanly in the current
+  round over one from a rate-limited or errored source.
 - Moved the importable package from the repository root to
   `src/onecite`, adopting the standard `src/` repository layout while
   retaining the public `onecite` module and CLI names.

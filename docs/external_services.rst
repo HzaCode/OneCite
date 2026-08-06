@@ -154,9 +154,15 @@ For each query, ``suggest --json`` reports a ``sources`` list for the three
 always-consulted indexes: ``crossref``, ``semantic_scholar``, and ``arxiv``.
 Each item contains a status and candidate count. Persistent throttling is
 reported as ``rate_limited`` where the route distinguishes it; other failures
-are reported as ``error``. If any reported source is degraded, the suggestion
-status ends in ``_incomplete``. Human-readable output prints a warning for each
-degraded reported source.
+are reported as ``error``. A source that failed terminally on consecutive
+earlier entries of the same run is short-circuited for a cooldown period and
+reported as ``skipped_unhealthy`` instead of being re-queried — the skip is
+always disclosed, and one probe request is allowed after the cooldown so a
+recovered source rejoins automatically. Applicable sources are queried
+concurrently with bounded retry waits, so one degraded provider slows only
+its own entry in the ``sources`` list rather than the whole batch. If any
+reported source is degraded, the suggestion status ends in ``_incomplete``.
+Human-readable output prints a warning for each degraded reported source.
 
 This is not a complete network trace. Conditional sources such as PubMed,
 Google Books, OpenAIRE, BASE, and Google Scholar do not currently have the same

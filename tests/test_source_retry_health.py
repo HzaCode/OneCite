@@ -85,7 +85,7 @@ def test_every_source_stops_after_four_persistent_429_attempts(source_key, metho
         _call_source(identifier, method_name, args)
 
     assert get_mock.call_count == 4
-    assert [call.args[0] for call in sleep_mock.call_args_list] == [10.0, 60.0, 300.0]
+    assert [call.args[0] for call in sleep_mock.call_args_list] == [1.0, 3.0, 8.0]
     assert identifier._source_status == {source_key: "rate_limited"}
 
 
@@ -100,7 +100,7 @@ def test_retryable_server_errors_share_the_four_attempt_policy(status_code):
         assert identifier._search_semantic_scholar("ordinary citation") == []
 
     assert get_mock.call_count == 4
-    assert [call.args[0] for call in sleep_mock.call_args_list] == [10.0, 60.0, 300.0]
+    assert [call.args[0] for call in sleep_mock.call_args_list] == [1.0, 3.0, 8.0]
     assert identifier._source_status == {"semantic_scholar": "error"}
 
 
@@ -119,7 +119,7 @@ def test_timeout_and_connection_or_dns_errors_are_retried_four_times(exception_t
         assert identifier._search_arxiv_candidates("ordinary citation") == []
 
     assert get_mock.call_count == 4
-    assert [call.args[0] for call in sleep_mock.call_args_list] == [10.0, 60.0, 300.0]
+    assert [call.args[0] for call in sleep_mock.call_args_list] == [1.0, 3.0, 8.0]
     assert identifier._source_status == {"arxiv": "error"}
 
 
@@ -209,7 +209,7 @@ def test_retry_after_is_honoured_capped_and_disclosed_end_to_end():
         suggestion = identifier.suggest({"id": 1, "raw_text": query, "query_string": query})
 
     assert openaire_calls == 4
-    assert sleeps == [600.0, 60.0, 300.0]
+    assert sleeps == [20.0, 3.0, 8.0]
     assert _source_map(suggestion) == {
         "arxiv": "ok",
         "base_search": "ok",

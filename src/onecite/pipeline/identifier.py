@@ -5,7 +5,9 @@
 
 import re
 import logging
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from typing import Any, List, Dict, Optional, Callable
@@ -23,13 +25,18 @@ except ImportError:
 from .. import __email__, __version__
 from ..core import RawEntry, IdentifiedEntry
 from ._utils import _safe_year
+from .source_health import SourceCircuitBreaker
 
 RETRYABLE_HTTP_STATUSES = (429, 500, 502, 503, 504)
-MAX_RETRY_WAIT_SECONDS = 600.0
+# Retry waits are bounded by a per-wait latency budget rather than by trusting
+# arbitrarily large Retry-After headers: a degraded provider must degrade one
+# source's completeness (which is disclosed), not stall the whole batch. The
+# per-source circuit breaker in ``source_health`` handles persistent outages.
+MAX_RETRY_WAIT_SECONDS = 20.0
 SUGGESTION_MAX_ATTEMPTS = 4
-SUGGESTION_FALLBACK_BACKOFF_SECONDS = (10.0, 60.0, 300.0)
+SUGGESTION_FALLBACK_BACKOFF_SECONDS = (1.0, 3.0, 8.0)
 
-_SOURCE_STATUS_PRIORITY = {"ok": 0, "rate_limited": 1, "error": 2}
+_SOURCE_STATUS_PRIORITY = {"ok": 0, "rate_limited": 1, "skipped_unhealthy": 2, "error": 3}
 
 # Zenodo minted nine incorrect DOI numeric IDs during a short 2013 legacy
 # interval. Its current official implementation still maps these record IDs
@@ -84,12 +91,21 @@ def _retry_after_delay(response: Any, fallback_seconds: float) -> tuple[float, s
 class IdentifierModule:
     """Stage 2: Identification and Standardization Module."""
 
-    def __init__(self, use_google_scholar: bool = False):
+    def __init__(
+        self,
+        use_google_scholar: bool = False,
+        source_breaker: Optional[SourceCircuitBreaker] = None,
+    ):
         """Initialize the identifier module.
 
         Args:
             use_google_scholar: Enable Google Scholar lookups when
                 ``True``.  Defaults to ``False``.
+            source_breaker: Circuit breaker shared across lookups made by
+                this module. One batch run (one module instance) skips a
+                source after repeated terminal failures instead of burning
+                the full retry budget on every entry. A fresh breaker is
+                created when ``None``.
         """
         self.logger = logging.getLogger(__name__)
         self.crossref_base_url = "https://api.crossref.org/works"
@@ -106,6 +122,8 @@ class IdentifierModule:
         # output — silently returning fewer candidates misrepresents how
         # complete the suggestion list is.
         self._source_status: Dict[str, str] = {}
+        self._status_lock = threading.Lock()
+        self._breaker = source_breaker if source_breaker is not None else SourceCircuitBreaker()
         self._user_agent = (
             f"OneCite/{__version__} " f"(https://github.com/HzaCode/OneCite; mailto:{__email__})"
         )
@@ -126,9 +144,29 @@ class IdentifierModule:
         """
         if status not in _SOURCE_STATUS_PRIORITY:
             raise ValueError(f"Unsupported source status: {status}")
-        current = self._source_status.get(source_name)
-        if current is None or _SOURCE_STATUS_PRIORITY[status] > _SOURCE_STATUS_PRIORITY[current]:
-            self._source_status[source_name] = status
+        with self._status_lock:
+            current = self._source_status.get(source_name)
+            if (
+                current is None
+                or _SOURCE_STATUS_PRIORITY[status] > _SOURCE_STATUS_PRIORITY[current]
+            ):
+                self._source_status[source_name] = status
+        # Feed the circuit breaker from the same single funnel that records
+        # disclosure, so skip decisions and disclosed health can never diverge.
+        if status == "ok":
+            self._breaker.record_success(source_name)
+        elif status in ("rate_limited", "error"):
+            self._breaker.record_failure(source_name)
+
+    def _source_allowed(self, source_name: str) -> bool:
+        """Check the breaker; a skipped source is disclosed, never silent."""
+        if self._breaker.allow(source_name):
+            return True
+        self.logger.warning(
+            "%s skipped: circuit breaker open after repeated failures", source_name
+        )
+        self._record_source_status(source_name, "skipped_unhealthy")
+        return False
 
     def _get_with_retry(
         self,
@@ -1133,6 +1171,8 @@ class IdentifierModule:
 
     def _search_base_for_thesis(self, query: str, year: Optional[int] = None) -> Optional[Dict]:
         """Search BASE (Bielefeld Academic Search Engine) for thesis"""
+        if not self._source_allowed("base_search"):
+            return None
         try:
             # Clean query
             query_clean = re.sub(
@@ -1210,6 +1250,8 @@ class IdentifierModule:
 
     def _search_openaire_for_thesis(self, title: str, year: Optional[int] = None) -> Optional[Dict]:
         """Search external providerRE for thesis/dissertation"""
+        if not self._source_allowed("openaire"):
+            return None
         try:
             query = f'"{title}"'
             if year:
@@ -1316,6 +1358,8 @@ class IdentifierModule:
 
     def _search_pubmed_by_id(self, pmid: str) -> Optional[Dict]:
         """Search PubMed by PMID"""
+        if not self._source_allowed("pubmed"):
+            return None
         try:
             url = f"{self.pubmed_base}/esummary.fcgi"
             params: Dict[str, Any] = {"db": "pubmed", "id": pmid, "retmode": "json"}
@@ -1374,6 +1418,8 @@ class IdentifierModule:
 
     def _search_pubmed(self, query: str, limit: int = 5) -> List[Dict]:
         """Search PubMed for medical literature"""
+        if not self._source_allowed("pubmed"):
+            return []
         try:
             # First, search for PMIDs
             search_url = f"{self.pubmed_base}/esearch.fcgi"
@@ -1424,6 +1470,8 @@ class IdentifierModule:
         arXiv covers the CS/ML venues that CrossRef does not index (e.g.
         NeurIPS/ICML papers), so it fills a real coverage gap in suggest.
         """
+        if not self._source_allowed("arxiv"):
+            return []
         try:
             import feedparser
 
@@ -1512,6 +1560,8 @@ class IdentifierModule:
 
     def _search_semantic_scholar(self, query: str, limit: int = 5) -> List[Dict]:
         """Search Semantic Scholar for academic papers"""
+        if not self._source_allowed("semantic_scholar"):
+            return []
         try:
             url = f"{self.semantic_scholar_base}/paper/search"
             params: Dict[str, Any] = {
@@ -1748,49 +1798,76 @@ class IdentifierModule:
         return {key: value for key, value in candidate.items() if not key.startswith("_")}
 
     def _collect_suggestion_candidates(self, query_string: str) -> List[Dict]:
-        """Collect possible matches for suggestion-only workflows."""
+        """Collect possible matches for suggestion-only workflows.
+
+        Applicable sources are queried concurrently — wall-clock time is
+        bounded by the slowest single source instead of the sum of every
+        source's retry budget — while results are merged in a fixed source
+        order so candidate ordering (and every downstream `_collection_rank`
+        tie-break) is byte-identical to the historical sequential collection.
+        """
         query_lower = query_string.lower()
-        candidates = []
-
-        self.logger.info("Querying suggestion sources: CrossRef + Semantic Scholar + arXiv")
-        crossref_results = self._search_crossref(query_string)
-        candidates.extend(crossref_results)
-
-        semantic_results = self._search_semantic_scholar(query_string)
-        candidates.extend(semantic_results)
-
-        arxiv_results = self._search_arxiv_candidates(query_string)
-        candidates.extend(arxiv_results)
 
         pmid_match = re.match(r"^(PMID:?\s*)?(\d{7,8})$", query_string.strip(), re.IGNORECASE)
-        if pmid_match:
-            pubmed_result = self._search_pubmed_by_id(pmid_match.group(2))
-            if pubmed_result:
-                candidates.append(pubmed_result)
-
         strong_medical_cues = ["pubmed", "pmid", "clinical trial", "randomized controlled"]
-        if any(cue in query_lower for cue in strong_medical_cues):
-            candidates.extend(self._search_pubmed(query_string))
-
+        has_medical_cue = any(cue in query_lower for cue in strong_medical_cues)
         has_isbn = bool(re.search(r"isbn[:\s]*[\d\-xX]{10,17}", query_lower, re.IGNORECASE))
         has_edition = bool(re.search(r"\b\d+(?:st|nd|rd|th)?\s+ed\.?\b", query_lower))
         has_book_publisher = any(
             pub in query_lower
             for pub in ["wiley", "o'reilly", "springer", "cambridge press", "mit press"]
         )
-        if has_isbn or has_edition or has_book_publisher:
-            candidates.extend(self._search_google_books(query_string))
-
         # Match whole words only: a bare "thesis"/"dissertation" substring
         # check also fires on "hypothesis", "synthesis", "parenthesis", etc.,
         # routing unrelated queries to thesis search.
-        if re.search(r"\b(thesis|dissertation)\b", query_lower):
-            thesis_results = self._search_openaire_for_thesis(
+        is_thesis_query = bool(re.search(r"\b(thesis|dissertation)\b", query_lower))
+
+        def _pubmed_by_id_task() -> List[Dict]:
+            result = self._search_pubmed_by_id(pmid_match.group(2)) if pmid_match else None
+            return [result] if result else []
+
+        def _thesis_task() -> List[Dict]:
+            result = self._search_openaire_for_thesis(
                 query_string
             ) or self._search_base_for_thesis(query_string)
-            if thesis_results:
-                candidates.append(thesis_results)
+            return [result] if result else []
 
+        # (name, task) in the frozen historical collection order.
+        tasks: List[tuple[str, Callable[[], List[Dict]]]] = [
+            ("crossref", lambda: self._search_crossref(query_string)),
+            ("semantic_scholar", lambda: self._search_semantic_scholar(query_string)),
+            ("arxiv", lambda: self._search_arxiv_candidates(query_string)),
+        ]
+        if pmid_match:
+            tasks.append(("pubmed_by_id", _pubmed_by_id_task))
+        if has_medical_cue:
+            tasks.append(("pubmed_search", lambda: self._search_pubmed(query_string)))
+        if has_isbn or has_edition or has_book_publisher:
+            tasks.append(("google_books", lambda: self._search_google_books(query_string)))
+        if is_thesis_query:
+            tasks.append(("thesis", _thesis_task))
+
+        self.logger.info(
+            "Querying %d suggestion sources concurrently: %s",
+            len(tasks),
+            " + ".join(name for name, _ in tasks),
+        )
+        results: Dict[str, List[Dict]] = {}
+        with ThreadPoolExecutor(max_workers=len(tasks)) as executor:
+            futures = {name: executor.submit(task) for name, task in tasks}
+            for name, future in futures.items():
+                try:
+                    results[name] = future.result() or []
+                except Exception as exc:  # Defensive: sources catch their own errors.
+                    self.logger.error("Suggestion source %s raised unexpectedly: %s", name, exc)
+                    results[name] = []
+
+        candidates: List[Dict] = []
+        for name, _ in tasks:
+            candidates.extend(results.get(name, []))
+
+        crossref_results = results.get("crossref", [])
+        semantic_results = results.get("semantic_scholar", [])
         if self.use_google_scholar and not crossref_results and not semantic_results:
             candidates.extend(self._search_google_scholar(query_string))
 
@@ -1798,6 +1875,8 @@ class IdentifierModule:
 
     def _search_crossref(self, query: str, limit: int = 15) -> List[Dict]:
         """CrossRef search with query optimization."""
+        if not self._source_allowed("crossref"):
+            return []
         try:
             # Crossref's bibliographic query is designed for complete or
             # partial citation strings.  Supplying the same unparsed citation
@@ -1965,6 +2044,8 @@ class IdentifierModule:
 
     def _search_google_books(self, query: str, limit: int = 5) -> List[Dict]:
         """Search Google Books API for book metadata"""
+        if not self._source_allowed("google_books"):
+            return []
         try:
             # Strategy: Extract meaningful keywords - title and author last names
             query_clean = ""
@@ -2476,6 +2557,8 @@ class IdentifierModule:
         # DOI, source tier) instead of by raw score. Candidates outside the
         # cluster keep their score order.
         if len(scored_candidates) >= 2:
+            with self._status_lock:
+                source_status = dict(self._source_status)
 
             def tie_break_rank(c):
                 sb = c.get("score_breakdown", {})
@@ -2486,6 +2569,11 @@ class IdentifierModule:
                 venue_hit = int(sb.get("venue", 0) >= 70)
                 # 3. Has DOI
                 has_doi = int(bool(c.get("doi")))
+                # 3b. Prefer candidates from a source whose queries completed
+                # cleanly this round: a rate-limited or errored source may have
+                # returned a truncated, lower-quality candidate page, so at
+                # equal lexical evidence the healthy source's candidate wins.
+                healthy_source = int(source_status.get(c.get("source"), "ok") == "ok")
                 # 4. Preserve a consulted source's own relevance order when
                 # OneCite's lexical scores are effectively tied.
                 source_rank = c.get("_source_rank")
@@ -2510,6 +2598,7 @@ class IdentifierModule:
                     exact_title,
                     venue_hit,
                     has_doi,
+                    healthy_source,
                     source_position,
                     -source_tier,
                     c.get("match_score", 0),

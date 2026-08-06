@@ -72,7 +72,7 @@ def test_persistent_429_is_disclosed_as_rate_limited_not_error():
 
     assert results == []
     assert status == {"arxiv": "rate_limited"}
-    assert sleeps == [10.0, 60.0, 300.0]
+    assert sleeps == [1.0, 3.0, 8.0]
 
 
 def test_retry_after_takes_precedence_and_is_capped():
@@ -84,7 +84,7 @@ def test_retry_after_takes_precedence_and_is_capped():
 
     assert status == {"arxiv": "ok"}
     assert results
-    assert sleeps == [600.0]
+    assert sleeps == [20.0]
 
 
 def test_transient_500_is_retried():
